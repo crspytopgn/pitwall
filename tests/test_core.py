@@ -127,6 +127,58 @@ def drive_loop(tracker, laps=2, radius=100.0, speed=40.0, brake_zone=(0.45, 0.55
     return t
 
 
+def f1_packets(fmt, player=3, speed=250, gear=7, lap_num=4, cur_ms=45000, last_ms=91234, dist=1500.0):
+    hdr_len, id_at, pl_at = parsers.F1_FORMATS[fmt]
+
+    def header(pid):
+        h = bytearray(hdr_len)
+        struct.pack_into("<H", h, 0, fmt)
+        h[id_at], h[pl_at] = pid, player
+        return h
+    motion = header(0) + bytearray(22 * 60)
+    struct.pack_into("<3f", motion, hdr_len + player * 60, 100.0, 5.0, -200.0)
+    session = header(1) + bytearray(600)
+    struct.pack_into("<H", session, hdr_len + 4, 5000)
+    lap_size = 50 if fmt == 2023 else 43
+    lap = header(2) + bytearray(22 * lap_size + 2)
+    o = hdr_len + player * lap_size
+    struct.pack_into("<2I", lap, o, last_ms, cur_ms)
+    d_at, n_at = (18, 31) if fmt == 2023 else (12, 25)
+    struct.pack_into("<f", lap, o + d_at, dist)
+    lap[o + n_at] = lap_num
+    tel = header(6) + bytearray(22 * 60 + 3)
+    o = hdr_len + player * 60
+    struct.pack_into("<HfffBbH", tel, o, speed, 0.9, -0.1, 0.0, 0, gear, 11000)
+    struct.pack_into("<4B", tel, o + 30, 90, 91, 100, 101)     # RL, RR, FL, FR
+    return [bytes(motion), bytes(session), bytes(lap), bytes(tel)]
+
+
+class TestF1(unittest.TestCase):
+    def test_all_formats(self):
+        for fmt in (2021, 2022, 2023):
+            a = parsers.F1Assembler()
+            out = [a.feed(p) for p in f1_packets(fmt)]
+            f = out[-1]
+            self.assertIsNotNone(f, fmt)
+            self.assertEqual((f.sim, f.gear, f.lap), ("f1", 7, 3))
+            self.assertAlmostEqual(f.speed, 250 / 3.6, places=3)
+            self.assertEqual(f.pos, (100.0, -200.0, 5.0))
+            self.assertAlmostEqual(f.lap_time, 45.0)
+            self.assertAlmostEqual(f.last_lap, 91.234)
+            self.assertAlmostEqual(f.lap_frac, 0.3)
+            self.assertEqual(f.tyre_temp, [100.0, 101.0, 90.0, 91.0])
+
+    def test_rejects_unknown_formats_and_bad_lap_data(self):
+        a = parsers.F1Assembler()
+        pk = f1_packets(2023)
+        bad = bytearray(pk[0]); struct.pack_into("<H", bad, 0, 2024)
+        self.assertIsNone(a.feed(bytes(bad)))
+        a.feed(pk[1])
+        a.feed(f1_packets(2023, lap_num=0)[2])        # nonsense lap data is ignored
+        f = a.feed(pk[3])
+        self.assertIsNone(f.lap)
+
+
 class TestLaps(unittest.TestCase):
     def test_gate_laps_and_delta(self):
         laps = []
@@ -185,7 +237,7 @@ class TestCoach(unittest.TestCase):
 class TestHubEndToEnd(unittest.TestCase):
     def test_udp_beamng_session(self):
         tmp = tempfile.mkdtemp()
-        ports = {"outgauge": 47444, "motionsim": 47445, "forza": 47300, "codemasters": 47777}
+        ports = {"outgauge": 47444, "motionsim": 47445, "forza": 47300, "codemasters": 47777, "f1": 47778}
         hub = Hub(os.path.join(tmp, "laps.sqlite"), ports=ports, enable_shm=False)
         hub.start()
         dash = Dashboard(hub, port=48090)
@@ -224,6 +276,11 @@ class TestHubEndToEnd(unittest.TestCase):
         summ = engineer.build_summary(hub.session_summary())
         self.assertEqual(summ["laps"], 2)
         self.assertTrue(engineer.offline_debrief(summ))
+        # F1 via the shared Codemasters port
+        for p in f1_packets(2022):
+            s.sendto(p, ("127.0.0.1", 47777))
+        time.sleep(0.2)
+        self.assertEqual(hub.status()["sim"], "f1")
         hub.stop()
         dash.stop()
         del tr_feed, hub_tr
@@ -284,7 +341,7 @@ class TestCompat(unittest.TestCase):
         ov = c.overview()
         self.assertEqual(ov[0]["id"], "beamng")
         self.assertTrue(ov[0]["installed"])
-        d = c.detail("iracing", online=False)
+        d = c.detail("eawrc", online=False)
         self.assertEqual(d["status"], "broken")
 
     def test_dr2_auto_setup(self):
@@ -340,7 +397,7 @@ class TestFfb(unittest.TestCase):
 
 class TestHealth(unittest.TestCase):
     def test_runs_without_hardware(self):
-        res = health.check(None, None, {"name": "iRacing", "status": "broken", "install": ["x"], "telemetry": {}})
+        res = health.check(None, None, {"name": "EA SPORTS WRC", "status": "broken", "install": ["x"], "telemetry": {}})
         ids = {r["id"] for r in res}
         self.assertIn("wheel", ids)
         self.assertIn("compat", ids)

@@ -46,7 +46,7 @@ class TestPluginBackend(unittest.TestCase):
             st = await p.session_status()
             self.assertFalse(st["receiving"])
             self.assertTrue(len(await p.compat_list()) > 10)
-            r = await p.game_changed("266410", "iRacing", True)
+            r = await p.game_changed("1849250", "EA SPORTS WRC", True)
             self.assertEqual(r["game"]["status"], "broken")
             checks = await p.health_check()
             self.assertTrue(any(c["id"] == "compat" for c in checks))

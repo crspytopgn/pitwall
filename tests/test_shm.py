@@ -4,6 +4,7 @@ which fills the real C structs (simapi headers) with known values."""
 import gzip
 import os
 import shutil
+import struct
 import sys
 import tempfile
 import time
@@ -74,6 +75,60 @@ class TestShmParsers(unittest.TestCase):
         self.assertEqual(f.tyre_temp[0], 85.0)
         self.assertEqual(f.tyre_window, (70.0, 90.0, 110.0))
         self.assertTrue(f.active)
+
+    def test_scs(self):
+        f = shm.parse_scs(load("scs"))
+        self.assertEqual((f.sim, f.gear, f.car), ("ets2", 5, "Scania S"))
+        self.assertAlmostEqual(f.speed, 22.2, places=4)      # reversing reports negative speed
+        self.assertAlmostEqual(f.fuel, 0.75)
+        self.assertEqual(f.pos, (-1000.5, 2000.25, 50.0))
+        self.assertTrue(f.active)
+
+    def test_scs_inactive_sdk(self):
+        b = bytearray(load("scs"))
+        b[0] = 0
+        self.assertIsNone(shm.parse_scs(bytes(b)))
+
+    def test_source_finds_nested_scs_map(self):
+        d = tempfile.mkdtemp()
+        os.makedirs(os.path.join(d, "SCS"))
+        with open(os.path.join(d, "SCS", "SCSTelemetry"), "wb") as fh:
+            fh.write(load("scs"))
+        got = []
+        src = shm.ShmSource(got.append, rate_hz=100, shm_dir=d)
+        src.start()
+        time.sleep(0.3)
+        src.stop()
+        self.assertEqual(src.active, "scs")
+        self.assertTrue(got and got[0].sim == "ets2")
+        shutil.rmtree(d)
+
+    def test_frozen_map_does_not_block_live_sim(self):
+        """A map left behind by an exited game (AMS2) mustn't hide a live one (RaceRoom)."""
+        d = tempfile.mkdtemp()
+        with open(os.path.join(d, "$pcars2$"), "wb") as fh:
+            fh.write(load("pcars2"))
+        r3e = bytearray(load("r3e"))
+        path = os.path.join(d, "$R3E")
+        with open(path, "wb") as fh:
+            fh.write(r3e)
+        got = []
+        src = shm.ShmSource(got.append, rate_hz=100, shm_dir=d)
+        src.frozen_after = 0.3
+        src.start()
+        deadline = time.time() + 3
+        i = 0
+        while time.time() < deadline and src.active != "r3e":
+            i += 1
+            struct.pack_into("<f", r3e, shm.R3E["cur"], 10.0 + i)   # RaceRoom keeps updating
+            with open(path, "r+b") as fh:
+                fh.write(r3e)
+            time.sleep(0.05)
+        time.sleep(0.2)
+        src.stop()
+        self.assertEqual(src.active, "r3e")
+        self.assertTrue(any(f.sim == "r3e" for f in got))
+        shutil.rmtree(d)
 
     def test_source_picks_up_bridge_files(self):
         d = tempfile.mkdtemp()

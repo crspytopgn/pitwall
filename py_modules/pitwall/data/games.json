@@ -478,18 +478,204 @@
       ]
     },
     {
+      "id": "f1_23",
+      "name": "F1 23",
+      "steam_appid": 2108330,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "f1",
+        "laps": "sim",
+        "quality": "experimental"
+      },
+      "install": [
+        "Install from Steam; runs under Proton.",
+        "In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year."
+      ],
+      "known_issues": [
+        {
+          "text": "F1 23 still works on Linux; from F1 24 onward EA's anti-cheat blocks it (user report, Nov 2024).",
+          "source": "https://steamcommunity.com/app/2488620/discussions/0/4337608365466823141"
+        }
+      ]
+    },
+    {
+      "id": "f1_22",
+      "name": "F1 22",
+      "steam_appid": 1692250,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "f1",
+        "laps": "sim",
+        "quality": "experimental"
+      },
+      "install": [
+        "Install from Steam; check the live ProtonDB rating for the current recommended Proton version.",
+        "In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year."
+      ],
+      "known_issues": []
+    },
+    {
+      "id": "f1_2021",
+      "name": "F1 2021",
+      "steam_appid": 1134570,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "f1",
+        "laps": "sim",
+        "quality": "experimental"
+      },
+      "install": [
+        "Install from Steam; check the live ProtonDB rating.",
+        "In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year."
+      ],
+      "known_issues": [
+        {
+          "text": "Has had Proton issues on some AMD GPUs; check recent ProtonDB reports.",
+          "source": "https://www.gamingonlinux.com/2022/01/top-100-steam-games-running-on-linux-january-2022-edition/"
+        }
+      ]
+    },
+    {
+      "id": "dirt_rally",
+      "name": "DiRT Rally",
+      "steam_appid": 310560,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "codemasters",
+        "laps": "sim",
+        "quality": "good"
+      },
+      "install": [
+        "Install from Steam.",
+        "Telemetry: in hardware_settings_config.xml (Documents/My Games/DiRT Rally/hardwaresettings) set <udp enabled=\"true\" extradata=\"3\" ip=\"127.0.0.1\" port=\"20777\" delay=\"1\" />."
+      ],
+      "known_issues": [
+        {
+          "text": "Listed as Steam Deck Verified.",
+          "source": "https://racinggames.gg/hardware/which-racing-games-can-you-play-on-steam-deck/"
+        }
+      ]
+    },
+    {
+      "id": "dirt_4",
+      "name": "DiRT 4",
+      "steam_appid": 421020,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "codemasters",
+        "laps": "sim",
+        "quality": "good"
+      },
+      "install": [
+        "Install from Steam; check the live ProtonDB rating.",
+        "Telemetry: in hardware_settings_config.xml (Documents/My Games/DiRT 4/hardwaresettings) set <udp enabled=\"true\" extradata=\"3\" ip=\"127.0.0.1\" port=\"20777\" delay=\"1\" />."
+      ],
+      "known_issues": []
+    },
+    {
+      "id": "ets2",
+      "name": "Euro Truck Simulator 2",
+      "steam_appid": 227300,
+      "status": "works",
+      "runtime": "native",
+      "telemetry": {
+        "adapter": "shm",
+        "laps": "start_line",
+        "quality": "experimental"
+      },
+      "shm_files": [
+        "SCS/SCSTelemetry"
+      ],
+      "install": [
+        "Install from Steam; it has a native Linux version.",
+        "Telemetry: download the Linux build of scs-sdk-plugin (RenCloud) and copy the .so into the game's bin/linux_x64/plugins folder (create it if missing). Accept the SDK prompt when the game starts."
+      ],
+      "known_issues": [],
+      "bridge": {
+        "tools": [
+          "https://github.com/RenCloud/scs-sdk-plugin"
+        ]
+      }
+    },
+    {
+      "id": "ats",
+      "name": "American Truck Simulator",
+      "steam_appid": 270880,
+      "status": "works",
+      "runtime": "native",
+      "telemetry": {
+        "adapter": "shm",
+        "laps": "start_line",
+        "quality": "experimental"
+      },
+      "shm_files": [
+        "SCS/SCSTelemetry"
+      ],
+      "install": [
+        "Install from Steam; it has a native Linux version.",
+        "Telemetry: same as Euro Truck Simulator 2 (scs-sdk-plugin .so in bin/linux_x64/plugins)."
+      ],
+      "known_issues": [],
+      "bridge": {
+        "tools": [
+          "https://github.com/RenCloud/scs-sdk-plugin"
+        ]
+      }
+    },
+    {
+      "id": "ac_rally",
+      "name": "Assetto Corsa Rally",
+      "steam_appid": 3917090,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "shm",
+        "laps": "sim",
+        "quality": "experimental",
+        "needs_bridge": true
+      },
+      "shm_files": [
+        "acpmf_physics"
+      ],
+      "install": [
+        "Install from Steam; runs under Proton.",
+        "Telemetry uses the Assetto Corsa maps through a bridge; winecarte doesn't list AC Rally yet, so use simshmbridge or linux-sim-launcher's AC bridge."
+      ],
+      "known_issues": [
+        {
+          "text": "Community launcher configs enable the AC shared-memory bridge for AC Rally.",
+          "source": "https://gh.r-mj.com/giantorth/linux-sim-launcher"
+        }
+      ],
+      "bridge": {
+        "tools": [
+          "https://github.com/Spacefreak18/simshmbridge"
+        ]
+      }
+    },
+    {
       "id": "iracing",
       "name": "iRacing",
       "steam_appid": 266410,
-      "status": "broken",
-      "runtime": "none",
+      "status": "community",
+      "runtime": "proton",
       "telemetry": {
         "adapter": "none"
       },
       "install": [
-        "Doesn't run on SteamOS: its anti-cheat isn't enabled for Linux/Proton."
+        "Runs under Proton, but only offline Test Drive works: online racing needs iRacing to enable its anti-cheat (EOS) for Linux.",
+        "Show support in iRacing's 'iRacing should support Linux' forum thread."
       ],
       "known_issues": [
+        {
+          "text": "EOS is not enabled for Linux, so multiplayer doesn't work; only Test Drive.",
+          "source": "https://www.protondb.com/app/266410"
+        },
         {
           "text": "Listed as Broken (Easy Anti-Cheat) on Are We Anti-Cheat Yet.",
           "source": "https://areweanticheatyet.com"
@@ -555,6 +741,10 @@
         {
           "text": "EA has posted a job listing mentioning future Linux/Proton support for Javelin, but nothing has shipped.",
           "source": "https://www.gamingonlinux.com/2026/03/ea-javelin-anticheat-job-listing-mentions-future-support-for-linux-and-proton/"
+        },
+        {
+          "text": "Workarounds posted online bypass the anti-cheat; Pitwall doesn't recommend them (ban risk, and they break with updates). F1 23 and earlier work.",
+          "source": "https://www.protondb.com/app/3059520"
         }
       ]
     }

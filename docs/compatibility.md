@@ -22,7 +22,15 @@ The Pitwall app shows the same entries plus **live** ratings from Valve (Steam D
 | [Forza Horizon 6](#forza-horizon-6) | ✅ Works | Proton | 🧪 Untested |
 | [Forza Motorsport](#forza-motorsport) | ⚠️ Community fixes only | Proton | ✅ Full |
 | [Live for Speed](#live-for-speed) | ✅ Works | Proton | ✅ Basic |
-| [iRacing](#iracing) | ⛔ Doesn't run | n/a | – |
+| [F1 23](#f1-23) | ✅ Works | Proton | 🧪 Experimental |
+| [F1 22](#f1-22) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [F1 2021](#f1-2021) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [DiRT Rally](#dirt-rally) | ✅ Works | Proton | ✅ Full |
+| [DiRT 4](#dirt-4) | 🛠️ Works with setup | Proton | ✅ Full |
+| [Euro Truck Simulator 2](#euro-truck-simulator-2) | ✅ Works | Native Linux | 🧪 Experimental |
+| [American Truck Simulator](#american-truck-simulator) | ✅ Works | Native Linux | 🧪 Experimental |
+| [Assetto Corsa Rally](#assetto-corsa-rally) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [iRacing](#iracing) | ⚠️ Community fixes only | Proton | – |
 | [EA SPORTS WRC](#ea-sports-wrc) | ⛔ Doesn't run | n/a | – |
 | [F1 24](#f1-24) | ⛔ Doesn't run | n/a | – |
 | [F1 25](#f1-25) | ⛔ Doesn't run | n/a | – |
@@ -315,18 +323,130 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 - BeamNG's OutGauge uses the Live for Speed format, so the same Pitwall adapter reads both. ([source](https://docs.beamng.com/modding/protocols/))
 
+## F1 23
+
+**Status:** ✅ Works  
+**Runs via:** Proton  
+**Steam:** [2108330](https://store.steampowered.com/app/2108330) · [ProtonDB](https://www.protondb.com/app/2108330)
+
+### Setup
+
+1. Install from Steam; runs under Proton.
+2. In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year.
+
+### Known issues
+
+- F1 23 still works on Linux; from F1 24 onward EA's anti-cheat blocks it (user report, Nov 2024). ([source](https://steamcommunity.com/app/2488620/discussions/0/4337608365466823141))
+
+## F1 22
+
+**Status:** 🛠️ Works with setup  
+**Runs via:** Proton  
+**Steam:** [1692250](https://store.steampowered.com/app/1692250) · [ProtonDB](https://www.protondb.com/app/1692250)
+
+### Setup
+
+1. Install from Steam; check the live ProtonDB rating for the current recommended Proton version.
+2. In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year.
+
+## F1 2021
+
+**Status:** 🛠️ Works with setup  
+**Runs via:** Proton  
+**Steam:** [1134570](https://store.steampowered.com/app/1134570) · [ProtonDB](https://www.protondb.com/app/1134570)
+
+### Setup
+
+1. Install from Steam; check the live ProtonDB rating.
+2. In game: Settings > Telemetry Settings: UDP Telemetry On, UDP Broadcast Off, IP 127.0.0.1, port 20777, UDP Format matching the game's year.
+
+### Known issues
+
+- Has had Proton issues on some AMD GPUs; check recent ProtonDB reports. ([source](https://www.gamingonlinux.com/2022/01/top-100-steam-games-running-on-linux-january-2022-edition/))
+
+## DiRT Rally
+
+**Status:** ✅ Works  
+**Runs via:** Proton  
+**Steam:** [310560](https://store.steampowered.com/app/310560) · [ProtonDB](https://www.protondb.com/app/310560)
+
+### Setup
+
+1. Install from Steam.
+2. Telemetry: in hardware_settings_config.xml (Documents/My Games/DiRT Rally/hardwaresettings) set <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />.
+
+### Known issues
+
+- Listed as Steam Deck Verified. ([source](https://racinggames.gg/hardware/which-racing-games-can-you-play-on-steam-deck/))
+
+## DiRT 4
+
+**Status:** 🛠️ Works with setup  
+**Runs via:** Proton  
+**Steam:** [421020](https://store.steampowered.com/app/421020) · [ProtonDB](https://www.protondb.com/app/421020)
+
+### Setup
+
+1. Install from Steam; check the live ProtonDB rating.
+2. Telemetry: in hardware_settings_config.xml (Documents/My Games/DiRT 4/hardwaresettings) set <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />.
+
+## Euro Truck Simulator 2
+
+**Status:** ✅ Works  
+**Runs via:** Native Linux  
+**Steam:** [227300](https://store.steampowered.com/app/227300) · [ProtonDB](https://www.protondb.com/app/227300)
+
+### Setup
+
+1. Install from Steam; it has a native Linux version.
+2. Telemetry: download the Linux build of scs-sdk-plugin (RenCloud) and copy the .so into the game's bin/linux_x64/plugins folder (create it if missing). Accept the SDK prompt when the game starts.
+
+Bridges: [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
+
+## American Truck Simulator
+
+**Status:** ✅ Works  
+**Runs via:** Native Linux  
+**Steam:** [270880](https://store.steampowered.com/app/270880) · [ProtonDB](https://www.protondb.com/app/270880)
+
+### Setup
+
+1. Install from Steam; it has a native Linux version.
+2. Telemetry: same as Euro Truck Simulator 2 (scs-sdk-plugin .so in bin/linux_x64/plugins).
+
+Bridges: [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
+
+## Assetto Corsa Rally
+
+**Status:** 🛠️ Works with setup  
+**Runs via:** Proton  
+**Steam:** [3917090](https://store.steampowered.com/app/3917090) · [ProtonDB](https://www.protondb.com/app/3917090)
+
+### Setup
+
+1. Install from Steam; runs under Proton.
+2. Telemetry uses the Assetto Corsa maps through a bridge; winecarte doesn't list AC Rally yet, so use simshmbridge or linux-sim-launcher's AC bridge.
+
+Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge)
+
+### Known issues
+
+- Community launcher configs enable the AC shared-memory bridge for AC Rally. ([source](https://gh.r-mj.com/giantorth/linux-sim-launcher))
+
 ## iRacing
 
-**Status:** ⛔ Doesn't run  
-**Runs via:** n/a  
+**Status:** ⚠️ Community fixes only  
+**Runs via:** Proton  
 **Steam:** [266410](https://store.steampowered.com/app/266410) · [ProtonDB](https://www.protondb.com/app/266410)
 
 ### Setup
 
-1. Doesn't run on SteamOS: its anti-cheat isn't enabled for Linux/Proton.
+1. Runs under Proton, but only offline Test Drive works: online racing needs iRacing to enable its anti-cheat (EOS) for Linux.
+2. Show support in iRacing's 'iRacing should support Linux' forum thread.
 
 ### Known issues
 
+- EOS is not enabled for Linux, so multiplayer doesn't work; only Test Drive. ([source](https://www.protondb.com/app/266410))
 - Listed as Broken (Easy Anti-Cheat) on Are We Anti-Cheat Yet. ([source](https://areweanticheatyet.com))
 
 ## EA SPORTS WRC
@@ -370,6 +490,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 - Listed as Broken (EA Javelin Anticheat). ([source](https://www.gamingonlinux.com/anticheat/vendor/ea-javelin-anticheat/))
 - EA has posted a job listing mentioning future Linux/Proton support for Javelin, but nothing has shipped. ([source](https://www.gamingonlinux.com/2026/03/ea-javelin-anticheat-job-listing-mentions-future-support-for-linux-and-proton/))
+- Workarounds posted online bypass the anti-cheat; Pitwall doesn't recommend them (ban risk, and they break with updates). F1 23 and earlier work. ([source](https://www.protondb.com/app/3059520))
 
 ## Where this information comes from
 

@@ -1,7 +1,8 @@
 """
-Shared-memory telemetry for sims that run under Proton and publish their data
-as Windows named memory: Assetto Corsa family, Automobilista 2 / Project CARS 2,
-rFactor 2, Le Mans Ultimate and RaceRoom.
+Shared-memory telemetry: sims that run under Proton and publish Windows named
+memory (Assetto Corsa family, Automobilista 2 / Project CARS 2, rFactor 2,
+Le Mans Ultimate, RaceRoom), plus Euro Truck Simulator 2 / American Truck
+Simulator through the native Linux scs-sdk-plugin.
 
 Under Proton these maps only exist inside the Wine prefix. A bridge running in
 the same prefix (simshmbridge, winecarte, linux-simracing-utils) copies them to
@@ -248,6 +249,33 @@ def _r3e_window(buf, o):
     return (round(cold, 1), round(opt, 1), round(hot, 1)) if 0 < cold < opt < hot else None
 
 
+# ------------------------------------------- Euro Truck Simulator 2 / ATS
+# scs-sdk-plugin (RenCloud) shared memory, native Linux build: /dev/shm/SCS/SCSTelemetry
+SCS = dict(active=0, paused=4, game=52, gear=508,   # gearDashboard: what the driver sees, negative = reverse
+           fuel_cap=704, max_rpm=740, speed=948, rpm=952, steer=956,
+           thr=960, brk=964, clutch=968, fuel=1000, x=2200, brand=2364, name=2492, size=2556)
+
+
+def parse_scs(buf) -> Frame | None:
+    o = SCS
+    if len(buf) < o["size"] or not buf[o["active"]]:
+        return None
+    cap = _f(buf, o["fuel_cap"])
+    fuel = _f(buf, o["fuel"])
+    x, y, z = struct.unpack_from("<3d", buf, o["x"])
+    game = _I(buf, o["game"])
+    brand, name = _cstr(buf, o["brand"], 64), _cstr(buf, o["name"], 64)
+    return Frame(
+        sim="ets2" if game == 1 else "ats" if game == 2 else "scs", active=not buf[o["paused"]],
+        speed=abs(_f(buf, o["speed"])), rpm=_f(buf, o["rpm"]), max_rpm=_pos(_f(buf, o["max_rpm"])),
+        gear=_i(buf, o["gear"]),
+        throttle=_f(buf, o["thr"]), brake=_f(buf, o["brk"]), clutch=_f(buf, o["clutch"]), steer=_f(buf, o["steer"]),
+        pos=(x, z, y),                                      # SCS is Y-up
+        fuel=(fuel / cap) if cap > 0 else None, fuel_l=fuel if cap > 0 else None, fuel_cap_l=_pos(cap),
+        car=f"{brand} {name}".strip() or None,
+    )
+
+
 # --------------------------------------------------------------- the source
 READERS = [
     # (name, [candidate file sets], parser taking the mapped buffers,
@@ -258,6 +286,7 @@ READERS = [
     ("lmu", [("LMU_Data",)], lambda b: parse_lmu(b[0]), (0, 64)),
     ("rf2", [("$rFactor2SMMP_Telemetry$", "$rFactor2SMMP_Scoring$")], lambda b: parse_rf2(b[0], b[1]), (0, 8)),
     ("r3e", [("$R3E",)], lambda b: parse_r3e(b[0]), (R3E["cur"], 4)),
+    ("scs", [("SCS/SCSTelemetry",)], lambda b: parse_scs(b[0]), (8, 8)),   # 'time' stamp changes every update
 ]
 
 
@@ -277,6 +306,7 @@ class ShmSource(threading.Thread):
         self.packets = 0
         self.active: str | None = None
         self.present: list[str] = []
+        self.frozen_after = 10.0          # seconds without changes before another sim may take over
 
     def stop(self):
         self._stop.set()
@@ -297,15 +327,17 @@ class ShmSource(threading.Thread):
             return None
         return maps
 
-    def scan(self):
-        """Return (name, maps, parser) for the first sim whose maps exist."""
+    def scan(self, skip: set | None = None):
+        """Return (name, maps, parser, sig) for the first sim whose maps exist,
+        skipping sims whose maps were recently found frozen (left behind by a
+        game that has exited), so another live sim can take over."""
         found = []
         hit = None
         for name, candidates, parser, sig in READERS:
             for names in candidates:
                 if all(os.path.exists(os.path.join(self.dir, n)) for n in names[:2] if n):
                     found.append(name)
-                    if hit is None:
+                    if hit is None and name not in (skip or ()):
                         maps = self._open(names) if name != "ac" else (self._open(names) or self._open(names[:2]))
                         if maps:
                             hit = (name, maps, parser, sig)
@@ -317,9 +349,14 @@ class ShmSource(threading.Thread):
         cur = None
         last_sig = None
         idle_since = time.monotonic()
+        frozen: dict[str, float] = {}      # sim -> when its maps were found frozen
         while not self._stop.is_set():
             if cur is None:
-                cur = self.scan()
+                now = time.monotonic()
+                frozen = {k: t for k, t in frozen.items() if now - t < 30}
+                cur = self.scan(skip=set(frozen))
+                if cur is None and frozen:
+                    cur = self.scan()          # nothing else live: keep watching the frozen one
                 if cur is None:
                     self.active = None
                     self._stop.wait(2.0)
@@ -344,12 +381,14 @@ class ShmSource(threading.Thread):
                     frame.t = time.monotonic()
                     self.packets += 1
                     self.on_frame(frame)
-            elif time.monotonic() - idle_since > 10:
+            elif time.monotonic() - idle_since > self.frozen_after:
                 # Data stopped changing: the game probably exited. Rescan so a
                 # different sim's bridge can take over.
                 for m in maps:
                     m.close()
+                frozen[name] = time.monotonic()
                 cur = None
+                last_sig = None
                 idle_since = time.monotonic()
                 continue
             self._stop.wait(self.period)

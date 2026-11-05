@@ -9,28 +9,45 @@
   <img src="https://img.shields.io/badge/licence-GPL--3.0-blue" alt="GPL-3.0">
 </p>
 
-**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and any SteamOS PC: live telemetry, lap coaching, a phone dashboard, wheel and force feedback control, and a sourced guide to which sims run on SteamOS and how to set them up. Everything happens in Gaming Mode, from the Quick Access Menu.
+**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and any SteamOS PC: a sourced guide to which sims run on SteamOS and how to set them up, wheel and force feedback control, live telemetry with lap coaching, and a phone dashboard. Everything happens in Gaming Mode, from the Quick Access Menu.
 
 > **0.1.0 preview.** Pitwall is feature-complete for its first release but **hasn't been tested on real hardware yet**. Reports are very welcome: [open an issue](../../issues/new/choose).
 
-## Features
+## What it does
 
+### 🧰 Get set up
 | | |
 |---|---|
-| 📡 **Telemetry from 15 sims** | BeamNG, Forza, DiRT Rally 2.0, Live for Speed, Assetto Corsa, ACC, AC EVO, AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom |
-| ⏱️ **Lap timing and live delta** | Uses the sim's own laps, or a start line you set (BeamNG, LFS) |
-| 💡 **Coaching** | Compares every braking zone with your best lap: *"Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex"* |
-| 📱 **Phone dashboard** | Scan a QR code: shift lights, gear, delta, laps, pedals, fuel, tyres, track map and voice callouts on any phone on your Wi-Fi |
-| ⛽ **Fuel and tyre strategy** | Fuel per lap, laps left, what to add at your stop; tyre temperatures, balance and wear per lap |
-| 🛞 **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; profiles per game and per car, applied automatically |
-| 🚥 **Rev lights** | Drives MOZA wheel RPM LEDs from live telemetry |
-| 🎚️ **FFB feel tuner** | Sourced presets, then "what feels wrong?" → a small, explained, undoable change |
-| 📖 **Game guide** | Status, install steps, in-game FFB settings and known issues per sim, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
-| 🔌 **One-tap telemetry bridge** | Sets up [winecarte](https://github.com/srounce/winecarte) for shared-memory sims, keeping your launch options |
+| 📖 **Game guide** | Does it run on SteamOS, how to install it, in-game FFB settings and known issues for 27 sims, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
+| 🔌 **One-tap setup** | Installs the telemetry bridge for shared-memory sims and switches on DiRT Rally 2.0's telemetry, keeping your launch options |
 | ✅ **Pre-race checks** | Wheel, force feedback driver, telemetry, bridge and game compatibility at a glance |
-| ⚡ **Performance** | 90-second MangoHud benchmark judged on 1% lows and stutters against your TV's refresh rate |
+
+### 🛞 Drive
+| | |
+|---|---|
+| 🛞 **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; profiles per game and per car, applied automatically |
+| 🎚️ **FFB feel tuner** | Sourced presets, then "what feels wrong?" → a small, explained, undoable change |
+| 🚥 **Rev lights** | Drives MOZA wheel RPM LEDs from live telemetry |
+
+### ⏱️ Go faster
+| | |
+|---|---|
+| 📡 **Live telemetry** | 20+ sims: BeamNG, Forza, F1 2021–23, DiRT Rally 1/2, DiRT 4, Assetto Corsa family, AMS2, rFactor 2, Le Mans Ultimate, Euro Truck Simulator 2 and more |
+| 📱 **Phone dashboard** | Scan a QR code: shift lights, gear, live delta, laps, fuel, tyres, track map and voice callouts on any phone on your Wi-Fi |
+| 💡 **Coaching** | Compares every braking zone with your best lap: *"Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex"* |
+| ⛽ **Strategy** | Fuel per lap, laps left, what to add at your stop; tyre temperatures, balance and wear per lap |
+
+### ⚡ Keep it smooth
+| | |
+|---|---|
+| ⚡ **Performance check** | 90-second MangoHud benchmark judged on 1% lows and stutters against your TV's refresh rate |
+| 🪶 **Lightweight** | One thread listens for every UDP sim; idle checks every two seconds; shared memory read in place |
+
+### 🎧 Get help
+| | |
+|---|---|
 | 🎧 **Engineer debrief** | Session summary and problem corners; optionally written up by Claude with your own API key |
-| 🩺 **Send diagnostics** | One tap bundles everything needed for a bug report; scan to download it and open a pre-filled GitHub issue |
+| 🩺 **Send diagnostics** | One tap bundles everything for a bug report; scan to download it and open a pre-filled GitHub issue |
 
 <p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard" width="300"></p>
 
@@ -48,12 +65,15 @@ Then follow [Getting started](docs/getting-started.md).
 | Sim | Runs on SteamOS | Pitwall telemetry |
 |---|---|---|
 | BeamNG.drive | ✅ native | ✅ |
-| DiRT Rally 2.0 | ✅ | ✅ (auto setup) |
+| Euro Truck Simulator 2 / American Truck Simulator | ✅ native | 🧪 (plugin) |
+| DiRT Rally 2.0, DiRT Rally | ✅ | ✅ (DR2 auto setup) |
 | Forza Horizon 4 / 5 | ✅ | ✅ |
+| F1 23 (F1 22 / F1 2021: check live rating) | ✅ | 🧪 |
 | Live for Speed | ✅ | ✅ |
 | Assetto Corsa / ACC | 🛠️ | ✅ via bridge |
-| AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom | 🛠️ / ⚠️ | 🧪 via bridge |
-| iRacing, EA SPORTS WRC, F1 24 / 25 | ⛔ anti-cheat | – |
+| AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom, AC EVO, AC Rally | 🛠️ / ⚠️ | 🧪 via bridge |
+| iRacing | ⚠️ offline Test Drive only | – |
+| EA SPORTS WRC, F1 24 / 25 | ⛔ anti-cheat | – |
 
 The full, sourced guide is in **[docs/compatibility.md](docs/compatibility.md)** (generated from the same data the app uses).
 
@@ -99,4 +119,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to build, test or add a sim or wheel.
 
 Pitwall is unofficial and not affiliated with Valve, MOZA Racing or any sim developer. Licensed under GPL-3.0.
 
-<sub>Keywords: sim racing Linux, SteamOS sim racing, Steam Machine racing wheel, Steam Deck racing wheel, MOZA Linux, MOZA R3 SteamOS, Boxflat Decky, BeamNG telemetry Linux, Assetto Corsa Proton telemetry, ACC Linux telemetry, SimHub alternative Linux, racing dashboard phone, Decky plugin racing.</sub>
+<sub>Keywords: sim racing Linux, F1 23 Linux telemetry, Euro Truck Simulator 2 wheel Linux, SteamOS sim racing, Steam Machine racing wheel, Steam Deck racing wheel, MOZA Linux, MOZA R3 SteamOS, Boxflat Decky, BeamNG telemetry Linux, Assetto Corsa Proton telemetry, ACC Linux telemetry, SimHub alternative Linux, racing dashboard phone, Decky plugin racing.</sub>

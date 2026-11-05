@@ -87,7 +87,7 @@ class Plugin:
     async def wheel_status(self) -> dict:
         w = await self._run(self._wheel)
         if not w:
-            return {"connected": False, "error": "No supported wheel found (MOZA and Logitech are supported)."}
+            return {"connected": False, "error": "No controllable wheel found. Pitwall supports MOZA, Logitech, Fanatec (hid-fanatecff) and Thrustmaster (hid-tmff2)."}
         return {"connected": True, "name": w.name, "brand": w.brand, "settings": w.settings(),
                 "can_center": w.brand == "MOZA", "leds": bool(getattr(w, "leds_supported", False)),
                 "rev_lights": bool(self.settings.get("rev_lights"))}
@@ -165,6 +165,7 @@ class Plugin:
             self.current_app = None
         else:
             return result
+        self.hub.reset_car()          # so a car profile re-applies after the game/default profile
         g = self.compat.find(appid, name)
         result["game"] = {"id": g["id"], "name": g["name"], "status": g["status"]} if g else None
         if self.settings["auto_apply"]:

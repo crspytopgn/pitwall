@@ -433,9 +433,9 @@ function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
 function BridgeSetup({ appid, name }: { appid: string; name: string }) {
   const [st, setSt] = useState<{ supported: boolean; installed: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
-  const cur = currentLaunchOptions(appid);
+  const [cur, setCur] = useState<string | null>(null);
   const enabled = cur !== null && cur.includes("winecarte-run");
-  useEffect(() => { bridgeStatus(appid).then(setSt); }, [appid]);
+  useEffect(() => { bridgeStatus(appid).then(setSt); getLaunchOptions(appid).then(setCur); }, [appid]);
   if (!st?.supported) return null;
   const apply = async (enable: boolean) => {
     if (cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
@@ -446,7 +446,9 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
         if (!r.ok) { toast(r.message); return; }
         setSt({ ...st, installed: true });
       }
-      SteamClient.Apps.SetAppLaunchOptions(Number(appid), await bridgeLaunchOptions(cur, enable));
+      const next = await bridgeLaunchOptions(cur, enable);
+      SteamClient.Apps.SetAppLaunchOptions(Number(appid), next);
+      setCur(next);
       toast(enable ? `Telemetry bridge added to ${name}. Restart the game.` : `Bridge removed from ${name}'s launch options`);
     } finally { setBusy(false); }
   };
@@ -478,11 +480,23 @@ function Checks({ go }: { go?: Go }) {
 const LS_KEY = "pitwall-saved-launch-options";
 function savedOpts(): Record<string, string> { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; } }
 function storeOpts(v: Record<string, string>) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch { /* ignore */ } }
-function currentLaunchOptions(appid: string): string | null {
+async function getLaunchOptions(appid: string): Promise<string | null> {
+  // Steam only keeps details for apps it has loaded, so ask for them if needed.
   try {
     const d = (window as any).appDetailsStore?.GetAppDetails?.(Number(appid));
-    return typeof d?.strLaunchOptions === "string" ? d.strLaunchOptions : null;
-  } catch { return null; }
+    if (typeof d?.strLaunchOptions === "string") return d.strLaunchOptions;
+  } catch { /* fall through */ }
+  return new Promise((resolve) => {
+    let done = false;
+    let reg: { unregister: () => void } | undefined;
+    const finish = (v: string | null) => { if (!done) { done = true; reg?.unregister(); resolve(v); } };
+    try {
+      reg = SteamClient.Apps.RegisterForAppDetails(Number(appid), (det: any) => {
+        if (typeof det?.strLaunchOptions === "string") finish(det.strLaunchOptions);
+      });
+    } catch { finish(null); }
+    setTimeout(() => finish(null), 3000);
+  });
 }
 
 function PerfPage({ go }: { go?: Go }) {
@@ -497,7 +511,7 @@ function PerfPage({ go }: { go?: Go }) {
   const startBench = async () => {
     const app = pickApp();
     if (!app) { toast("Open a game's page or launch it first"); return; }
-    const cur = currentLaunchOptions(app.appid);
+    const cur = await getLaunchOptions(app.appid);
     if (cur === null) { toast("Couldn't read this game's launch options; benchmark not set to avoid overwriting them"); return; }
     const saved = savedOpts(); saved[app.appid] = cur; storeOpts(saved);
     // Keep the game's own launch options (e.g. a telemetry bridge): MangoHud's

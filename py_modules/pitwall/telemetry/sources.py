@@ -1,68 +1,90 @@
 """
-Telemetry sources: UDP listeners and the Assetto Corsa shared-memory reader.
+Telemetry sources: one UDP listener for every UDP sim, and the Assetto Corsa
+shared-memory parser (used by telemetry/shm.py).
 
-All sources push Frames into a callback. They run in daemon threads so they
-never block Decky's event loop.
+Sources push Frames into a callback from daemon threads, so they never block
+Decky's event loop.
 """
 
 from __future__ import annotations
 
+import selectors
 import socket
 import struct
 import threading
 import time
 
 from .frame import Frame
-from .parsers import parse_codemasters, parse_forza, parse_motionsim, parse_outgauge
+from .parsers import F1Assembler, parse_codemasters, parse_forza, parse_motionsim, parse_outgauge
 
 DEFAULT_PORTS = {
     "outgauge": 4444,      # BeamNG OutGauge (MotionSim may share it) and LFS
     "motionsim": 4445,     # BeamNG MotionSim, if sent to its own port
     "forza": 5300,
-    "codemasters": 20777,
+    "codemasters": 20777,  # Codemasters legacy UDP (DiRT Rally 1/2, DiRT 4, GRID Autosport)
+    "f1": 20778,           # F1 2021/22/23; set the game's UDP port to 20778 (or share 20777, see below)
 }
 
 
-class UdpSource(threading.Thread):
-    """Listens on one UDP port and routes packets to the right parser by shape."""
+class UdpListener(threading.Thread):
+    """One thread for every UDP port, using selectors: when no game is
+    sending, it sleeps in a single select() call instead of waking per port.
 
-    def __init__(self, kind: str, port: int, on_frame, host: str = "0.0.0.0", shared: dict | None = None):
-        super().__init__(daemon=True, name=f"udp-{kind}")
-        self.kind, self.port, self.on_frame = kind, port, on_frame
-        self.host = host
+    Packets are routed by port first, then by shape, so F1 packets arriving
+    on the Codemasters port (both default to 20777 in-game) still work."""
+
+    name_ = "udp"
+
+    def __init__(self, ports: dict, on_frame, host: str = "0.0.0.0"):
+        super().__init__(daemon=True, name="udp")
+        self.ports, self.on_frame, self.host = dict(ports), on_frame, host
         self._stop = threading.Event()
-        # MotionSim and OutGauge may arrive on different ports; both sockets
-        # share this dict so position gets merged into OutGauge frames.
-        self.shared = shared if shared is not None else {}
-        self.error: str | None = None
-        self.packets = 0
+        self.errors: dict[str, str] = {}
+        self.packets: dict[str, int] = {k: 0 for k in self.ports}
+        self.shared: dict = {}
+        self.f1 = F1Assembler()
+        self.error = None
 
     def stop(self):
         self._stop.set()
 
     def run(self):
+        sel = selectors.DefaultSelector()
+        socks = []
+        for kind, port in self.ports.items():
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                sock.bind((self.host, port))
+                sock.setblocking(False)
+                sel.register(sock, selectors.EVENT_READ, kind)
+                socks.append(sock)
+            except OSError as e:
+                self.errors[kind] = f"Can't listen on UDP {port}: {e.strerror}"
+        self.error = "; ".join(self.errors.values()) or None
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind((self.host, self.port))
-            sock.settimeout(0.5)
-        except OSError as e:
-            self.error = f"Can't listen on UDP {self.port}: {e.strerror}"
-            return
-        with sock:
             while not self._stop.is_set():
-                try:
-                    data, _ = sock.recvfrom(2048)
-                except socket.timeout:
-                    continue
-                except OSError:
-                    continue
-                self.packets += 1
-                self.handle(data, time.monotonic())
+                for key, _ in sel.select(timeout=1.0):
+                    kind = key.data
+                    # drain everything queued on this socket
+                    while True:
+                        try:
+                            data = key.fileobj.recv(2048)
+                        except (BlockingIOError, InterruptedError):
+                            break
+                        except OSError:
+                            break
+                        self.packets[kind] = self.packets.get(kind, 0) + 1
+                        self.handle(kind, data, time.monotonic())
+        finally:
+            for s in socks:
+                sel.unregister(s)
+                s.close()
+            sel.close()
 
-    def handle(self, data: bytes, now: float):
+    def handle(self, kind: str, data: bytes, now: float):
         frame = None
-        if self.kind in ("outgauge", "motionsim"):
+        if kind in ("outgauge", "motionsim"):
             motion = parse_motionsim(data)
             if motion:
                 self.shared["motion"] = (now, motion)
@@ -72,13 +94,21 @@ class UdpSource(threading.Thread):
             if frame and m and now - m[0] < 1.0:
                 frame.pos = m[1]["pos"]
                 frame.extra["acc"] = m[1]["acc"]
-        elif self.kind == "forza":
+        elif kind == "forza":
             frame = parse_forza(data)
-        elif self.kind == "codemasters":
-            frame = parse_codemasters(data)
+        elif kind in ("codemasters", "f1"):
+            # F1 packets start with a format year; Codemasters legacy packets are 66 floats
+            if len(data) != 264 and len(data) >= 2 and struct.unpack_from("<H", data, 0)[0] in (2021, 2022, 2023):
+                frame = self.f1.feed(data)
+            elif kind == "codemasters":
+                frame = parse_codemasters(data)
         if frame:
             frame.t = now
             self.on_frame(frame)
+
+    def status(self) -> list[dict]:
+        return [{"name": f"udp:{k}", "port": p, "error": self.errors.get(k), "packets": self.packets.get(k, 0)}
+                for k, p in self.ports.items()]
 
 
 # ----------------------------------------------------------------- AC / ACC

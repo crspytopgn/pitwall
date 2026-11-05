@@ -14,7 +14,7 @@ from .store import LapStore, track_key
 from .strategy import Strategy
 from .telemetry.frame import Frame
 from .telemetry.shm import ShmSource
-from .telemetry.sources import UdpSource, DEFAULT_PORTS
+from .telemetry.sources import UdpListener, DEFAULT_PORTS
 
 STALE_S = 2.0
 
@@ -34,8 +34,7 @@ class Hub:
         self.car_listeners: list = []        # called with (sim, car) when the car changes
         self.strategy = Strategy()
         self._car_key = None
-        shared: dict = {}
-        self.sources = [UdpSource(k, p, self._on_frame, shared=shared) for k, p in self.ports.items()]
+        self.sources = [UdpListener(self.ports, self._on_frame)] if self.ports else []
         if enable_shm:
             self.sources.append(ShmSource(self._on_frame))
         self._ref_key = None
@@ -101,6 +100,10 @@ class Hub:
             self.log.info(msg)
 
     # ------------------------------------------------------------------
+    def reset_car(self):
+        with self.lock:
+            self._car_key = None
+
     def set_start_line(self) -> bool:
         with self.lock:
             f = self.frame
@@ -127,8 +130,18 @@ class Hub:
                 "last_lap": self.last_lap,
                 "tips": (self.last_coaching or {}).get("tips", []),
                 "session_laps": len(self.session_laps),
-                "sources": [{"name": s.name, "error": s.error, "packets": s.packets} for s in self.sources],
+                "sources": self._sources_status(),
             }
+
+    def _sources_status(self) -> list[dict]:
+        out = []
+        for s in self.sources:
+            if hasattr(s, "status"):
+                out += s.status()
+            else:
+                out.append({"name": s.name, "error": s.error, "packets": s.packets,
+                            "active": getattr(s, "active", None), "present": getattr(s, "present", None)})
+        return out
 
     def snapshot(self) -> dict:
         """Compact live payload for the dashboard (sent ~15x a second)."""
@@ -158,6 +171,15 @@ class Hub:
             }
 
     def _strategy_brief(self):
+        now = time.monotonic()
+        cached = getattr(self, "_brief_cache", None)
+        if cached and now - cached[0] < 0.5:
+            return cached[1]
+        brief = self._strategy_brief_uncached()
+        self._brief_cache = (now, brief)
+        return brief
+
+    def _strategy_brief_uncached(self):
         r = self.strategy.report()
         fu, ty = r.get("fuel") or {}, r.get("tyres") or {}
         return {"fuel_now": fu.get("now"), "fuel_unit": fu.get("unit"), "laps_left": fu.get("laps_left"),

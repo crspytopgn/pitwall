@@ -7,7 +7,9 @@ Sources:
 - BeamNG MotionSim: same page ("BNG1" header + 21 floats)
 - Forza "Data Out" (FM7 dash, FH4/FH5, Forza Motorsport 2023): community-documented
   Sled/Dash layout used by Forza's own Data Out setting
-- Codemasters legacy UDP "extradata=3" (DiRT Rally 2.0, DiRT 4, GRID, older F1)
+- Codemasters legacy UDP "extradata=3" (DiRT Rally 2.0, DiRT Rally, DiRT 4, GRID Autosport)
+- EA/Codemasters F1 UDP, formats 2021, 2022 and 2023 (F1 2021, F1 22, F1 23). F1 24
+  and F1 25 don't run on SteamOS (EA Javelin anti-cheat), so their formats aren't needed.
 """
 
 from __future__ import annotations
@@ -124,3 +126,73 @@ def parse_codemasters(data: bytes) -> Frame | None:
         fuel_l=v[45] if v[46] > 0 else None, fuel_cap_l=v[46] or None,
         extra={"track_length": lap_len},
     )
+
+
+# ---------------------------------------------------------------------- F1
+# Header: 2021/2022 = 24 bytes, packet id at 5, player index at 22.
+#         2023 adds gameYear and overallFrameIdentifier: 29 bytes, id at 6, player at 27.
+# Packets used: 0 motion (60 B per car), 1 session (track length), 2 lap data,
+# 6 car telemetry (60 B per car). Per-car lap data size is derived from the packet
+# length so the parser doesn't depend on every trailing field being known.
+# F1 orders wheels RL, RR, FL, FR.
+F1_FORMATS = {2021: (24, 5, 22), 2022: (24, 5, 22), 2023: (29, 6, 27)}
+F1_CARS = 22
+_F1_WHEEL_ORDER = (2, 3, 0, 1)        # -> FL, FR, RL, RR
+
+
+class F1Assembler:
+    """F1 spreads one frame over several packet types; this keeps the latest
+    of each and emits a Frame whenever a car-telemetry packet arrives."""
+
+    def __init__(self):
+        self.pos = None
+        self.lap = None            # (last_s, cur_s, lap_dist, lap_num)
+        self.track_len = None
+        self.fmt = None
+
+    def feed(self, data: bytes) -> Frame | None:
+        if len(data) < 29:
+            return None
+        fmt = struct.unpack_from("<H", data, 0)[0]
+        if fmt not in F1_FORMATS:
+            return None
+        hdr, id_at, pl_at = F1_FORMATS[fmt]
+        pid, player = data[id_at], data[pl_at]
+        if player >= F1_CARS:
+            return None
+        self.fmt = fmt
+        body = len(data) - hdr
+        if pid == 0 and body >= F1_CARS * 60:
+            x, y, z = struct.unpack_from("<3f", data, hdr + player * 60)
+            self.pos = (x, z, y)                       # F1 is Y-up
+        elif pid == 1 and body >= 6:
+            tl = struct.unpack_from("<H", data, hdr + 4)[0]
+            self.track_len = tl or None
+        elif pid == 2:
+            size = body // F1_CARS
+            if size < 32:
+                return None
+            o = hdr + player * size
+            last_ms, cur_ms = struct.unpack_from("<2I", data, o)
+            d_at, n_at = (18, 31) if fmt == 2023 else (12, 25)
+            lap_dist = struct.unpack_from("<f", data, o + d_at)[0]
+            lap_num = data[o + n_at]
+            sane = (0 < lap_num < 250 and -500 < lap_dist < 30000 and cur_ms < 3_600_000)
+            self.lap = (last_ms / 1000 or None, cur_ms / 1000, lap_dist, lap_num) if sane else None
+        elif pid == 6 and body >= F1_CARS * 60:
+            o = hdr + player * 60
+            speed_kmh, thr, steer, brk, clutch, gear, rpm = struct.unpack_from("<HfffBbH", data, o)
+            surf = struct.unpack_from("<4B", data, o + 2 + 12 + 1 + 1 + 2 + 1 + 1 + 2 + 8)
+            temps = [float(surf[i]) for i in _F1_WHEEL_ORDER]
+            f = Frame(sim="f1", speed=speed_kmh / 3.6, rpm=float(rpm), gear=gear,
+                      throttle=thr, brake=brk, clutch=clutch / 100, steer=steer,
+                      pos=self.pos, tyre_temp=temps, extra={"f1_format": fmt})
+            if self.lap:
+                last, cur, dist, num = self.lap
+                f.lap, f.lap_time, f.last_lap = num - 1, cur, last
+                f.lap_dist = dist if dist >= 0 else None
+                if self.track_len and dist >= 0:
+                    f.lap_frac = min(1.0, dist / self.track_len)
+            f.extra["track_length"] = self.track_len
+            return f
+        return None

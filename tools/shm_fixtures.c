@@ -9,6 +9,7 @@
 #include "rf2data.h"
 #include "r3e.h"
 #include "lmu.h"
+#include "scs2data.h"
 static void dump(const char *p, void *d, size_t n){ FILE *f=fopen(p,"wb"); fwrite(d,1,n,f); fclose(f); }
 int main(int argc, char **argv){
   const char *dir = argc > 1 ? argv[1] : ".";
@@ -59,5 +60,13 @@ int main(int argc, char **argv){
   r->gear=3; r->car_cg_location.x=5; r->car_cg_location.y=6; r->car_cg_location.z=7; r->fuel_left=20; r->fuel_capacity=80;
   r->tire_wear[3]=0.8f; r->tire_temp[0].current_temp[1]=85; r->tire_temp[0].optimal_temp=90; r->tire_temp[0].cold_temp=70; r->tire_temp[0].hot_temp=110; r->throttle_raw=0.9f; r->brake_raw=0.0f; r->clutch_raw=0.0f; r->steer_input_raw=0.1f;
   snprintf(path,sizeof path,"%s/r3e.bin",dir); dump(path, r, sizeof *r);
+  /* ETS2 */
+  struct scs2TelemetryMap_s *sc = calloc(1, sizeof *sc);
+  sc->sdkActive=1; sc->paused=0; sc->time=12345; sc->scs_values.game=1; sc->truck_i.gear=5; sc->truck_i.gearDashboard=5; sc->config_f.fuelCapacity=400;
+  sc->config_f.engineRpmMax=2500; sc->truck_f.speed=-22.2f; sc->truck_f.engineRpm=1400; sc->truck_f.userSteer=0.1f;
+  sc->truck_f.userThrottle=0.6f; sc->truck_f.userBrake=0; sc->truck_f.userClutch=0; sc->truck_f.fuel=300;
+  sc->truck_dp.coordinateX=-1000.5; sc->truck_dp.coordinateY=50.0; sc->truck_dp.coordinateZ=2000.25;
+  strcpy(sc->config_s.truckBrand,"Scania"); strcpy(sc->config_s.truckName,"S");
+  snprintf(path,sizeof path,"%s/scs.bin",dir); dump(path, sc, sizeof *sc);
   return 0;
 }
