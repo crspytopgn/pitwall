@@ -72,6 +72,8 @@ class Dashboard:
                         return
                 elif self.path == "/api/laps":
                     self._send(200, json.dumps(hub.store.recent(30)).encode(), "application/json")
+                elif self.path == "/api/track":
+                    self._send(200, json.dumps(hub.track_map()).encode(), "application/json")
                 elif self.path == "/api/session":
                     self._send(200, json.dumps(hub.session_summary()).encode(), "application/json")
                 else:

@@ -69,15 +69,15 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "ac_shm",
+        "adapter": "shm",
         "laps": "sim",
         "quality": "good",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; it runs under Proton.",
-        "For telemetry, run a shared-memory bridge alongside the game (simshmbridge or winecarte). It copies the game's acpmf_* memory into /dev/shm where Pitwall reads it.",
-        "Pitwall shows 'Telemetry: waiting for bridge' until /dev/shm/acpmf_physics appears."
+        "For telemetry, Pitwall can set up the winecarte bridge for you: Game guide → this game → Set up telemetry bridge. It downloads winecarte and adds it to the game's launch options; restart the game afterwards.",
+        "Pitwall shows the bridge as running once /dev/shm/acpmf_physics appears."
       ],
       "known_issues": [
         {
@@ -103,7 +103,11 @@
         "sources": [
           "https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa"
         ]
-      }
+      },
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "acpmf_physics"
+      ]
     },
     {
       "id": "acc",
@@ -112,14 +116,15 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "ac_shm",
+        "adapter": "shm",
         "laps": "sim",
         "quality": "good",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; it runs under Proton.",
-        "For telemetry, use the same shared-memory bridge as Assetto Corsa (simshmbridge or winecarte)."
+        "For telemetry, Pitwall can set up the winecarte bridge for you: Game guide → this game → Set up telemetry bridge. It downloads winecarte and adds it to the game's launch options; restart the game afterwards.",
+        "Pitwall shows the bridge as running once /dev/shm/acpmf_physics appears."
       ],
       "known_issues": [
         {
@@ -141,7 +146,11 @@
         "sources": [
           "https://simracingsetup.com/product-guides/acc-moza-force-feedback-settings/"
         ]
-      }
+      },
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "acpmf_physics"
+      ]
     },
     {
       "id": "ac_evo",
@@ -150,14 +159,14 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "ac_shm",
+        "adapter": "shm",
         "laps": "sim",
         "quality": "partial",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; runs under Proton.",
-        "Use winecarte for shared memory; it lists AC EVO support."
+        "For telemetry: Game guide → this game → Set up telemetry bridge (winecarte)."
       ],
       "known_issues": [
         {
@@ -169,7 +178,11 @@
         "tools": [
           "https://github.com/srounce/winecarte"
         ]
-      }
+      },
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "acpmf_physics"
+      ]
     },
     {
       "id": "ams2",
@@ -178,14 +191,15 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "planned",
+        "adapter": "shm",
         "laps": "sim",
-        "quality": "planned",
+        "quality": "experimental",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; runs under Proton.",
-        "Telemetry support in Pitwall is planned (via the Project CARS 2 shared memory bridge)."
+        "For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game.",
+        "In AMS2's options, make sure Shared Memory is set to 'Project CARS 2'."
       ],
       "known_issues": [
         {
@@ -196,7 +210,46 @@
           "text": "Avoid re-plugging the wheel while the game is running; it can break controller mappings.",
           "source": "https://www.protondb.com/app/1066890"
         }
-      ]
+      ],
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "$pcars2$",
+        "$pcars2"
+      ],
+      "bridge": {
+        "tools": [
+          "https://github.com/srounce/winecarte"
+        ]
+      }
+    },
+    {
+      "id": "pc2",
+      "name": "Project CARS 2",
+      "steam_appid": 378860,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {
+        "adapter": "shm",
+        "laps": "sim",
+        "quality": "experimental",
+        "needs_bridge": true
+      },
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "$pcars2$",
+        "$pcars2"
+      ],
+      "install": [
+        "Install from Steam; runs under Proton.",
+        "For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game.",
+        "In the game's options set Shared Memory to 'Project CARS 2'."
+      ],
+      "known_issues": [],
+      "bridge": {
+        "tools": [
+          "https://github.com/srounce/winecarte"
+        ]
+      }
     },
     {
       "id": "rf2",
@@ -205,21 +258,36 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "planned",
+        "adapter": "shm",
         "laps": "sim",
-        "quality": "planned",
+        "quality": "experimental",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; runs under Proton.",
-        "Telemetry needs the rF2 Shared Memory Map plugin plus a bridge; Pitwall support is planned."
+        "Install the rF2 Shared Memory Map plugin (Windows version) into the game's Plugins folder and enable it in the game's settings.",
+        "Then: Game guide → this game → Set up telemetry bridge (winecarte), and restart the game."
       ],
       "known_issues": [
         {
           "text": "Community reports say it runs; check ProtonDB for the current recommended Proton version.",
           "source": "https://www.protondb.com/app/365960"
+        },
+        {
+          "text": "Don't use the Wine-specific build of rF2SharedMemoryMapPlugin together with winecarte; both write the same files. Use the normal Windows plugin.",
+          "source": "https://github.com/srounce/winecarte"
         }
-      ]
+      ],
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "$rFactor2SMMP_Telemetry$"
+      ],
+      "bridge": {
+        "tools": [
+          "https://github.com/srounce/winecarte",
+          "https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin"
+        ]
+      }
     },
     {
       "id": "lmu",
@@ -228,14 +296,15 @@
       "status": "community",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "planned",
+        "adapter": "shm",
         "laps": "sim",
-        "quality": "planned",
+        "quality": "experimental",
         "needs_bridge": true
       },
       "install": [
         "The developer lists Linux and Steam Deck as unsupported.",
-        "Community reports use a custom Proton build (GE-Proton10-4-LMU). Expect tinkering."
+        "Community reports use a custom Proton build (GE-Proton10-4-LMU). Expect tinkering.",
+        "For telemetry: Game guide → this game → Set up telemetry bridge (winecarte). LMU's built-in shared memory (LMU_Data) is read directly."
       ],
       "known_issues": [
         {
@@ -246,7 +315,17 @@
           "text": "For menu lag, community reports suggest changing 'CEF mode' in UserData/player/Settings.JSON.",
           "source": "https://www.protondb.com/app/2399420"
         }
-      ]
+      ],
+      "bridge_auto": "winecarte",
+      "shm_files": [
+        "LMU_Data",
+        "$rFactor2SMMP_Telemetry$"
+      ],
+      "bridge": {
+        "tools": [
+          "https://github.com/srounce/winecarte"
+        ]
+      }
     },
     {
       "id": "raceroom",
@@ -255,20 +334,23 @@
       "status": "setup",
       "runtime": "proton",
       "telemetry": {
-        "adapter": "planned",
+        "adapter": "shm",
         "laps": "sim",
-        "quality": "planned",
+        "quality": "experimental",
         "needs_bridge": true
       },
       "install": [
         "Install from Steam; runs under Proton.",
-        "Telemetry support is planned."
+        "Telemetry: Pitwall reads RaceRoom's $R3E shared memory, but it needs a bridge that mirrors it into /dev/shm. winecarte doesn't list RaceRoom yet, so this is for advanced users for now."
       ],
       "known_issues": [
         {
           "text": "Community report: force feedback didn't work with a Logitech G29 even though the wheel worked in other games.",
           "source": "https://www.protondb.com/app/211500"
         }
+      ],
+      "shm_files": [
+        "$R3E"
       ]
     },
     {

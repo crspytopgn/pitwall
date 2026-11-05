@@ -34,6 +34,11 @@ MAGIC = 0x0D
 
 DEV_MAIN = 18
 DEV_BASE = 19
+DEV_WHEEL = 23   # Boxflat: "this ID can vary but most wheels are available at ID 23 now"
+
+# Wheel rev lights (Boxflat data/serial.yml, "wheel" section)
+WHEEL_TELEMETRY_MODE = dict(read=64, write=63, cmd_id=(28, 0), size=1)   # 0 off, 1 telemetry, 2 static
+WHEEL_SEND_RPM = dict(write=63, cmd_id=(26, 0))                           # 2 bytes: LED bitmask, little-endian
 
 
 @dataclass(frozen=True)
@@ -285,6 +290,47 @@ class MozaBase:
         with self._lock:
             got = self._transact(frames, expect, timeout=0.4)
         return got is not None
+
+    # ---- rev lights -------------------------------------------------------
+    def _fire(self, frames: list[bytes]) -> bool:
+        """Write without waiting for replies (used ~30x a second for LEDs).
+        Pending replies are drained so the input buffer never fills."""
+        with self._lock:
+            if not self._ensure_open():
+                return False
+            try:
+                while select.select([self._fd], [], [], 0)[0]:
+                    if not os.read(self._fd, 4096):
+                        break
+                for f in frames:
+                    os.write(self._fd, f)
+                return True
+            except OSError as e:
+                self.last_error = f"Serial error: {e.strerror}"
+                self.close()
+                return False
+
+    def set_led_telemetry_mode(self, on: bool) -> bool:
+        """Switch the wheel's rev lights to telemetry mode (Pitwall drives
+        them) or back to the mode they were in before."""
+        m = WHEEL_TELEMETRY_MODE
+        if on:
+            with self._lock:
+                got = self._transact([build_frame(m["read"], DEV_WHEEL, m["cmd_id"], b"\x01")],
+                                     {(m["read"], DEV_WHEEL, m["cmd_id"])}, timeout=0.4)
+            prev = got.get((m["read"], DEV_WHEEL, m["cmd_id"])) if got else None
+            self._led_prev_mode = prev[0] if prev else None
+            value = 1
+        else:
+            value = getattr(self, "_led_prev_mode", None)
+            if value is None or value == 1:
+                value = 1   # unknown previous mode: leave telemetry mode on (the wheel's default)
+        return self._fire([build_frame(m["write"], DEV_WHEEL, m["cmd_id"], bytes([value]))])
+
+    def send_rpm_leds(self, mask: int) -> bool:
+        mask &= 0x3FF
+        return self._fire([build_frame(WHEEL_SEND_RPM["write"], DEV_WHEEL, WHEEL_SEND_RPM["cmd_id"],
+                                       bytes([mask & 0xFF, mask >> 8]))])
 
     def calibrate_center(self) -> bool:
         c = CALIBRATE

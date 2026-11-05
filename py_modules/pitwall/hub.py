@@ -12,7 +12,8 @@ from .coach import compare
 from .laps import Lap, LapTracker
 from .store import LapStore, track_key
 from .telemetry.frame import Frame
-from .telemetry.sources import AcShmSource, UdpSource, DEFAULT_PORTS
+from .telemetry.shm import ShmSource
+from .telemetry.sources import UdpSource, DEFAULT_PORTS
 
 STALE_S = 2.0
 
@@ -32,7 +33,7 @@ class Hub:
         shared: dict = {}
         self.sources = [UdpSource(k, p, self._on_frame, shared=shared) for k, p in self.ports.items()]
         if enable_shm:
-            self.sources.append(AcShmSource(self._on_frame))
+            self.sources.append(ShmSource(self._on_frame))
         self._ref_key = None
 
     def start(self):
@@ -133,8 +134,24 @@ class Hub:
                 "delta": live["delta"], "best": ref.time if ref else f.best_lap,
                 "last": self.last_lap["time"] if self.last_lap else f.last_lap,
                 "tips": (self.last_coaching or {}).get("tips", []),
+                "coached": self.last_coaching is not None,
                 "needs_start_line": f.lap is None and self.tracker.gate is None,
+                "pos": [round(f.pos[0], 1), round(f.pos[1], 1)] if f.pos else None,
+                "lap_id": self.last_lap["id"] if self.last_lap else None,
+                "lap_best": bool(self.last_lap and self.last_lap["best"]),
             }
+
+    def track_map(self, max_points: int = 400) -> dict:
+        """Outline of the reference lap (or the lap in progress) for the
+        dashboard's track map."""
+        with self.lock:
+            ref = self.tracker.reference
+            pts = [(s[7], s[8]) for s in (ref.samples if ref else self.tracker.cur.samples)
+                   if s[7] is not None and s[8] is not None]
+        if len(pts) > max_points:
+            step = len(pts) / max_points
+            pts = [pts[int(i * step)] for i in range(max_points)]
+        return {"points": [[round(x, 1), round(y, 1)] for x, y in pts], "is_reference": bool(ref)}
 
     def session_summary(self) -> dict:
         with self.lock:

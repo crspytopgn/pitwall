@@ -77,10 +77,12 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     # Game-specific
     if game:
         t = game.get("telemetry", {})
-        if t.get("needs_bridge") and t.get("adapter") == "ac_shm":
-            ok = os.path.exists("/dev/shm/acpmf_physics")
-            add("bridge", ok, "Shared-memory bridge running" if ok else "Shared-memory bridge not running",
-                "" if ok else "Telemetry for this game needs simshmbridge or winecarte running with it.")
+        files = game.get("shm_files") or []
+        if t.get("needs_bridge") and files:
+            ok = any(os.path.exists(os.path.join("/dev/shm", f)) for f in files)
+            how = ("Use Game guide → Set up telemetry bridge, then restart the game."
+                   if game.get("bridge_auto") else "This game needs a shared-memory bridge running with it.")
+            add("bridge", ok, "Telemetry bridge running" if ok else "Telemetry bridge not running", "" if ok else how)
         if game.get("status") == "broken":
             add("compat", False, f"{game['name']} doesn't run on SteamOS", (game.get("install") or [""])[0])
 

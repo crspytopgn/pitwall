@@ -1,0 +1,27 @@
+name: Wheel report
+description: Report how your wheel works with Pitwall, or ask for support
+labels: [wheels]
+body:
+  - type: input
+    id: wheel
+    attributes:
+      label: Wheel base and rim
+      placeholder: Fanatec CSL DD with ClubSport rim
+    validations:
+      required: true
+  - type: input
+    id: driver
+    attributes:
+      label: Kernel driver
+      placeholder: hid-fanatecff 0.2 / mainline
+  - type: textarea
+    id: checks
+    attributes:
+      label: Pre-race checks output
+      description: What does Pitwall's Pre-race checks page show?
+  - type: textarea
+    id: details
+    attributes:
+      label: What works and what doesn't
+    validations:
+      required: true

@@ -4,15 +4,17 @@ import asyncio
 import json
 import os
 import sys
+import threading
 
 import decky  # provided by Decky Loader
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import engineer, ffb, health, perf  # noqa: E402
+from pitwall import bridge, engineer, ffb, health, perf  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
+from pitwall.leds import RevLights  # noqa: E402
 from pitwall.wheels import detect_wheel  # noqa: E402
 
 SETTINGS_DIR = decky.DECKY_PLUGIN_SETTINGS_DIR
@@ -30,6 +32,7 @@ DEFAULTS = {
     "dashboard_port": 8090,
     "ports": {},                    # overrides for telemetry ports
     "anthropic_api_key": "",
+    "rev_lights": False,            # drive MOZA wheel rev lights from telemetry
 }
 
 PROFILE_EXCLUDE = {"ffb_enabled"}   # never let a profile silently switch FFB off
@@ -69,18 +72,22 @@ class Plugin:
 
     # ================================================================ wheel
     def _wheel(self):
-        if self.wheel is None or not self.wheel.detect():
-            if self.wheel:
-                self.wheel.close()
-            self.wheel = detect_wheel(decky.logger, os.environ.get("PITWALL_MOZA_TTY"))
-        return self.wheel
+        # Called from several worker threads (UI calls, rev lights): only one
+        # may detect/open the wheel at a time.
+        with self.wheel_lock:
+            if self.wheel is None or not self.wheel.detect():
+                if self.wheel:
+                    self.wheel.close()
+                self.wheel = detect_wheel(decky.logger, os.environ.get("PITWALL_MOZA_TTY"))
+            return self.wheel
 
     async def wheel_status(self) -> dict:
         w = await self._run(self._wheel)
         if not w:
             return {"connected": False, "error": "No supported wheel found (MOZA and Logitech are supported)."}
         return {"connected": True, "name": w.name, "brand": w.brand, "settings": w.settings(),
-                "can_center": w.brand == "MOZA"}
+                "can_center": w.brand == "MOZA", "leds": bool(getattr(w, "leds_supported", False)),
+                "rev_lights": bool(self.settings.get("rev_lights"))}
 
     async def wheel_read(self):
         w = await self._run(self._wheel)
@@ -238,6 +245,28 @@ class Plugin:
         g = self.compat.find(appid, name)
         return g["id"] if g else None
 
+    # ============================================================== bridge
+    async def bridge_status(self, appid: str) -> dict:
+        try:
+            ok_app = int(appid) in bridge.SUPPORTED_APPIDS
+        except (TypeError, ValueError):
+            ok_app = False
+        return {"supported": ok_app, "installed": bridge.installed(HOME), "prefix": bridge.launch_prefix(HOME)}
+
+    async def bridge_install(self) -> dict:
+        uid = gid = None
+        try:
+            import pwd
+            pw = pwd.getpwnam(decky.DECKY_USER)
+            uid, gid = pw.pw_uid, pw.pw_gid
+        except (KeyError, ImportError, AttributeError):
+            pass
+        return await self._run(lambda: bridge.install(HOME, uid, gid))
+
+    async def bridge_launch_options(self, current: str, enable: bool) -> str:
+        prefix = bridge.launch_prefix(HOME)
+        return bridge.merge_launch_options(current, prefix) if enable else bridge.remove_from_launch_options(current, prefix)
+
     # ===================================================== health / perf
     async def health_check(self) -> list:
         game = None
@@ -274,14 +303,25 @@ class Plugin:
     async def get_settings(self) -> dict:
         s = dict(self.settings)
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
-        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key")}
+        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights")}
 
     async def set_setting(self, key: str, value):
-        if key not in ("target_fps", "units", "anthropic_api_key"):
+        if key not in ("target_fps", "units", "anthropic_api_key", "rev_lights"):
             return False
         self.settings[key] = value
         _save(self.settings)
+        if key == "rev_lights":
+            self._apply_rev_lights()
         return True
+
+    def _apply_rev_lights(self):
+        want = bool(self.settings.get("rev_lights"))
+        if want and not (self.rev_lights and self.rev_lights.is_alive()):
+            self.rev_lights = RevLights(self.hub, self._wheel)
+            self.rev_lights.start()
+        elif not want and self.rev_lights:
+            self.rev_lights.stop()
+            self.rev_lights = None
 
     # ============================================================ lifecycle
     async def _main(self):
@@ -289,15 +329,20 @@ class Plugin:
         self.settings = _load()
         self.current_app = None
         self.wheel = None
+        self.wheel_lock = threading.Lock()
         self.ffb_undo_stack = []
+        self.rev_lights = None
         self.hub = Hub(os.path.join(DATA_DIR, "laps.sqlite"), ports=self.settings.get("ports"), logger=decky.logger)
         self.hub.start()
         self.dashboard = Dashboard(self.hub, int(self.settings["dashboard_port"]))
         self.dashboard.start()
         self.compat = compat_mod.Compat(HOME, DATA_DIR)
+        self._apply_rev_lights()
         decky.logger.info("Pitwall started; dashboard at %s", self.dashboard.url)
 
     async def _unload(self):
+        if self.rev_lights:
+            self.rev_lights.stop()
         self.hub.stop()
         self.dashboard.stop()
         if self.wheel:

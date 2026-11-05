@@ -48,6 +48,19 @@ class TestPluginBackend(unittest.TestCase):
             self.assertTrue(await p.set_setting("anthropic_api_key", "sk-test"))
             self.assertIs((await p.get_settings())["anthropic_api_key"], True)   # key never returned
             self.assertFalse(await p.set_setting("ports", {}))
+            cat = await p.ffb_catalogue()
+            self.assertEqual(len(cat["presets"]), 3)
+            self.assertFalse((await p.ffb_nudge("too_light"))["ok"])       # no wheel connected
+            self.assertFalse((await p.ffb_undo())["ok"])
+            bs = await p.bridge_status("805550")
+            self.assertTrue(bs["supported"])
+            self.assertFalse(bs["installed"])
+            self.assertIn("winecarte-run", await p.bridge_launch_options("", True))
+            self.assertFalse((await p.bridge_status("284160"))["supported"])
+            self.assertTrue(await p.set_setting("rev_lights", True))
+            self.assertIsNotNone(p.rev_lights)
+            self.assertTrue(await p.set_setting("rev_lights", False))
+            self.assertIsNone(p.rev_lights)
             await p._unload()
         asyncio.run(go())
 

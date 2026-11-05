@@ -1,0 +1,39 @@
+name: Bug report
+description: Something in Pitwall doesn't work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS
+      placeholder: Steam Machine, SteamOS 3.x / Steam Deck OLED / Bazzite ...
+    validations:
+      required: true
+  - type: input
+    id: sim
+    attributes:
+      label: Sim (if relevant)
+      placeholder: BeamNG.drive native, ACC with winecarte ...
+  - type: input
+    id: wheel
+    attributes:
+      label: Wheel (if relevant)
+      placeholder: MOZA R3 with ES wheel
+  - type: input
+    id: version
+    attributes:
+      label: Pitwall version
+      placeholder: "0.1.0"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Paste the end of the newest file in ~/homebrew/logs/Pitwall/
+      render: text

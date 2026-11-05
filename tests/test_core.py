@@ -73,7 +73,7 @@ class TestParsers(unittest.TestCase):
             self.assertEqual(f.lap, 3)
             self.assertEqual(f.tyre_temp[0], 100.0)       # 212 °F
             self.assertAlmostEqual(f.steer, -64 / 127)
-            self.assertEqual(f.pos, (10.0, 20.0, 30.0))
+            self.assertEqual(f.pos, (10.0, 30.0, 20.0))
             self.assertEqual(f.car, "42")
         self.assertIsNone(parsers.parse_forza(b"\0" * 300))
 
@@ -348,3 +348,38 @@ class TestHealth(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBridge(unittest.TestCase):
+    def test_install_from_tarball_and_launch_options(self):
+        import io as _io
+        import tarfile as _tar
+        from pitwall import bridge
+        buf = _io.BytesIO()
+        with _tar.open(fileobj=buf, mode="w:gz") as t:
+            for n in ("winecarte-run", "wine2linux.exe", "README.md"):
+                data = b"x" * 10
+                ti = _tar.TarInfo("winecarte-1.0/" + n)
+                ti.size = len(data)
+                t.addfile(ti, _io.BytesIO(data))
+        rel = {"tag_name": "v1.0", "assets": [{"name": "winecarte-1.0.tar.gz", "browser_download_url": "https://x/a"}]}
+
+        def fetch(url):
+            return json.dumps(rel).encode() if url == bridge.API else buf.getvalue()
+        home = tempfile.mkdtemp()
+        r = bridge.install(home, fetch=fetch)
+        self.assertTrue(r["ok"], r)
+        self.assertTrue(bridge.installed(home))
+        self.assertTrue(os.access(os.path.join(bridge.bin_dir(home), "winecarte-run"), os.X_OK))
+        pre = bridge.launch_prefix(home)
+        self.assertEqual(bridge.merge_launch_options("", pre), f"{pre} %command%")
+        self.assertEqual(bridge.merge_launch_options("gamemoderun %command% -vr", pre), f"gamemoderun {pre} %command% -vr")
+        merged = bridge.merge_launch_options("gamemoderun %command% -vr", pre)
+        self.assertEqual(bridge.merge_launch_options(merged, pre), merged)          # idempotent
+        self.assertEqual(bridge.remove_from_launch_options(merged, pre), "gamemoderun %command% -vr")
+        self.assertEqual(bridge.remove_from_launch_options(f"{pre} %command%", pre), "")
+
+    def test_install_reports_missing(self):
+        from pitwall import bridge
+        r = bridge.install(tempfile.mkdtemp(), fetch=lambda u: json.dumps({"assets": []}).encode())
+        self.assertFalse(r["ok"])

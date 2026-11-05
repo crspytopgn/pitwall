@@ -11,10 +11,11 @@ The Pitwall app shows the same entries plus **live** ratings from Valve (Steam D
 | [Assetto Corsa](#assetto-corsa) | 🛠️ Works with setup | Proton | ✅ Full |
 | [Assetto Corsa Competizione](#assetto-corsa-competizione) | 🛠️ Works with setup | Proton | ✅ Full |
 | [Assetto Corsa EVO](#assetto-corsa-evo) | 🛠️ Works with setup | Proton | 🟡 Partial |
-| [Automobilista 2](#automobilista-2) | 🛠️ Works with setup | Proton | 🔜 Planned |
-| [rFactor 2](#rfactor-2) | 🛠️ Works with setup | Proton | 🔜 Planned |
-| [Le Mans Ultimate](#le-mans-ultimate) | ⚠️ Community fixes only | Proton | 🔜 Planned |
-| [RaceRoom Racing Experience](#raceroom-racing-experience) | 🛠️ Works with setup | Proton | 🔜 Planned |
+| [Automobilista 2](#automobilista-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [Project CARS 2](#project-cars-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [rFactor 2](#rfactor-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
+| [Le Mans Ultimate](#le-mans-ultimate) | ⚠️ Community fixes only | Proton | 🧪 Experimental |
+| [RaceRoom Racing Experience](#raceroom-racing-experience) | 🛠️ Works with setup | Proton | 🧪 Experimental |
 | [DiRT Rally 2.0](#dirt-rally-20) | ✅ Works | Proton | ✅ Full |
 | [Forza Horizon 5](#forza-horizon-5) | ✅ Works | Proton | ✅ Full |
 | [Forza Horizon 4](#forza-horizon-4) | ✅ Works | Proton | ✅ Full |
@@ -71,8 +72,10 @@ Sources: <https://docs.beamng.com/support/hardware/steering_wheel_setup/>, <http
 ### Setup
 
 1. Install from Steam; it runs under Proton.
-2. For telemetry, run a shared-memory bridge alongside the game (simshmbridge or winecarte). It copies the game's acpmf_* memory into /dev/shm where Pitwall reads it.
-3. Pitwall shows 'Telemetry: waiting for bridge' until /dev/shm/acpmf_physics appears.
+2. For telemetry, Pitwall can set up the winecarte bridge for you: Game guide → this game → Set up telemetry bridge. It downloads winecarte and adds it to the game's launch options; restart the game afterwards.
+3. Pitwall shows the bridge as running once /dev/shm/acpmf_physics appears.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
 
 Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge), [winecarte](https://github.com/srounce/winecarte)
 
@@ -98,7 +101,10 @@ Sources: <https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-c
 ### Setup
 
 1. Install from Steam; it runs under Proton.
-2. For telemetry, use the same shared-memory bridge as Assetto Corsa (simshmbridge or winecarte).
+2. For telemetry, Pitwall can set up the winecarte bridge for you: Game guide → this game → Set up telemetry bridge. It downloads winecarte and adds it to the game's launch options; restart the game afterwards.
+3. Pitwall shows the bridge as running once /dev/shm/acpmf_physics appears.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
 
 Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge), [winecarte](https://github.com/srounce/winecarte)
 
@@ -123,7 +129,9 @@ Sources: <https://simracingsetup.com/product-guides/acc-moza-force-feedback-sett
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Use winecarte for shared memory; it lists AC EVO support.
+2. For telemetry: Game guide → this game → Set up telemetry bridge (winecarte).
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
 
 Bridges: [winecarte](https://github.com/srounce/winecarte)
 
@@ -140,12 +148,33 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Telemetry support in Pitwall is planned (via the Project CARS 2 shared memory bridge).
+2. For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game.
+3. In AMS2's options, make sure Shared Memory is set to 'Project CARS 2'.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
+
+Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ### Known issues
 
 - Force feedback has been lost with some Proton versions (reported with a Logitech G29); one user restored it with GE-Proton 7-44 but lost it again after alt-tabbing. ([source](https://forum.reizastudios.com/threads/linux-and-ffb.36382/))
 - Avoid re-plugging the wheel while the game is running; it can break controller mappings. ([source](https://www.protondb.com/app/1066890))
+
+## Project CARS 2
+
+**Status:** 🛠️ Works with setup  
+**Runs via:** Proton  
+**Steam:** [378860](https://store.steampowered.com/app/378860) · [ProtonDB](https://www.protondb.com/app/378860)
+
+### Setup
+
+1. Install from Steam; runs under Proton.
+2. For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game.
+3. In the game's options set Shared Memory to 'Project CARS 2'.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
+
+Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## rFactor 2
 
@@ -156,11 +185,17 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Telemetry needs the rF2 Shared Memory Map plugin plus a bridge; Pitwall support is planned.
+2. Install the rF2 Shared Memory Map plugin (Windows version) into the game's Plugins folder and enable it in the game's settings.
+3. Then: Game guide → this game → Set up telemetry bridge (winecarte), and restart the game.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
+
+Bridges: [winecarte](https://github.com/srounce/winecarte), [rF2SharedMemoryMapPlugin](https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin)
 
 ### Known issues
 
 - Community reports say it runs; check ProtonDB for the current recommended Proton version. ([source](https://www.protondb.com/app/365960))
+- Don't use the Wine-specific build of rF2SharedMemoryMapPlugin together with winecarte; both write the same files. Use the normal Windows plugin. ([source](https://github.com/srounce/winecarte))
 
 ## Le Mans Ultimate
 
@@ -172,6 +207,11 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 1. The developer lists Linux and Steam Deck as unsupported.
 2. Community reports use a custom Proton build (GE-Proton10-4-LMU). Expect tinkering.
+3. For telemetry: Game guide → this game → Set up telemetry bridge (winecarte). LMU's built-in shared memory (LMU_Data) is read directly.
+
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
+
+Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ### Known issues
 
@@ -187,7 +227,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Telemetry support is planned.
+2. Telemetry: Pitwall reads RaceRoom's $R3E shared memory, but it needs a bridge that mirrors it into /dev/shm. winecarte doesn't list RaceRoom yet, so this is for advanced users for now.
 
 ### Known issues
 

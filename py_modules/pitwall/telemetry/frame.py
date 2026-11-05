@@ -18,7 +18,8 @@ class Frame:
     brake: float = 0.0             # 0..1
     clutch: float = 0.0            # 0..1
     steer: float | None = None     # -1..1 (left negative) where known
-    pos: tuple | None = None       # world (x, y, z) in metres where known
+    pos: tuple | None = None       # world position in metres as (horizontal x, horizontal y, height);
+                                   # parsers reorder each sim's axes into this layout
     lap: int | None = None         # laps completed, if the sim counts laps
     lap_time: float | None = None  # current lap, seconds, if the sim reports it
     last_lap: float | None = None  # seconds

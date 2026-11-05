@@ -1,19 +1,28 @@
 """
-Wheel drivers. Each driver exposes the same small interface so the UI and
-profiles don't care which brand is plugged in:
+Wheel drivers. Every driver exposes the same small interface so the UI,
+profiles and FFB tools don't care which brand is plugged in:
 
     detect() -> bool
-    name -> str
-    settings() -> {key: {"min","max","step","label"}}   # what this wheel supports
+    name, brand -> str
+    settings() -> {key: {"min","max","step","label","suffix","toggle"}}
     read_all() -> {key: value} | None
     write({key: value}) -> bool
-    center() -> bool                                     # optional
+    center() -> bool           (MOZA only for now)
+    leds(mask) / leds_supported (MOZA wheels with rev lights)
 
-Supported:
-- MOZA Racing (all bases Boxflat supports): full settings over its serial protocol
-- Logitech (G29/G920/G923 and older, via the kernel's hid-logitech driver): rotation
+MOZA talks to the base over its serial protocol (from Boxflat). Logitech,
+Fanatec and Thrustmaster are driven through the sysfs files their Linux
+kernel drivers expose:
 
-Planned: Fanatec (hid-fanatecff), Thrustmaster (hid-tmff2), Simagic, Cammus.
+- Logitech: hid-logitech (mainline: range) or new-lg4ff (adds gain, autocenter,
+  spring/damper/friction) https://github.com/berarma/new-lg4ff
+- Fanatec: hid-fanatecff https://github.com/gotzl/hid-fanatecff
+  (range plus the base's tuning menu under /sys/class/ftec_tuning)
+- Thrustmaster: hid-tmff2 https://github.com/Kimplul/hid-tmff2
+  (range, gain, spring/damper/friction levels)
+
+Only settings whose files actually exist are offered, so the same code works
+with mainline and community drivers.
 """
 
 from __future__ import annotations
@@ -32,8 +41,15 @@ _LABELS = {
 }
 
 
+def _def(key, lo, hi, label=None, step=None, suffix=None, toggle=False):
+    l, s, u = _LABELS.get(key, (key, 1, ""))
+    return {"min": lo, "max": hi, "step": step or s, "label": label or l, "suffix": u if suffix is None else suffix,
+            "toggle": toggle}
+
+
 class MozaDriver:
     brand = "MOZA"
+    leds_supported = True
 
     def __init__(self, logger=None, path_override=None):
         self.dev = MozaBase(logger=logger, path_override=path_override)
@@ -46,8 +62,7 @@ class MozaDriver:
         return self.dev.connected()
 
     def settings(self) -> dict:
-        return {k: {"min": s.lo, "max": s.hi, "step": _LABELS[k][1], "label": _LABELS[k][0],
-                    "suffix": _LABELS[k][2], "toggle": k == "ffb_enabled"} for k, s in MOZA_SETTINGS.items()}
+        return {k: _def(k, s.lo, s.hi, toggle=(k == "ffb_enabled")) for k, s in MOZA_SETTINGS.items()}
 
     def read_all(self):
         return self.dev.read_all()
@@ -58,6 +73,15 @@ class MozaDriver:
     def center(self) -> bool:
         return self.dev.calibrate_center()
 
+    def leds_begin(self) -> bool:
+        return self.dev.set_led_telemetry_mode(True)
+
+    def leds_end(self) -> bool:
+        return self.dev.set_led_telemetry_mode(False)
+
+    def leds(self, mask: int) -> bool:
+        return self.dev.send_rpm_leds(mask)
+
     def close(self):
         self.dev.close()
 
@@ -66,44 +90,64 @@ class MozaDriver:
         return self.dev.last_error
 
 
-class LogitechDriver:
-    """Logitech wheels expose rotation as a sysfs 'range' file (hid-lg4ff)."""
-    brand = "Logitech"
-    name = "Logitech"
-    error = None
+class SysfsDriver:
+    """A wheel controlled through files its kernel driver exposes."""
+    leds_supported = False
+    brand = "?"
+    # key -> (glob, lo, hi, ui_to_file, file_to_ui, extra def kwargs)
+    ATTRS: dict = {}
 
-    def _range_file(self):
-        for p in glob.glob("/sys/bus/hid/drivers/logitech/*/range"):
-            return p
-        return None
+    def __init__(self):
+        self.error = None
+
+    @property
+    def name(self):
+        return self.brand
+
+    def _path(self, key):
+        hits = sorted(glob.glob(self.ATTRS[key][0]))
+        return hits[0] if hits else None
+
+    def available(self):
+        return [k for k in self.ATTRS if self._path(k)]
 
     def detect(self) -> bool:
-        return self._range_file() is not None
+        return "rotation" in self.available()
 
     def settings(self):
-        return {"rotation": {"min": 40, "max": 900, "step": 10, "label": "Rotation", "suffix": "°", "toggle": False}}
+        out = {}
+        for k in self.available():
+            _g, lo, hi, _to, _from, kw = self.ATTRS[k]
+            out[k] = _def(k, lo, hi, **kw)
+        return out
 
     def read_all(self):
-        p = self._range_file()
-        if not p:
-            return None
-        try:
-            with open(p) as f:
-                return {"rotation": int(f.read().strip())}
-        except (OSError, ValueError):
-            return None
+        vals = {}
+        for k in self.available():
+            try:
+                with open(self._path(k)) as f:
+                    raw = f.read().strip().split()[0]
+                vals[k] = self.ATTRS[k][4](int(raw, 0))
+            except (OSError, ValueError, IndexError, TypeError):
+                continue
+        return vals or None
 
     def write(self, values):
-        p = self._range_file()
-        if not p or "rotation" not in values:
-            return bool(p)
-        try:
-            with open(p, "w") as f:
-                f.write(str(int(max(40, min(900, values["rotation"])))))
-            return True
-        except OSError as e:
-            self.error = str(e)
-            return False
+        ok = True
+        for k, v in values.items():
+            if k not in self.ATTRS or v is None:
+                continue
+            p = self._path(k)
+            if not p:
+                continue
+            _g, lo, hi, to_file, _f, _kw = self.ATTRS[k]
+            try:
+                with open(p, "w") as f:
+                    f.write(str(int(to_file(max(lo, min(hi, float(v)))))))
+            except OSError as e:
+                self.error = f"{k}: {e.strerror}"
+                ok = False
+        return ok
 
     def center(self):
         return False
@@ -112,13 +156,61 @@ class LogitechDriver:
         pass
 
 
+_id = (lambda v: round(v), lambda d: d)
+_pct16 = (lambda v: round(v * 65535 / 100), lambda d: round(d * 100 / 65535))
+
+
+class LogitechDriver(SysfsDriver):
+    brand = "Logitech"
+    _B = "/sys/bus/hid/drivers/logitech*/*/"
+    ATTRS = {
+        "rotation": (_B + "range", 40, 900, *_id, {}),
+        "ffb_strength": (_B + "gain", 0, 100, *_pct16, {"label": "Overall FFB gain"}),
+        "autocenter": (_B + "autocenter", 0, 100, *_pct16, {"label": "Autocenter spring", "suffix": "%"}),
+        "spring": (_B + "spring_level", 0, 100, *_id, {}),
+        "damper": (_B + "damper_level", 0, 100, *_id, {}),
+        "friction": (_B + "friction_level", 0, 100, *_id, {}),
+    }
+
+
+class ThrustmasterDriver(SysfsDriver):
+    brand = "Thrustmaster"
+    _B = "/sys/bus/hid/drivers/tmff2/*/"
+    ATTRS = {
+        "rotation": (_B + "range", 40, 1080, *_id, {}),
+        "ffb_strength": (_B + "gain", 0, 100, *_pct16, {"label": "Overall FFB gain"}),
+        "spring": (_B + "spring_level", 0, 100, *_id, {}),
+        "damper": (_B + "damper_level", 0, 100, *_id, {}),
+        "friction": (_B + "friction_level", 0, 100, *_id, {}),
+    }
+
+
+class FanatecDriver(SysfsDriver):
+    brand = "Fanatec"
+    _T = "/sys/class/ftec_tuning/*/"
+    ATTRS = {
+        "rotation": ("/sys/bus/hid/drivers/fanatec/*/range", 90, 2530, *_id, {}),
+        "ffb_strength": (_T + "FF", 0, 100, *_id, {"label": "FFB strength (FF)"}),
+        "force_effect": (_T + "FOR", 0, 120, *_id, {"label": "Force effect (FOR)", "suffix": "%"}),
+        "spring": (_T + "SPR", 0, 120, *_id, {"label": "Spring (SPR)"}),
+        "damper": (_T + "DPR", 0, 120, *_id, {"label": "Damper (DPR)"}),
+        "natural_damper": (_T + "NDP", 0, 100, *_id, {"label": "Natural damper (NDP)", "suffix": ""}),
+        "friction": (_T + "NFR", 0, 100, *_id, {"label": "Natural friction (NFR)", "suffix": ""}),
+        "interpolation": (_T + "INT", 0, 20, *_id, {"label": "FFB interpolation (INT)", "suffix": ""}),
+    }
+
+
+SYSFS_DRIVERS = [LogitechDriver, FanatecDriver, ThrustmasterDriver]
+
+
 def detect_wheel(logger=None, moza_tty=None):
-    """Return the first connected wheel driver, or None."""
+    """Return the first connected, controllable wheel driver, or None."""
     moza = MozaDriver(logger, moza_tty)
     if moza.detect():
         return moza
     moza.close()
-    lg = LogitechDriver()
-    if lg.detect():
-        return lg
+    for cls in SYSFS_DRIVERS:
+        d = cls()
+        if d.detect():
+            return d
     return None

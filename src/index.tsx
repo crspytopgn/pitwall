@@ -16,7 +16,7 @@ import { GiCheckeredFlag, GiSteeringWheel, GiBookCover, GiStopwatch, GiLightning
 
 // ---------------------------------------------------------------- backend
 type SettingDef = { min: number; max: number; step: number; label: string; suffix: string; toggle: boolean };
-type WheelStatus = { connected: boolean; name?: string; brand?: string; error?: string; settings?: Record<string, SettingDef>; can_center?: boolean };
+type WheelStatus = { connected: boolean; name?: string; brand?: string; error?: string; settings?: Record<string, SettingDef>; can_center?: boolean; leds?: boolean; rev_lights?: boolean };
 type Profiles = { auto_apply: boolean; has_default: boolean; games: Record<string, string> };
 type Session = {
   receiving: boolean; sim: string | null; car: string | null; track: string | null; needs_start_line: boolean;
@@ -71,6 +71,9 @@ const ffbNudge = callable<[symptom: string], FfbResult>("ffb_nudge");
 const ffbUndo = callable<[], FfbResult>("ffb_undo");
 type LapRow = { id: number; created: number; sim: string; track_key: string; car: string | null; track: string | null; time: number; length: number };
 const recentLaps = callable<[], LapRow[]>("recent_laps");
+const bridgeStatus = callable<[appid: string], { supported: boolean; installed: boolean; prefix: string }>("bridge_status");
+const bridgeInstall = callable<[], { ok: boolean; message: string }>("bridge_install");
+const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>("bridge_launch_options");
 
 declare const SteamClient: any;
 const ROUTE = "/pitwall";
@@ -218,6 +221,10 @@ function Wheel({ go }: { go?: Go }) {
         {st.can_center && (
           <Row><ButtonItem layout="below" onClick={async () => toast((await wheelCenter()) ? "Centre set" : "Centre failed")}>Set centre (hold wheel straight)</ButtonItem></Row>
         )}
+        {st.leds && (
+          <Row><ToggleField label="Rev lights from telemetry" description="Drive the wheel's RPM LEDs from the game" checked={!!st.rev_lights}
+            onChange={async (c: boolean) => { await setSetting("rev_lights", c); setSt({ ...st, rev_lights: c }); }} /></Row>
+        )}
         {Object.keys(defs).some((k) => !CORE_KEYS.includes(k)) && (
           <Row><ToggleField label="Effect settings" checked={more} onChange={setMore} /></Row>
         )}
@@ -276,6 +283,7 @@ function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
         {g.auto_setup && (
           <Row><ButtonItem layout="below" onClick={async () => toast((await compatAutoSetup(g.id)).message)}>Do this for me</ButtonItem></Row>
         )}
+        {(g as any).bridge_auto && (g as any).steam_appid && <BridgeSetup appid={String((g as any).steam_appid)} name={g.name} />}
         {g.wheel && <Row><div style={small}>🛞 Suggested rotation {g.wheel.rotation}°. {g.wheel.note}</div></Row>}
       </PanelSection>
       {ing && (
@@ -289,6 +297,36 @@ function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
           {g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{src(k.source)}</div></div></Row>)}
         </PanelSection>
       )}
+    </>
+  );
+}
+
+function BridgeSetup({ appid, name }: { appid: string; name: string }) {
+  const [st, setSt] = useState<{ supported: boolean; installed: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const cur = currentLaunchOptions(appid);
+  const enabled = cur !== null && cur.includes("winecarte-run");
+  useEffect(() => { bridgeStatus(appid).then(setSt); }, [appid]);
+  if (!st?.supported) return null;
+  const apply = async (enable: boolean) => {
+    if (cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
+    setBusy(true);
+    try {
+      if (enable && !st.installed) {
+        const r = await bridgeInstall();
+        if (!r.ok) { toast(r.message); return; }
+        setSt({ ...st, installed: true });
+      }
+      SteamClient.Apps.SetAppLaunchOptions(Number(appid), await bridgeLaunchOptions(cur, enable));
+      toast(enable ? `Telemetry bridge added to ${name}. Restart the game.` : `Bridge removed from ${name}'s launch options`);
+    } finally { setBusy(false); }
+  };
+  return (
+    <>
+      <Row><ButtonItem layout="below" disabled={busy} onClick={() => apply(!enabled)}>
+        {busy ? "Working…" : enabled ? "Remove telemetry bridge" : "Set up telemetry bridge"}
+      </ButtonItem></Row>
+      <Row><div style={dim}>Uses winecarte (github.com/srounce/winecarte). It's added to the game's launch options; your existing options are kept.</div></Row>
     </>
   );
 }
@@ -333,7 +371,10 @@ function PerfPage({ go }: { go?: Go }) {
     const cur = currentLaunchOptions(app.appid);
     if (cur === null) { toast("Couldn't read this game's launch options; benchmark not set to avoid overwriting them"); return; }
     const saved = savedOpts(); saved[app.appid] = cur; storeOpts(saved);
-    const opts = await benchmarkOptions(90);
+    // Keep the game's own launch options (e.g. a telemetry bridge): MangoHud's
+    // environment variables just go in front.
+    const env = (await benchmarkOptions(90)).replace(/\s*%command%\s*$/, "");
+    const opts = cur.includes("%command%") ? `${env} ${cur}` : `${env} %command%${cur ? " " + cur : ""}`;
     SteamClient.Apps.SetAppLaunchOptions(Number(app.appid), opts);
     setBenchFor(Object.keys(saved)); setLastApp(app);
     toast(`Benchmark armed for ${app.name}. Restart the game and drive for 90 s.`);

@@ -14,7 +14,7 @@ OUT = os.path.join(ROOT, "docs", "compatibility.md")
 
 STATUS = {"works": "✅ Works", "setup": "🛠️ Works with setup", "community": "⚠️ Community fixes only", "broken": "⛔ Doesn't run"}
 RUNTIME = {"native": "Native Linux", "proton": "Proton", "none": "n/a"}
-TELEMETRY = {"good": "✅ Full", "basic": "✅ Basic", "partial": "🟡 Partial", "untested": "🧪 Untested", "planned": "🔜 Planned", None: "–"}
+TELEMETRY = {"good": "✅ Full", "basic": "✅ Basic", "partial": "🟡 Partial", "untested": "🧪 Untested", "experimental": "🧪 Experimental", "planned": "🔜 Planned", None: "–"}
 
 
 def anchor(name: str) -> str:
@@ -49,6 +49,8 @@ def render() -> str:
                         f"[ProtonDB](https://www.protondb.com/app/{g['steam_appid']})")
         out += ["  \n".join(meta), "", "### Setup", ""]
         out += [f"{i}. {step}" for i, step in enumerate(g["install"], 1)]
+        if g.get("bridge_auto"):
+            out += ["", "> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**."]
         if g.get("auto_setup"):
             out += ["", "> Pitwall can do the telemetry step for you: Game guide → this game → **Do this for me**."]
         if g.get("bridge"):

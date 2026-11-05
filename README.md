@@ -1,120 +1,98 @@
-# Pitwall
+<p align="center">
+  <img src="assets/banner.png" alt="Pitwall: sim racing companion for SteamOS and Steam Machine" width="100%">
+</p>
 
-A sim racing companion for SteamOS (Steam Machine, Steam Deck, any Linux with [Decky Loader](https://decky.xyz)). It lives in the Quick Access Menu, so you never leave Gaming Mode.
+<p align="center">
+  <a href="../../actions/workflows/build.yml"><img src="../../actions/workflows/build.yml/badge.svg" alt="build"></a>
+  <img src="https://img.shields.io/badge/version-0.1.0%20preview-orange" alt="version 0.1.0 preview">
+  <img src="https://img.shields.io/badge/SteamOS-Decky%20plugin-1a9fff" alt="Decky plugin">
+  <img src="https://img.shields.io/badge/licence-GPL--3.0-blue" alt="GPL-3.0">
+</p>
 
-- **Live telemetry** from the sims that support it, with lap timing and a live delta to your best lap
-- **Coaching**: after each lap, compares every braking zone with your best lap and tells you where the time went ("Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex")
-- **Phone dashboard**: open `http://<steam-machine-ip>:8090` on a phone or tablet for gear, shift lights, delta, lap times, pedals and coaching tips
-- **Wheel control**: rotation, FFB, damping and more, with per-game profiles applied automatically at launch
-- **Game guide**: compatibility status, install steps and known issues for each sim, combined with live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet
-- **Pre-race checks**: is the wheel connected, is force feedback available, is telemetry arriving, is the bridge running
-- **Performance**: 90-second MangoHud benchmark, judged on 1% lows and stutters against your TV's refresh rate
-- **Engineer debrief**: session summary with your problem corners; optionally written up by Claude if you add an Anthropic API key
+**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and any SteamOS PC: live telemetry, lap coaching, a phone dashboard, wheel and force feedback control, and a sourced guide to which sims run on SteamOS and how to set them up. Everything happens in Gaming Mode, from the Quick Access Menu.
 
-> Unofficial. Not affiliated with any sim developer or wheel manufacturer.
+> **0.1.0 preview.** Pitwall is feature-complete for its first release but **hasn't been tested on real hardware yet**. Reports are very welcome: [open an issue](../../issues/new/choose).
 
-## Supported sims
+## Features
 
-| Sim | Runs on SteamOS | Telemetry in Pitwall | How |
-|---|---|---|---|
-| BeamNG.drive | ✅ native | ✅ | OutGauge + MotionSim UDP; set a start line for laps |
-| DiRT Rally 2.0 | ✅ Proton | ✅ | Codemasters UDP; Pitwall can switch it on for you |
-| Forza Horizon 4 / 5 | ✅ Proton | ✅ | Forza Data Out |
-| Forza Horizon 6 | ✅ | 🧪 untested | Forza Data Out (assumed same format) |
-| Forza Motorsport | ⚠️ launch problems reported | ✅ | Forza Data Out |
-| Live for Speed | ✅ Proton | ✅ basic | OutGauge |
-| Assetto Corsa / ACC / AC EVO | 🛠️ Proton | ✅ | Shared memory via [simshmbridge](https://github.com/Spacefreak18/simshmbridge) or [winecarte](https://github.com/srounce/winecarte) |
-| Automobilista 2, rFactor 2, RaceRoom | 🛠️ Proton | 🔜 planned | Shared memory via bridge |
-| Le Mans Ultimate | ⚠️ community Proton build only | 🔜 planned | Shared memory via bridge |
-| iRacing, EA SPORTS WRC, F1 24 / 25 | ⛔ anti-cheat blocks Linux | – | – |
+| | |
+|---|---|
+| 📡 **Telemetry from 15 sims** | BeamNG, Forza, DiRT Rally 2.0, Live for Speed, Assetto Corsa, ACC, AC EVO, AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom |
+| ⏱️ **Lap timing and live delta** | Uses the sim's own laps, or a start line you set (BeamNG, LFS) |
+| 💡 **Coaching** | Compares every braking zone with your best lap: *"Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex"* |
+| 📱 **Phone dashboard** | Shift lights, gear, delta, laps, pedals, track map and voice callouts on any phone on your Wi-Fi |
+| 🛞 **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; per-game profiles applied at launch |
+| 🚥 **Rev lights** | Drives MOZA wheel RPM LEDs from live telemetry |
+| 🎚️ **FFB feel tuner** | Sourced presets, then "what feels wrong?" → a small, explained, undoable change |
+| 📖 **Game guide** | Status, install steps, in-game FFB settings and known issues per sim, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
+| 🔌 **One-tap telemetry bridge** | Sets up [winecarte](https://github.com/srounce/winecarte) for shared-memory sims, keeping your launch options |
+| ✅ **Pre-race checks** | Wheel, force feedback driver, telemetry, bridge and game compatibility at a glance |
+| ⚡ **Performance** | 90-second MangoHud benchmark judged on 1% lows and stutters against your TV's refresh rate |
+| 🎧 **Engineer debrief** | Session summary and problem corners; optionally written up by Claude with your own API key |
 
-The full, sourced list (install steps, known issues, links) is in [`py_modules/pitwall/data/games.json`](py_modules/pitwall/data/games.json) and is what the in-app game guide shows.
+<p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard" width="300"></p>
 
-## Supported wheels
+## Quick start
 
-| Wheel | Settings | Notes |
+1. Install [Decky Loader](https://decky.xyz).
+2. Download `Pitwall-x.y.z.zip` from [Releases](../../releases) (or the latest build under **Actions**).
+3. Decky → cog → **Developer mode** on → **Install Plugin from ZIP File**.
+4. Open Pitwall from the Quick Access Menu and run **Pre-race checks**.
+
+Then follow [Getting started](docs/getting-started.md).
+
+## Which sims work?
+
+| Sim | Runs on SteamOS | Pitwall telemetry |
 |---|---|---|
-| MOZA (all bases) | Full: rotation, FFB strength, torque, road sensitivity, damper, friction, inertia, spring, max speed, FFB on/off, centre | Serial protocol from [Boxflat](https://github.com/Lawstorant/boxflat). FFB in games needs the kernel's `hid-universal-pidff` driver |
-| Logitech G29 / G920 / G923 etc. | Rotation | Through the kernel's `hid-logitech` driver |
-| Fanatec, Thrustmaster, Simagic, Cammus, Simucube | Detected in checks | Settings drivers planned |
+| BeamNG.drive | ✅ native | ✅ |
+| DiRT Rally 2.0 | ✅ | ✅ (auto setup) |
+| Forza Horizon 4 / 5 | ✅ | ✅ |
+| Live for Speed | ✅ | ✅ |
+| Assetto Corsa / ACC | 🛠️ | ✅ via bridge |
+| AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom | 🛠️ / ⚠️ | 🧪 via bridge |
+| iRacing, EA SPORTS WRC, F1 24 / 25 | ⛔ anti-cheat | – |
 
-Wheel drivers share one interface (`py_modules/pitwall/wheels/`), so adding a brand is one class.
+The full, sourced guide is in **[docs/compatibility.md](docs/compatibility.md)** (generated from the same data the app uses).
 
-## Install
+## Documentation
 
-1. Install [Decky Loader](https://decky.xyz) on the Steam Machine.
-2. Download `Pitwall-x.y.z.zip` from [Releases](../../releases) (or the latest build artifact under Actions).
-3. Gaming Mode → `...` → Decky (plug icon) → cog → **General → Developer mode** on.
-4. **Developer → Install Plugin from ZIP File**, then pick the zip.
+[Install](docs/install.md) · [Getting started](docs/getting-started.md) · [Compatibility](docs/compatibility.md) · [Telemetry](docs/telemetry.md) · [Wheels](docs/wheels.md) · [FFB tuning](docs/ffb-tuning.md) · [Performance](docs/performance.md) · [Coaching](docs/coaching.md) · [Troubleshooting](docs/troubleshooting.md) · [FAQ](docs/faq.md)
 
-The backend runs as root (Decky's `_root` flag) so it can talk to the wheel's serial port without a udev rule.
+## How it's built
 
-### BeamNG quick start
-
-1. In BeamNG: **Options → Other → Protocols**. Enable **OutGauge** (`127.0.0.1`, port `4444`) and **MotionSim** (`127.0.0.1`, port `4445`).
-2. Drive to the start/finish point of a loop and press **Set start line here** in Pitwall.
-3. Drive laps. Coaching appears from your second lap.
-
-## Where the compatibility data comes from
-
-Pitwall prefers primary sources and says where every claim comes from.
-
-| Source | Used for | Why |
-|---|---|---|
-| Developer documentation (e.g. BeamNG docs) | Install steps, telemetry formats | Primary source |
-| Valve's Steam Deck compatibility rating | Live, per game | Official testing |
-| [ProtonDB](https://www.protondb.com) | Live tier, plus known issues and tinkering steps | Largest set of crowd reports with Proton versions |
-| [Are We Anti-Cheat Yet](https://areweanticheatyet.com) | Live anti-cheat status | Anti-cheat decides whether online sims run at all |
-| [GamingOnLinux](https://www.gamingonlinux.com/anticheat/) | Anti-cheat news and confirmation | Second source |
-| [awesome-linux-simracing](https://github.com/LukasLichten/awesome-linux-simracing) | Bridges and drivers | Community index |
-
-Live ratings are cached for 24 hours and fail soft when offline. Curated entries in `games.json` must link a source (the test suite enforces this).
-
-## Privacy
-
-- The dashboard is served on your local network only, with no login. Don't port-forward it.
-- Telemetry and laps stay on the device (`~/homebrew/data/Pitwall/laps.sqlite`).
-- The engineer debrief sends a lap summary to Anthropic **only** if you add an API key; the key is stored in a file only root can read.
-
-## Development
-
-```bash
-pnpm install
-pnpm run build                               # frontend → dist/index.js
-python3 -m unittest discover -s tests        # backend tests
-BOXFLAT_DIR=/path/to/boxflat python3 -m unittest discover -s tests   # + MOZA protocol cross-check
-./scripts/package.sh                         # → out/Pitwall-x.y.z.zip
-```
-
-Layout:
+- **No third-party Python dependencies**: everything uses the standard library, so it runs on Decky's bundled Python.
+- **Light on the Steam Machine**: idle, it checks for telemetry every two seconds; shared memory is read in place without copying.
+- **Verified protocols**: MOZA commands are checked byte for byte against Boxflat; shared-memory readers are checked against fixtures written by C code using the real struct definitions.
+- **Sourced knowledge**: every known issue and preset links its source, and the test suite enforces it.
 
 ```
-main.py                         Decky backend entry point
-src/index.tsx                   Quick Access Menu UI
+main.py                     Decky backend entry point
+src/index.tsx               Quick Access Menu and full-screen UI
 py_modules/pitwall/
-  telemetry/parsers.py          OutGauge, MotionSim, Forza, Codemasters packet parsers
-  telemetry/sources.py          UDP listeners, AC/ACC shared-memory reader
-  laps.py                       lap detection (sim laps or start line), sampling, live delta
-  coach.py                      braking-zone comparison and tips
-  store.py                      SQLite lap storage
-  hub.py                        ties it together, live state
-  dashboard.py, web/            phone dashboard (HTTP + Server-Sent Events)
-  wheels/                       MOZA and Logitech drivers
-  compat.py, data/games.json    game guide, live ratings, auto-setup
-  health.py, perf.py            pre-race checks, MangoHud analysis
-  engineer.py                   debrief (offline + optional Claude)
+  telemetry/                UDP parsers (OutGauge, MotionSim, Forza, Codemasters) and shared-memory readers
+  laps.py, coach.py         lap detection, live delta, braking-zone coaching
+  hub.py, store.py          live state, SQLite lap history
+  dashboard.py, web/        phone dashboard (HTTP + Server-Sent Events)
+  wheels/                   MOZA serial driver; Logitech, Fanatec, Thrustmaster sysfs drivers
+  leds.py, ffb.py           rev lights, FFB presets and feel tuner
+  compat.py, data/          game guide, live ratings, auto setup
+  bridge.py                 winecarte download and launch options
+  health.py, perf.py        pre-race checks, MangoHud analysis
+  engineer.py               debrief (offline, optional Claude)
+tools/                      C programs that generate shared-memory offsets and test fixtures
 ```
 
-No third-party Python dependencies: everything uses the standard library so it runs on Decky's bundled Python.
+See [CONTRIBUTING.md](CONTRIBUTING.md) to build, test or add a sim or wheel.
 
-## Roadmap
+## Credits
 
-- Telemetry for AMS2 / Project CARS 2, rFactor 2 / LMU and RaceRoom via shared-memory bridges
-- Wheel drivers for Fanatec (hid-fanatecff), Thrustmaster (hid-tmff2), Simagic
-- RPM LEDs on MOZA wheels from telemetry
-- Spoken coaching cues during a session
-- Track maps on the dashboard from position data
+- MOZA protocol: [Boxflat](https://github.com/Lawstorant/boxflat) by Tomasz Pakuła
+- Shared-memory layouts: [simapi](https://github.com/Spacefreak18/simapi) by Spacefreak18
+- Telemetry bridge: [winecarte](https://github.com/srounce/winecarte)
+- Compatibility data: [ProtonDB](https://www.protondb.com), Valve's Steam Deck ratings, [Are We Anti-Cheat Yet](https://areweanticheatyet.com), [GamingOnLinux](https://www.gamingonlinux.com)
+- Wheel drivers: [hid-fanatecff](https://github.com/gotzl/hid-fanatecff), [hid-tmff2](https://github.com/Kimplul/hid-tmff2), [new-lg4ff](https://github.com/berarma/new-lg4ff), and `hid-universal-pidff` in mainline Linux
 
-## Credits and licence
+Pitwall is unofficial and not affiliated with Valve, MOZA Racing or any sim developer. Licensed under GPL-3.0.
 
-GPL-3.0. The MOZA protocol and command table come from [Boxflat](https://github.com/Lawstorant/boxflat) by Tomasz Pakuła, which reverse engineered them. Telemetry formats from the BeamNG documentation and the Forza, Codemasters and Assetto Corsa communities.
+<sub>Keywords: sim racing Linux, SteamOS sim racing, Steam Machine racing wheel, Steam Deck racing wheel, MOZA Linux, MOZA R3 SteamOS, Boxflat Decky, BeamNG telemetry Linux, Assetto Corsa Proton telemetry, ACC Linux telemetry, SimHub alternative Linux, racing dashboard phone, Decky plugin racing.</sub>

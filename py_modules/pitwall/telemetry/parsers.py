@@ -90,7 +90,7 @@ def parse_forza(data: bytes) -> Frame | None:
         speed=speed, rpm=rpm, max_rpm=max_rpm or None,
         gear=-1 if gear == 0 else (0 if gear >= 11 else gear),
         throttle=accel / 255, brake=brake / 255, clutch=clutch / 255,
-        steer=steer / 127, pos=(px, py, pz),
+        steer=steer / 127, pos=(px, pz, py),          # Forza is Y-up
         lap=lap_no, lap_time=cur or None,
         last_lap=last or None, best_lap=best or None,
         fuel=fuel, tyre_temp=[round(f_to_c(t), 1) for t in (tfl, tfr, trl, trr)],
@@ -115,7 +115,7 @@ def parse_codemasters(data: bytes) -> Frame | None:
         sim="codemasters",
         speed=v[7], rpm=v[37] * 10, max_rpm=(v[63] * 10) or None,  # DR2 reports rpm/10
         gear=gear_i, throttle=v[29], brake=v[31], clutch=v[32], steer=v[30],
-        pos=(v[4], v[5], v[6]),
+        pos=(v[4], v[6], v[5]),                       # Codemasters is Y-up
         lap=int(v[36]), lap_time=v[1], last_lap=v[62] or None,
         lap_dist=max(0.0, v[2]),
         lap_frac=(v[2] / lap_len) if lap_len else None,

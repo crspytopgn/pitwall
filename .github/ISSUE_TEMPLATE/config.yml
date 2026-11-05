@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Compatibility guide
+    url: https://github.com/crspytopgn/pitwall/blob/main/docs/compatibility.md
+    about: Check whether your sim is already covered.

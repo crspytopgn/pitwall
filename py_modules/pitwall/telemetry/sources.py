@@ -7,8 +7,6 @@ never block Decky's event loop.
 
 from __future__ import annotations
 
-import mmap
-import os
 import socket
 import struct
 import threading
@@ -88,7 +86,6 @@ class UdpSource(threading.Thread):
 # (SPageFilePhysics / SPageFileGraphic / SPageFileStatic). Under Proton these
 # only exist in /dev/shm when a bridge such as simshmbridge or winecarte runs
 # alongside the game.
-SHM_DIR = "/dev/shm"
 
 
 def _wstr(buf: bytes, off: int, chars: int) -> str:
@@ -122,58 +119,3 @@ def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
         car=car, track=track,
         extra={"fuel_litres": fuel},
     )
-
-
-class AcShmSource(threading.Thread):
-    def __init__(self, on_frame, rate_hz: float = 30.0, shm_dir: str = SHM_DIR):
-        super().__init__(daemon=True, name="ac-shm")
-        self.on_frame = on_frame
-        self.period = 1.0 / rate_hz
-        self.dir = shm_dir
-        self._stop = threading.Event()
-        self.available = False
-        self.error: str | None = None
-        self.packets = 0
-
-    def stop(self):
-        self._stop.set()
-
-    def _map(self, name):
-        path = os.path.join(self.dir, name)
-        with open(path, "rb") as f:
-            size = os.fstat(f.fileno()).st_size
-            if size == 0:
-                raise OSError("empty")
-            return mmap.mmap(f.fileno(), size, access=mmap.ACCESS_READ)
-
-    def run(self):
-        maps = None
-        last_packet = None
-        while not self._stop.is_set():
-            if maps is None:
-                try:
-                    maps = [self._map(n) for n in ("acpmf_physics", "acpmf_graphics")]
-                    try:
-                        maps.append(self._map("acpmf_static"))
-                    except OSError:
-                        maps.append(None)
-                    self.available = True
-                except OSError:
-                    self.available = False
-                    time.sleep(2)
-                    continue
-            try:
-                phys, graph = maps[0][:], maps[1][:]
-                static = maps[2][:] if maps[2] else None
-            except (ValueError, OSError):
-                maps = None
-                continue
-            packet = struct.unpack_from("<i", phys, 0)[0]
-            if packet != last_packet:          # only emit when the sim has updated
-                last_packet = packet
-                frame = parse_ac(phys, graph, static)
-                if frame:
-                    frame.t = time.monotonic()
-                    self.packets += 1
-                    self.on_frame(frame)
-            time.sleep(self.period)

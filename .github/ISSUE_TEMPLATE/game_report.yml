@@ -1,0 +1,29 @@
+name: Game report
+description: A sim's status, setup steps or known issues have changed
+labels: [game-guide]
+body:
+  - type: input
+    id: game
+    attributes:
+      label: Game
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Does it run on SteamOS for you?
+      options: ["Works", "Works with setup", "Community fixes only", "Doesn't run"]
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Proton version, launch options, steps, what breaks.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: A link others can check (developer post, ProtonDB report, GamingOnLinux article...). Entries without a source can't be added.
