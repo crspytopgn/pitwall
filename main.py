@@ -11,7 +11,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, device, diagnostics, drivers, engineer, ffb, ffbtest, health, perf  # noqa: E402
+from pitwall import bridge, device, diagnostics, drivers, engineer, ffb, ffbtest, health, perf, updates  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -35,6 +35,7 @@ DEFAULTS = {
     "anthropic_api_key": "",
     "rev_lights": False,            # drive MOZA wheel rev lights from telemetry
     "setup_done": False,            # first-run auto setup has been run or dismissed
+    "check_updates": True,          # daily check for driver and bridge updates (GitHub, read-only)
 }
 
 PROFILE_EXCLUDE = {"ffb_enabled"}
@@ -432,6 +433,61 @@ class Plugin:
         value = health.sdl_wheel_env(health.input_wheels())
         return health.env_launch_options(current, "PROTON_ENABLE_HIDRAW", value, enable)
 
+    # ============================================================ updates
+    UPDATES_FILE = os.path.join(DATA_DIR, "updates.json")
+
+    def _updates_cached(self) -> dict | None:
+        try:
+            with open(self.UPDATES_FILE) as f:
+                return json.load(f)
+        except (OSError, ValueError):
+            return None
+
+    def _updates_run(self) -> dict:
+        res = updates.check(self.drivers.state(), drivers.DRIVERS, bridge.installed(HOME), bridge.installed_version(HOME))
+        prev = self._updates_cached() or {}
+        res["notified"] = prev.get("notified", [])
+        try:
+            with open(self.UPDATES_FILE, "w") as f:
+                json.dump(res, f)
+        except OSError:
+            pass
+        return res
+
+    def _updates_loop(self):
+        # First check a minute after start, then whenever the last one is a day old.
+        if self._updates_stop.wait(60):
+            return
+        while not self._updates_stop.is_set():
+            if self.settings.get("check_updates", True) and updates.due(self._updates_cached()):
+                res = self._updates_run()
+                new = [i for i in res["items"] if i["update"] and f"{i['id']}@{i['latest']}" not in res["notified"]]
+                if new:
+                    self._emit("pitwall_toast", "Update available: " + ", ".join(i["name"] for i in new) + ". See Pitwall, Updates.")
+                    res["notified"] = res["notified"] + [f"{i['id']}@{i['latest']}" for i in new]
+                    try:
+                        with open(self.UPDATES_FILE, "w") as f:
+                            json.dump(res, f)
+                    except OSError:
+                        pass
+            self._updates_stop.wait(3600)
+
+    async def updates_status(self, force: bool = False) -> dict:
+        """Driver and bridge updates. force runs a fresh check; otherwise the last result."""
+        res = await self._run(self._updates_run) if force else (self._updates_cached() or {"checked": 0, "items": [], "available": []})
+        # Reflect installs made since the last check.
+        st = self.drivers.state()
+        res["items"] = [i for i in res.get("items", []) if i["kind"] != "driver" or i["id"] in st]
+        for i in res["items"]:
+            if i["kind"] == "driver" and i.get("latest") and (st[i["id"]].get("sha") or "").startswith(i["latest"]):
+                i["update"], i["current"] = False, st[i["id"]].get("commit")
+            if i["kind"] == "bridge" and i.get("latest") and bridge.installed_version(HOME) == i["latest"]:
+                i["update"], i["current"] = False, i["latest"]
+        res["available"] = [i["id"] for i in res["items"] if i["update"]]
+        res["enabled"] = bool(self.settings.get("check_updates", True))
+        res["has_anything"] = bool(st) or bridge.installed(HOME)
+        return res
+
     # ===================================================== health / perf
     async def health_check(self) -> list:
         game = None
@@ -468,10 +524,10 @@ class Plugin:
     async def get_settings(self) -> dict:
         s = dict(self.settings)
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
-        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done")}
+        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates")}
 
     async def set_setting(self, key: str, value):
-        if key not in ("target_fps", "units", "anthropic_api_key", "rev_lights"):
+        if key not in ("target_fps", "units", "anthropic_api_key", "rev_lights", "check_updates"):
             return False
         self.settings[key] = value
         _save(self.settings)
@@ -512,9 +568,12 @@ class Plugin:
             # A SteamOS update replaced the kernel and removed the driver; say so once the UI is up.
             self.loop.call_later(20, self._emit, "pitwall_toast",
                                  f"A SteamOS update removed {', '.join(stale)}. Reinstall it in Pitwall, Wheel, Force feedback.")
+        self._updates_stop = threading.Event()
+        threading.Thread(target=self._updates_loop, daemon=True).start()
         decky.logger.info("Pitwall started; dashboard at %s", self.dashboard.url)
 
     async def _unload(self):
+        self._updates_stop.set()
         if self.rev_lights:
             self.rev_lights.stop()
         self.hub.stop()

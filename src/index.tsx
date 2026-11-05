@@ -92,6 +92,9 @@ const autoSetupApply = callable<[], { results: { step: string; ok: boolean; deta
 const dismissFirstRun = callable<[], void>("dismiss_first_run");
 const bridgeStatus = callable<[appid: string], { supported: boolean; installed: boolean; prefix: string }>("bridge_status");
 const bridgeInstall = callable<[], { ok: boolean; message: string }>("bridge_install");
+type UpdateItem = { kind: "driver" | "bridge"; id: string; name: string; current: string | null; latest: string | null; date: string | null; update: boolean; error: string | null };
+type Updates = { checked: number; items: UpdateItem[]; available: string[]; enabled?: boolean; has_anything?: boolean };
+const updatesStatus = callable<[force: boolean], Updates>("updates_status");
 const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>("bridge_launch_options");
 type Detection = { wheels: { name: string; vid: string; pid: string; joystick: boolean | null; model?: string; brand: string }[]; needs_hwdb: boolean; sdl_value: string };
 const wheelDetection = callable<[], Detection>("wheel_detection");
@@ -289,9 +292,16 @@ function Home({ go }: { go?: Go }) {
   const s = usePoll(sessionStatus, 1000);
   const game = runningApp();
   const [firstRun, setFirstRun] = useState(false);
-  useEffect(() => { getSettings().then((x: any) => setFirstRun(!x.setup_done)); }, []);
+  const [upd, setUpd] = useState<Updates | null>(null);
+  useEffect(() => { getSettings().then((x: any) => setFirstRun(!x.setup_done)); updatesStatus(false).then(setUpd); }, []);
   return (
     <>
+      {go && upd && upd.available.length > 0 && (
+        <PanelSection title="Update available">
+          <Row><div style={small}>{upd.items.filter((i) => i.update).map((i) => i.name).join(", ")}</div></Row>
+          <Row><ButtonItem layout="below" onClick={() => go("updates")}>See updates</ButtonItem></Row>
+        </PanelSection>
+      )}
       {firstRun && go && (
         <PanelSection title="Welcome to Pitwall">
           <Row><div style={small}>Let Pitwall check your device and wheel and apply the best starting settings. Takes a few seconds.</div></Row>
@@ -348,6 +358,7 @@ function Home({ go }: { go?: Go }) {
             <Row><ButtonItem layout="below" onClick={() => { Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>Open full screen</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("perf")}>Performance check</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("debrief")}>Engineer debrief</ButtonItem></Row>
+            <Row><ButtonItem layout="below" onClick={() => go("updates")}>Updates</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("diag")}>Send diagnostics</ButtonItem></Row>
           </PanelSection>
         </>
@@ -876,10 +887,63 @@ function FullScreen() {
           "separator",
           { title: "Performance check", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
           { title: "Engineer debrief", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
+          { title: "Updates", icon: <GiCheckMark />, content: <UpdatesPage />, route: `${ROUTE}/updates` },
           { title: "Send diagnostics", icon: <GiFirstAidKit />, content: <Diagnostics />, route: `${ROUTE}/diagnostics` },
         ]}
       />
     </div>
+  );
+}
+
+// Updates for the third-party software Pitwall installed: force feedback drivers and the telemetry bridge.
+function UpdatesPage({ go }: { go?: Go }) {
+  const [u, setU] = useState<Updates | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [auto, setAuto] = useState(true);
+  const load = async (force = false) => { setU(await updatesStatus(force)); };
+  useEffect(() => { load(); getSettings().then((x: any) => setAuto(x.check_updates !== false)); }, []);
+  const update = async (i: UpdateItem) => {
+    setBusy(i.id);
+    try {
+      if (i.kind === "bridge") {
+        toast((await bridgeInstall()).message);
+      } else {
+        const r = await driverInstall(i.id);
+        if (!r.ok) { toast(r.message); return; }
+        toast(`Updating ${i.name}. This takes a few minutes; progress is on the Wheel page.`);
+        for (;;) {
+          await new Promise((res) => setTimeout(res, 2000));
+          const j = await driverJob();
+          if (!j || j.state !== "running") { toast(j?.message || "Done"); break; }
+        }
+      }
+      await load();
+    } finally { setBusy(null); }
+  };
+  const when = u?.checked ? new Date(u.checked * 1000).toLocaleString() : "never";
+  return (
+    <PanelSection title="Updates">
+      <Back go={go} />
+      {!u ? <Row>Loading…</Row> : (
+        <>
+          {!u.has_anything && <Row><div style={dim}>Pitwall hasn't installed any drivers or the telemetry bridge, so there's nothing to update.</div></Row>}
+          {u.items.map((i) => (
+            <div key={i.id}>
+              <Row><div style={small}>
+                <b>{i.name}</b>: {i.error ? <span style={{ color: "#ffb020" }}>{i.error}</span>
+                  : i.update ? <span style={{ color: "#4da3ff" }}>update available</span>
+                  : <span style={{ color: "#3ddc84" }}>up to date</span>}
+                <div style={dim}>Installed: {i.current || "unknown version"}{i.latest ? ` · latest: ${i.latest}${i.date ? ` (${i.date})` : ""}` : ""}</div>
+              </div></Row>
+              {i.update && <Row><ButtonItem layout="below" disabled={busy !== null} onClick={() => update(i)}>{busy === i.id ? "Updating…" : `Update ${i.name}`}</ButtonItem></Row>}
+            </div>
+          ))}
+          <Row><ButtonItem layout="below" onClick={() => load(true)}>Check now</ButtonItem></Row>
+          <Row><ToggleField label="Check daily" checked={auto} onChange={async (c: boolean) => { setAuto(c); await setSetting("check_updates", c); }} /></Row>
+          <Row><div style={dim}>Last checked: {when}. Pitwall compares what it installed with each project's latest version on GitHub and tells you when there's something new. Nothing updates without you pressing Update. Game ratings and compatibility data refresh on their own.</div></Row>
+        </>
+      )}
+    </PanelSection>
   );
 }
 
@@ -898,6 +962,7 @@ function Content() {
     case "checks": return <Checks go={go} />;
     case "perf": return <PerfPage go={go} />;
     case "debrief": return <DebriefPage go={go} />;
+    case "updates": return <UpdatesPage go={go} />;
     default: return <Home go={go} />;
   }
 }

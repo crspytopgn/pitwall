@@ -31,6 +31,10 @@ It only touches the files listed in this documentation. Files it creates in your
 
 Install the new zip the same way. Your settings, wheel profiles and lap history are kept: they live outside the plugin folder (`~/homebrew/settings/Pitwall` and `~/homebrew/data/Pitwall`).
 
+### Drivers and the telemetry bridge
+
+Pitwall checks once a day whether the force feedback drivers and the telemetry bridge it installed have newer versions on GitHub, and tells you when they do. **More → Updates** lists each one with its installed and latest version, a **Check now** button and an **Update** button. Nothing updates on its own; switch off **Check daily** there if you'd rather check yourself. The check only reads from GitHub. Game ratings and compatibility data refresh by themselves.
+
 ## Removing
 
 Decky → cog → **Plugins** → Pitwall → **Uninstall**. To remove everything, also delete:

@@ -248,8 +248,9 @@ class Installer:
             if d.get("submodules"):
                 clone += ["--recurse-submodules", "--shallow-submodules"]
             self._sh(clone + [d["repo"], src], timeout=600)
-            _c, rev = self._sh(["git", "-C", src, "rev-parse", "--short", "HEAD"])
-            rev = rev.strip().splitlines()[-1]
+            _c, full = self._sh(["git", "-C", src, "rev-parse", "HEAD"])
+            full = full.strip().splitlines()[-1]
+            rev = full[:7]
             if d.get("version_placeholder"):
                 for dirpath, _dirs, files in os.walk(src):
                     for fn in files:
@@ -294,7 +295,7 @@ class Installer:
         self._sh(["udevadm", "trigger"], check=False)
 
         st = self.state()
-        st[driver_id] = {"kernel": krel, "commit": rev, "installed": time.time(), "files": files}
+        st[driver_id] = {"kernel": krel, "commit": rev, "sha": full, "installed": time.time(), "files": files}
         self._save_state(st)
         shutil.rmtree(src, ignore_errors=True)
         return f"{d['name']} ({rev}) installed for kernel {krel}. Unplug the wheel and plug it back in."

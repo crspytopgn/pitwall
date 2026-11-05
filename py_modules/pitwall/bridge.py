@@ -37,6 +37,15 @@ def installed(home: str) -> bool:
     return all(os.path.exists(os.path.join(d, n)) for n in NEEDED)
 
 
+def installed_version(home: str) -> str | None:
+    """Release tag recorded at install (None for installs made before Pitwall recorded it)."""
+    try:
+        with open(os.path.join(bin_dir(home), "VERSION")) as f:
+            return f.read().strip() or None
+    except OSError:
+        return None
+
+
 def _get(url: str, timeout=30) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/octet-stream, application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -95,8 +104,10 @@ def install(home: str, uid: int | None = None, gid: int | None = None, fetch=_ge
         with open(p, "wb") as f:
             f.write(data)
         os.chmod(p, os.stat(p).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    with open(os.path.join(d, "VERSION"), "w") as f:
+        f.write(rel.get("tag_name") or "")
     if uid is not None:
-        for p in (os.path.dirname(d), d, *(os.path.join(d, n) for n in NEEDED)):
+        for p in (os.path.dirname(d), d, *(os.path.join(d, n) for n in NEEDED + ("VERSION",))):
             try:
                 os.chown(p, uid, gid if gid is not None else uid)
             except OSError:

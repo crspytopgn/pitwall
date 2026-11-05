@@ -49,7 +49,7 @@ Pitwall only offers the driver your wheel needs. Pressing **Install** does what 
 
 It needs internet and takes a few minutes; the log is shown as it runs. Unplug the wheel and plug it back in afterwards, then use **Test force feedback**.
 
-A SteamOS update replaces the system and kernel, which removes the driver. Pitwall remembers what it installed and, after an update, tells you and offers **Reinstall**. **Remove** takes the driver out again and goes back to the kernel's own.
+A SteamOS update replaces the system and kernel, which removes the driver. Pitwall remembers what it installed and, after an update, tells you and offers **Reinstall**. When the driver's project publishes a newer version, **More → Updates** says so and offers **Update**. **Remove** takes the driver out again and goes back to the kernel's own.
 
 This changes system files, so it's always your choice: Pitwall never installs a driver without you pressing the button. On other distributions, install the driver with your package manager or from the project's instructions.
 

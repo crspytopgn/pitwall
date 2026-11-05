@@ -18,6 +18,7 @@
 - Lap summaries go to Anthropic only if you add an API key and open the debrief.
 - The phone dashboard is served on your local network only. Don't expose port 8090 to the internet.
 - Diagnostics are only saved locally; you choose whether to download and attach them to an issue.
+- The daily update check reads the latest versions of installed drivers and the bridge from GitHub (switch it off in Updates).
 - Installing a force feedback driver downloads it from the project's GitHub repository and build tools from SteamOS's repository, only when you press **Install**.
 
 **Does Pitwall change system files?** Only when you ask it to: the udev rule for wheel detection, and a force feedback driver if you press **Install**. Both are listed in [Wheels](wheels.md) and can be removed from the same page.

@@ -49,9 +49,27 @@
 | Feature | What it does |
 |---|---|
 | **Engineer debrief** | A summary of your session and the corners that cost the most time, optionally written up by Claude with your own API key |
+| **Updates** | Checks daily whether the drivers and telemetry bridge Pitwall installed have newer versions, and updates them with one tap |
 | **Send diagnostics** | Bundles everything needed for a bug report, ready to download to your phone and attach to a pre-filled GitHub issue |
 
-<p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard, All layout" width="240"> <img src="docs/images/dashboard-drive.png" alt="Drive layout" width="240"> <img src="docs/images/dashboard-track.png" alt="Track layout" width="240"></p>
+## The phone dashboard
+
+Scan the QR code in Pitwall and any phone on your Wi-Fi becomes a dash. Below are three of its five layouts during a GT3 session at Monza (demo data, as Pitwall hasn't been tested on real hardware yet). Swipe or tap the bar at the bottom to switch layouts; each works in portrait and landscape.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/dashboard.png" alt="All layout: rev lights, gear, speed, delta, lap times, fuel, tyres, coaching tips and track map" width="230"></td>
+    <td align="center"><img src="docs/images/dashboard-drive.png" alt="Drive layout: rev lights, a large gear, speed and RPM, and the delta" width="230"></td>
+    <td align="center"><img src="docs/images/dashboard-track.png" alt="Track layout: a large track map with the car's position, delta and lap times" width="230"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>All</b><br><sub>Everything at once: revs, gear, delta, times, fuel, tyres, coaching and the map</sub></td>
+    <td align="center"><b>Drive</b><br><sub>Just what you glance at while driving: revs, gear, speed and delta</sub></td>
+    <td align="center"><b>Track</b><br><sub>A big map drawn from your own laps, with where you are now</sub></td>
+  </tr>
+</table>
+
+The other two layouts are **Laps** (a big delta and lap time with coaching) and **Race** (fuel and tyres first, for longer races). More in [Getting started](docs/getting-started.md#4-open-the-phone-dashboard).
 
 ## Quick start
 

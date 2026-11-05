@@ -113,7 +113,7 @@ class FakeSteamOS:
             for r in ("fanatec.rules", "udev/71-thrustmaster-steamdeck.rules"):
                 open(os.path.join(dest, r), "w").close()
         if c == "git" and cmd[1] == "-C":
-            return 0, "abc1234\n"
+            return 0, "abc1234" + "0" * 33 + "\n"
         if c == "make":
             src = cmd[2] if cmd[1] == "-C" and "KDIR=" in cmd[3] else cmd[3][2:]
             for d in drivers.DRIVERS.values():

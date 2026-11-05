@@ -36,3 +36,5 @@ First public preview. Not yet tested on real hardware.
 - Logitech mice, keyboards and other non-wheel devices are no longer mistaken for wheels
 - Force feedback setup: supported effects per wheel, a gentle left/right FFB test through the Linux input layer, and on SteamOS a one-tap build and install of hid-universal-pidff, new-lg4ff, hid-fanatecff, hid-tmff2 or simagic-ff for the running kernel, with a reinstall prompt after SteamOS updates
 - Per game: raw HID access (PROTON_ENABLE_HIDRAW) as a last-resort detection fix
+- Updates: daily check (switchable) of installed force feedback drivers and the winecarte bridge against their latest GitHub versions, with one-tap update; the bridge now records its installed version
+- README: the dashboard screenshots now have a heading and captions
