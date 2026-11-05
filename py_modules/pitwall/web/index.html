@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b0d10">
+<title>Pitwall</title>
+<style>
+  :root { --bg:#0b0d10; --panel:#151a20; --text:#e8edf2; --dim:#7d8894; --green:#3ddc84; --red:#ff5a5f; --amber:#ffb020; --blue:#4da3ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+  body { display:flex; flex-direction:column; padding:env(safe-area-inset-top) 12px 12px; gap:10px; user-select:none; }
+  .lights { display:grid; grid-template-columns:repeat(15,1fr); gap:4px; height:22px; margin-top:10px; }
+  .lights i { border-radius:4px; background:#222a33; }
+  .lights.flash i { animation:flash .12s steps(2) infinite; }
+  @keyframes flash { 50% { opacity:.2; } }
+  .main { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
+  .gear { font-size:min(38vw,190px); font-weight:800; line-height:1; text-align:center; font-variant-numeric:tabular-nums; }
+  .big { font-size:min(11vw,56px); font-weight:700; font-variant-numeric:tabular-nums; }
+  .label { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+  .right { text-align:right; }
+  .delta { font-size:min(13vw,64px); font-weight:800; text-align:center; font-variant-numeric:tabular-nums; }
+  .delta.up { color:var(--red); } .delta.down { color:var(--green); }
+  .row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .card { background:var(--panel); border-radius:12px; padding:10px 12px; }
+  .card .v { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .pedals { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .bar { height:10px; border-radius:6px; background:#222a33; overflow:hidden; }
+  .bar b { display:block; height:100%; width:0; }
+  .tips { background:var(--panel); border-radius:12px; padding:10px 12px; font-size:15px; line-height:1.4; min-height:48px; }
+  .tips div + div { margin-top:6px; }
+  .tags span { display:inline-block; padding:2px 8px; border-radius:6px; background:#222a33; color:var(--dim); font-size:12px; margin-right:4px; }
+  .tags span.on { background:var(--amber); color:#000; }
+  .status { color:var(--dim); text-align:center; font-size:14px; }
+  .units { position:fixed; right:10px; bottom:10px; background:none; border:1px solid #333; color:var(--dim); border-radius:8px; padding:4px 8px; }
+</style>
+</head>
+<body>
+  <div class="lights" id="lights"></div>
+  <div class="status" id="status">Waiting for telemetry…</div>
+  <div class="main">
+    <div><div class="label">Speed</div><div class="big" id="speed">0</div><div class="label" id="sunit">km/h</div></div>
+    <div class="gear" id="gear">N</div>
+    <div class="right"><div class="label">RPM</div><div class="big" id="rpm">0</div><div class="tags" id="tags"><span id="abs">ABS</span><span id="tc">TC</span></div></div>
+  </div>
+  <div class="delta" id="delta">±0.00</div>
+  <div class="row">
+    <div class="card"><div class="label">Lap</div><div class="v" id="lap">–</div></div>
+    <div class="card"><div class="label">Last</div><div class="v" id="last">–</div></div>
+    <div class="card"><div class="label">Best</div><div class="v" id="best">–</div></div>
+  </div>
+  <div class="pedals">
+    <div><div class="label">Throttle</div><div class="bar"><b id="thr" style="background:var(--green)"></b></div></div>
+    <div><div class="label">Brake</div><div class="bar"><b id="brk" style="background:var(--red)"></b></div></div>
+    <div><div class="label">Fuel</div><div class="bar"><b id="fuel" style="background:var(--blue)"></b></div></div>
+  </div>
+  <div class="tips" id="tips"><span class="label">Coaching appears after your second lap</span></div>
+  <button class="units" id="units">km/h ⇄ mph</button>
+<script>
+const $ = id => document.getElementById(id);
+const N_LIGHTS = 15;
+for (let i = 0; i < N_LIGHTS; i++) $("lights").appendChild(document.createElement("i"));
+let mph = false;
+try { mph = localStorage.getItem("pitwall-mph") === "1"; } catch (e) {}
+$("units").onclick = () => { mph = !mph; try { localStorage.setItem("pitwall-mph", mph ? "1" : "0"); } catch (e) {} };
+const fmt = s => {
+  if (s == null || !isFinite(s) || s <= 0) return "–";
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return (m ? m + ":" + (r < 10 ? "0" : "") : "") + r.toFixed(m ? 3 : 2);
+};
+let maxSeen = 0;
+function render(d) {
+  if (!d.receiving) { $("status").textContent = "Waiting for telemetry…"; return; }
+  $("status").textContent = d.needs_start_line ? "Set a start line in Pitwall to time laps" : (d.sim || "").toUpperCase();
+  $("speed").textContent = Math.round(d.speed * (mph ? 2.23694 : 3.6));
+  $("sunit").textContent = mph ? "mph" : "km/h";
+  $("gear").textContent = d.gear < 0 ? "R" : d.gear === 0 ? "N" : d.gear;
+  $("rpm").textContent = Math.round(d.rpm);
+  maxSeen = Math.max(maxSeen * 0.9999, d.rpm);
+  const max = d.max_rpm || maxSeen || 1;
+  const frac = Math.min(1, d.rpm / max);
+  const lit = Math.round(Math.max(0, (frac - 0.6) / 0.38) * N_LIGHTS);
+  const lights = $("lights").children;
+  for (let i = 0; i < N_LIGHTS; i++) {
+    lights[i].style.background = i < lit ? (i < 5 ? "var(--green)" : i < 10 ? "var(--amber)" : "var(--red)") : "#222a33";
+  }
+  $("lights").classList.toggle("flash", d.shift || frac > 0.97);
+  const dl = $("delta");
+  if (d.delta == null) { dl.textContent = "±0.00"; dl.className = "delta"; }
+  else { dl.textContent = (d.delta > 0 ? "+" : "") + d.delta.toFixed(2); dl.className = "delta " + (d.delta > 0 ? "up" : "down"); }
+  $("lap").textContent = fmt(d.lap_time);
+  $("last").textContent = fmt(d.last);
+  $("best").textContent = fmt(d.best);
+  $("thr").style.width = (d.throttle * 100) + "%";
+  $("brk").style.width = (d.brake * 100) + "%";
+  $("fuel").style.width = ((d.fuel ?? 0) * 100) + "%";
+  $("abs").className = d.abs ? "on" : ""; $("tc").className = d.tc ? "on" : "";
+  if (d.tips && d.tips.length) $("tips").innerHTML = d.tips.map(t => "<div>" + t.replace(/</g, "&lt;") + "</div>").join("");
+}
+function connect() {
+  const es = new EventSource("/events");
+  es.onmessage = e => render(JSON.parse(e.data));
+  es.onerror = () => { $("status").textContent = "Reconnecting…"; es.close(); setTimeout(connect, 1500); };
+}
+connect();
+// Keep the phone screen awake where supported.
+if ("wakeLock" in navigator) { const lock = () => navigator.wakeLock.request("screen").catch(() => {}); lock(); document.addEventListener("visibilitychange", lock); }
+</script>
+</body>
+</html>

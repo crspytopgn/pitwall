@@ -1,0 +1,141 @@
+"""
+The hub ties sources, lap tracking, storage and coaching together and holds
+the live state the dashboard and Decky UI read.
+"""
+
+from __future__ import annotations
+
+import threading
+import time
+
+from .coach import compare
+from .laps import Lap, LapTracker
+from .store import LapStore, track_key
+from .telemetry.frame import Frame
+from .telemetry.sources import AcShmSource, UdpSource, DEFAULT_PORTS
+
+STALE_S = 2.0
+
+
+class Hub:
+    def __init__(self, db_path: str, ports: dict | None = None, logger=None, enable_shm=True):
+        self.log = logger
+        self.ports = {**DEFAULT_PORTS, **(ports or {})}
+        self.store = LapStore(db_path)
+        self.tracker = LapTracker(self._on_lap)
+        self.lock = threading.Lock()
+        self.frame: Frame | None = None
+        self.last_lap: dict | None = None
+        self.last_coaching: dict | None = None
+        self.session_laps: list[dict] = []
+        self.listeners: list = []
+        shared: dict = {}
+        self.sources = [UdpSource(k, p, self._on_frame, shared=shared) for k, p in self.ports.items()]
+        if enable_shm:
+            self.sources.append(AcShmSource(self._on_frame))
+        self._ref_key = None
+
+    def start(self):
+        for s in self.sources:
+            s.start()
+
+    def stop(self):
+        for s in self.sources:
+            s.stop()
+
+    # ------------------------------------------------------------------
+    def _key(self, f_or_lap) -> str:
+        return track_key(f_or_lap.sim, f_or_lap.track, self.tracker.gate)
+
+    def _on_frame(self, f: Frame):
+        with self.lock:
+            prev = self.frame
+            self.frame = f
+            self.tracker.update(f)
+            key = (f.sim, self._key(f), f.car)
+            if key != self._ref_key:
+                self._ref_key = key
+                best = self.store.best(*key)
+                self.tracker.reference = best[1] if best else None
+        for cb in list(self.listeners):
+            try:
+                cb(f)
+            except Exception:
+                pass
+        if prev is None or prev.sim != f.sim:
+            self._info(f"Telemetry from {f.sim}")
+
+    def _on_lap(self, lap: Lap):
+        key = self._key(lap)
+        ref = self.tracker.reference
+        lap_id = self.store.add(lap, key)
+        coaching = compare(lap.samples, ref.samples) if ref else None
+        is_best = ref is None or lap.time < ref.time
+        if is_best:
+            self.tracker.reference = lap
+        summary = {"id": lap_id, "time": lap.time, "best": is_best,
+                   "ref_time": ref.time if ref else None, "sim": lap.sim,
+                   "car": lap.car, "track": lap.track or key, "at": time.time()}
+        self.last_lap = summary
+        self.last_coaching = coaching
+        self.session_laps.append({**summary, "coaching": coaching})
+        self._info(f"Lap {lap.time:.3f}s{' (best)' if is_best else ''}")
+
+    def _info(self, msg):
+        if self.log:
+            self.log.info(msg)
+
+    # ------------------------------------------------------------------
+    def set_start_line(self) -> bool:
+        with self.lock:
+            f = self.frame
+            if not f or not f.pos:
+                return False
+            self.tracker.set_gate(f.pos)
+            self._ref_key = None
+            return True
+
+    def status(self) -> dict:
+        with self.lock:
+            f = self.frame
+            live = self.tracker.live()
+            fresh = bool(f and time.monotonic() - f.t < STALE_S)
+            return {
+                "receiving": fresh,
+                "sim": f.sim if f else None,
+                "car": f.car if f else None,
+                "track": f.track if f else None,
+                "needs_start_line": bool(fresh and f.lap is None and self.tracker.gate is None),
+                "has_position": bool(f and f.pos),
+                "live": live,
+                "best": self.tracker.reference.time if self.tracker.reference else None,
+                "last_lap": self.last_lap,
+                "tips": (self.last_coaching or {}).get("tips", []),
+                "session_laps": len(self.session_laps),
+                "sources": [{"name": s.name, "error": s.error, "packets": s.packets} for s in self.sources],
+            }
+
+    def snapshot(self) -> dict:
+        """Compact live payload for the dashboard (sent ~15x a second)."""
+        with self.lock:
+            f = self.frame
+            if not f:
+                return {"receiving": False}
+            live = self.tracker.live()
+            ref = self.tracker.reference
+            return {
+                "receiving": time.monotonic() - f.t < STALE_S,
+                "sim": f.sim, "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
+                "gear": f.gear, "throttle": f.throttle, "brake": f.brake, "clutch": f.clutch,
+                "steer": f.steer, "fuel": f.fuel, "tyre_temp": f.tyre_temp,
+                "shift": f.shift_light, "abs": f.extra.get("abs"), "tc": f.extra.get("tc"),
+                "lap_time": live["lap_time"] if live["lap_time"] is not None else f.lap_time,
+                "delta": live["delta"], "best": ref.time if ref else f.best_lap,
+                "last": self.last_lap["time"] if self.last_lap else f.last_lap,
+                "tips": (self.last_coaching or {}).get("tips", []),
+                "needs_start_line": f.lap is None and self.tracker.gate is None,
+            }
+
+    def session_summary(self) -> dict:
+        with self.lock:
+            return {"laps": list(self.session_laps)}

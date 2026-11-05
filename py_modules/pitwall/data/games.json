@@ -1,0 +1,256 @@
+{
+  "_about": "Curated sim racing knowledge for SteamOS. Every claim lists a source. Live ratings (Steam Deck, ProtonDB, Are We Anti-Cheat Yet) are fetched at runtime and shown alongside. Status values: works, setup (works with some setup), community (community workarounds only, unsupported by the developer), broken.",
+  "games": [
+    {
+      "id": "beamng",
+      "name": "BeamNG.drive",
+      "steam_appid": 284160,
+      "status": "works",
+      "runtime": "native",
+      "telemetry": {"adapter": "outgauge", "laps": "start_line", "quality": "good"},
+      "install": [
+        "Install from Steam. On SteamOS the native Linux version is the default; leave 'Force the use of a specific Steam Play compatibility tool' off.",
+        "In game: Options > Other > Protocols. Enable OutGauge (IP 127.0.0.1, port 4444) and MotionSim (IP 127.0.0.1, port 4445).",
+        "Drive to a start/finish point and press 'Set start line' in Pitwall to time laps."
+      ],
+      "known_issues": [
+        {"text": "The native version is Vulkan-only and needs a fully featured Vulkan driver.", "source": "https://documentation.beamng.com/support/troubleshooting/steamdeck_linux/"},
+        {"text": "HDR may be broken or unreliable under SteamOS Gaming Mode (Gamescope).", "source": "https://beamng.com/goto/post?id=1465767"},
+        {"text": "Native and Proton versions use different user folders, so settings and mods can seem to vanish after switching. Native folder: ~/.local/share/BeamNG/BeamNG.drive/current.", "source": "https://documentation.beamng.com/support/troubleshooting/steamdeck_linux/"},
+        {"text": "Can use more than 16 GB of memory; without enough RAM and swap the game may close.", "source": "https://documentation.beamng.com/support/troubleshooting/steamdeck_linux/"},
+        {"text": "Community report (MOZA R5): force feedback felt flatter on the native version than under Proton. If FFB feels weak, try forcing Proton as a comparison.", "source": "https://www.beamng.com/posts/1787800/"}
+      ],
+      "settings_paths": ["~/.local/share/BeamNG/BeamNG.drive/current/settings"],
+      "perf_hints": ["Dynamic reflections, shadow quality and the number of AI/traffic vehicles have the biggest impact on frame rate."],
+      "wheel": {"rotation": 900, "note": "BeamNG adapts steering per car; keep the base at 900° and match it in Options > Controls > the wheel's FFB/steering settings."}
+    },
+    {
+      "id": "ac",
+      "name": "Assetto Corsa",
+      "steam_appid": 244210,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "ac_shm", "laps": "sim", "quality": "good", "needs_bridge": true},
+      "install": [
+        "Install from Steam; it runs under Proton.",
+        "For telemetry, run a shared-memory bridge alongside the game (simshmbridge or winecarte). It copies the game's acpmf_* memory into /dev/shm where Pitwall reads it.",
+        "Pitwall shows 'Telemetry: waiting for bridge' until /dev/shm/acpmf_physics appears."
+      ],
+      "known_issues": [
+        {"text": "Shared memory stays inside the Wine prefix unless a bridge runs in the same prefix as the game.", "source": "https://github.com/srounce/winecarte"},
+        {"text": "Content Manager and Custom Shaders Patch need extra setup under Proton; check recent ProtonDB reports for the current method.", "source": "https://www.protondb.com/app/244210"}
+      ],
+      "bridge": {"tools": ["https://github.com/Spacefreak18/simshmbridge", "https://github.com/srounce/winecarte"]}
+    },
+    {
+      "id": "acc",
+      "name": "Assetto Corsa Competizione",
+      "steam_appid": 805550,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "ac_shm", "laps": "sim", "quality": "good", "needs_bridge": true},
+      "install": [
+        "Install from Steam; it runs under Proton.",
+        "For telemetry, use the same shared-memory bridge as Assetto Corsa (simshmbridge or winecarte)."
+      ],
+      "known_issues": [
+        {"text": "Reported to work correctly; performance can be the limiting factor. MOZA wheels are reportedly recognised.", "source": "https://boxthislap.org/simracing-on-linux-a-new-reality/"}
+      ],
+      "bridge": {"tools": ["https://github.com/Spacefreak18/simshmbridge", "https://github.com/srounce/winecarte"]}
+    },
+    {
+      "id": "ac_evo",
+      "name": "Assetto Corsa EVO",
+      "steam_appid": 3058630,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "ac_shm", "laps": "sim", "quality": "partial", "needs_bridge": true},
+      "install": ["Install from Steam; runs under Proton.", "Use winecarte for shared memory; it lists AC EVO support."],
+      "known_issues": [
+        {"text": "EVO publishes the same acpmf_* maps, but some tools report the data as incomplete.", "source": "https://github.com/LukasLichten/Datalink"}
+      ],
+      "bridge": {"tools": ["https://github.com/srounce/winecarte"]}
+    },
+    {
+      "id": "ams2",
+      "name": "Automobilista 2",
+      "steam_appid": 1066890,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "planned", "laps": "sim", "quality": "planned", "needs_bridge": true},
+      "install": ["Install from Steam; runs under Proton.", "Telemetry support in Pitwall is planned (via the Project CARS 2 shared memory bridge)."],
+      "known_issues": [
+        {"text": "Force feedback has been lost with some Proton versions (reported with a Logitech G29); one user restored it with GE-Proton 7-44 but lost it again after alt-tabbing.", "source": "https://forum.reizastudios.com/threads/linux-and-ffb.36382/"},
+        {"text": "Avoid re-plugging the wheel while the game is running; it can break controller mappings.", "source": "https://www.protondb.com/app/1066890"}
+      ]
+    },
+    {
+      "id": "rf2",
+      "name": "rFactor 2",
+      "steam_appid": 365960,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "planned", "laps": "sim", "quality": "planned", "needs_bridge": true},
+      "install": ["Install from Steam; runs under Proton.", "Telemetry needs the rF2 Shared Memory Map plugin plus a bridge; Pitwall support is planned."],
+      "known_issues": [
+        {"text": "Community reports say it runs; check ProtonDB for the current recommended Proton version.", "source": "https://www.protondb.com/app/365960"}
+      ]
+    },
+    {
+      "id": "lmu",
+      "name": "Le Mans Ultimate",
+      "steam_appid": 2399420,
+      "status": "community",
+      "runtime": "proton",
+      "telemetry": {"adapter": "planned", "laps": "sim", "quality": "planned", "needs_bridge": true},
+      "install": ["The developer lists Linux and Steam Deck as unsupported.", "Community reports use a custom Proton build (GE-Proton10-4-LMU). Expect tinkering."],
+      "known_issues": [
+        {"text": "Developer: 'MacOS, Linux and Steamdeck is unsupported at this time.'", "source": "https://lemansultimate.com/?p=1543"},
+        {"text": "For menu lag, community reports suggest changing 'CEF mode' in UserData/player/Settings.JSON.", "source": "https://www.protondb.com/app/2399420"}
+      ]
+    },
+    {
+      "id": "raceroom",
+      "name": "RaceRoom Racing Experience",
+      "steam_appid": 211500,
+      "status": "setup",
+      "runtime": "proton",
+      "telemetry": {"adapter": "planned", "laps": "sim", "quality": "planned", "needs_bridge": true},
+      "install": ["Install from Steam; runs under Proton.", "Telemetry support is planned."],
+      "known_issues": [
+        {"text": "Community report: force feedback didn't work with a Logitech G29 even though the wheel worked in other games.", "source": "https://www.protondb.com/app/211500"}
+      ]
+    },
+    {
+      "id": "dr2",
+      "name": "DiRT Rally 2.0",
+      "steam_appid": 690790,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {"adapter": "codemasters", "laps": "sim", "quality": "good"},
+      "auto_setup": "dr2_udp",
+      "install": [
+        "Install from Steam; runs under Proton.",
+        "Pitwall can switch on telemetry for you: it edits hardware_settings_config.xml in the game's Proton prefix to enable UDP (extradata 3, port 20777). Run the game once first so the file exists."
+      ],
+      "known_issues": []
+    },
+    {
+      "id": "fh5",
+      "name": "Forza Horizon 5",
+      "steam_appid": 1551360,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {"adapter": "forza", "laps": "sim", "quality": "good"},
+      "install": [
+        "Install from Steam; runs under Proton (Valve rates it Playable on Steam Deck).",
+        "In game: Settings > HUD and Gameplay > Data Out: On, IP 127.0.0.1, port 5300."
+      ],
+      "known_issues": [
+        {"text": "A game update once broke launching on Linux until Valve shipped a Proton Hotfix; if it stops launching after an update, check that 'Proton Hotfix' is selected.", "source": "https://gamingonlinux.com/2023/10/forza-horizon-5-gets-a-proton-hotfix-to-work-again-on-steam-deck-linux"}
+      ]
+    },
+    {
+      "id": "fh4",
+      "name": "Forza Horizon 4",
+      "steam_appid": 1293830,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {"adapter": "forza", "laps": "sim", "quality": "good"},
+      "install": ["Install from Steam; runs under Proton.", "In game: Settings > HUD and Gameplay > Data Out: On, IP 127.0.0.1, port 5300."],
+      "known_issues": []
+    },
+    {
+      "id": "fh6",
+      "name": "Forza Horizon 6",
+      "steam_appid": null,
+      "match_name": "Forza Horizon 6",
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {"adapter": "forza", "laps": "sim", "quality": "untested"},
+      "install": ["Install from Steam.", "If it has Data Out like earlier Horizon games: Settings > HUD and Gameplay > Data Out: On, IP 127.0.0.1, port 5300."],
+      "known_issues": [
+        {"text": "Steam Deck Verified at launch (May 2026).", "source": "https://www.gamingonlinux.com/2026/03/forza-horizon-6-confirmed-to-be-playable-on-steam-deck-steamos/"}
+      ]
+    },
+    {
+      "id": "fm",
+      "name": "Forza Motorsport",
+      "steam_appid": 2440510,
+      "status": "community",
+      "runtime": "proton",
+      "telemetry": {"adapter": "forza", "laps": "sim", "quality": "good"},
+      "install": ["Check the live ProtonDB rating first; launch problems have been reported.", "In game: Data Out: On, IP 127.0.0.1, port 5300."],
+      "known_issues": [
+        {"text": "Reported to need Microsoft Gaming Services, which installs but then fails to launch the game.", "source": "https://boxthislap.org/simracing-on-linux-a-new-reality/"}
+      ]
+    },
+    {
+      "id": "lfs",
+      "name": "Live for Speed",
+      "steam_appid": null,
+      "status": "works",
+      "runtime": "proton",
+      "telemetry": {"adapter": "outgauge", "laps": "sim", "quality": "basic"},
+      "install": ["Not on Steam: download from lfs.net and add it to Steam as a non-Steam game with Proton.", "In LFS's cfg.txt set: OutGauge Mode 1, OutGauge IP 127.0.0.1, OutGauge Port 4444."],
+      "known_issues": [
+        {"text": "BeamNG's OutGauge uses the Live for Speed format, so the same Pitwall adapter reads both.", "source": "https://docs.beamng.com/modding/protocols/"}
+      ]
+    },
+    {
+      "id": "iracing",
+      "name": "iRacing",
+      "steam_appid": 266410,
+      "status": "broken",
+      "runtime": "none",
+      "telemetry": {"adapter": "none"},
+      "install": ["Doesn't run on SteamOS: its anti-cheat isn't enabled for Linux/Proton."],
+      "known_issues": [
+        {"text": "Listed as Broken (Easy Anti-Cheat) on Are We Anti-Cheat Yet.", "source": "https://areweanticheatyet.com"}
+      ]
+    },
+    {
+      "id": "eawrc",
+      "name": "EA SPORTS WRC",
+      "steam_appid": 1849250,
+      "status": "broken",
+      "runtime": "none",
+      "telemetry": {"adapter": "none"},
+      "install": ["Doesn't run on SteamOS since EA anticheat was added (v1.9)."],
+      "known_issues": [
+        {"text": "EA: the game 'will not run on the native Steam OS for Steam Deck following the release of EA anticheat'.", "source": "https://gamingonlinux.com/2024/05/ea-sports-wrc-is-adding-ea-anticheat-breaking-another-game-on-steam-deck-linux"}
+      ]
+    },
+    {
+      "id": "f1_24",
+      "name": "F1 24",
+      "steam_appid": 2488620,
+      "status": "broken",
+      "runtime": "none",
+      "telemetry": {"adapter": "none"},
+      "install": ["Doesn't run on SteamOS: EA Javelin Anticheat blocks Linux."],
+      "known_issues": [{"text": "Listed as Denied (EA anticheat) on Are We Anti-Cheat Yet.", "source": "https://areweanticheatyet.com"}]
+    },
+    {
+      "id": "f1_25",
+      "name": "F1 25",
+      "steam_appid": null,
+      "match_name": "F1® 25",
+      "status": "broken",
+      "runtime": "none",
+      "telemetry": {"adapter": "none"},
+      "install": ["Doesn't run on SteamOS: EA Javelin Anticheat blocks Linux."],
+      "known_issues": [
+        {"text": "Listed as Broken (EA Javelin Anticheat).", "source": "https://www.gamingonlinux.com/anticheat/vendor/ea-javelin-anticheat/"},
+        {"text": "EA has posted a job listing mentioning future Linux/Proton support for Javelin, but nothing has shipped.", "source": "https://www.gamingonlinux.com/2026/03/ea-javelin-anticheat-job-listing-mentions-future-support-for-linux-and-proton/"}
+      ]
+    }
+  ],
+  "general_sources": [
+    {"name": "Steam Deck compatibility (Valve)", "url": "https://store.steampowered.com", "why": "Valve's own testing; official but only covers what Valve tested."},
+    {"name": "ProtonDB", "url": "https://www.protondb.com", "why": "Crowd-sourced reports with Proton versions, launch options and tinkering steps."},
+    {"name": "Are We Anti-Cheat Yet", "url": "https://areweanticheatyet.com", "why": "Tracks whether anti-cheat allows Linux; the deciding factor for online sims."},
+    {"name": "GamingOnLinux anti-cheat list", "url": "https://www.gamingonlinux.com/anticheat/", "why": "Second source for anti-cheat status, with news on changes."},
+    {"name": "awesome-linux-simracing", "url": "https://github.com/LukasLichten/awesome-linux-simracing", "why": "Community index of Linux sim racing tools, drivers and bridges."}
+  ]
+}
