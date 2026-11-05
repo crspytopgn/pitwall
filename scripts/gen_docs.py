@@ -105,7 +105,7 @@ def render_wheels() -> str:
         out.append(f"| {w['brand']} | {w['model']} | {usb} | {w.get('rank') or 'Not ranked'} | {drv} | {' '.join(notes)} |")
     out += ["", "## If a game doesn't see your wheel", "",
             "Pitwall can fix the two most common causes. Open **Wheel** (or a game's page in the **Game guide**):", "",
-            "1. **Fix wheel and pedal detection**: shown when Linux doesn't class your wheel, pedals or shifter as a joystick, which Steam and Proton need. "
+            "1. **Fix wheel and pedal detection**: shown when Linux doesn't recognise your wheel, pedals or shifter as a game controller (the kernel's \"joystick\" category), which Steam and Proton need. "
             "Pitwall adds a udev rule for your wheel's USB ID and reloads udev. Unplug and replug the wheel afterwards.",
             "2. **Add wheel ID to launch options** (per game): sets `SDL_JOYSTICK_WHEEL_DEVICES` to your wheel's USB ID, so "
             "Steam's input layer treats it as a wheel even if it isn't on SDL's built-in list. Your other launch options are kept.",

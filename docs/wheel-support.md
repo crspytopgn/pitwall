@@ -90,7 +90,7 @@ Support ranks: Platinum works fully and is well tested; Gold works but is less t
 
 Pitwall can fix the two most common causes. Open **Wheel** (or a game's page in the **Game guide**):
 
-1. **Fix wheel and pedal detection**: shown when Linux doesn't class your wheel, pedals or shifter as a joystick, which Steam and Proton need. Pitwall adds a udev rule for your wheel's USB ID and reloads udev. Unplug and replug the wheel afterwards.
+1. **Fix wheel and pedal detection**: shown when Linux doesn't recognise your wheel, pedals or shifter as a game controller (the kernel's "joystick" category), which Steam and Proton need. Pitwall adds a udev rule for your wheel's USB ID and reloads udev. Unplug and replug the wheel afterwards.
 2. **Add wheel ID to launch options** (per game): sets `SDL_JOYSTICK_WHEEL_DEVICES` to your wheel's USB ID, so Steam's input layer treats it as a wheel even if it isn't on SDL's built-in list. Your other launch options are kept.
 
 Also check that Steam Input is off for the game (Properties → Controller) and that you're on a recent Proton (Proton 10 or Experimental). If it still isn't seen, `PROTON_ENABLE_HIDRAW=0xVID/0xPID %command%` is a last resort; some Proton versions don't pass force feedback through it.

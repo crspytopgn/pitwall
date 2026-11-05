@@ -55,7 +55,7 @@ This changes system files, so it's always your choice: Pitwall never installs a 
 
 ## If a game doesn't see your wheel
 
-If **Test force feedback** works but a game shows no wheel or no force feedback, it's a detection problem rather than a driver one. Pre-race checks tell you whether Linux classes your wheel as a joystick, which Steam and Proton need. If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
+If **Test force feedback** works but a game shows no wheel or no force feedback, it's a detection problem rather than a driver one. Pre-race checks tell you whether Linux recognises your wheel as a game controller, which Steam and Proton need (Linux calls every wheel, pedal set and shifter a "joystick"; it's just the name of the category). If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
 
 ## MOZA
 

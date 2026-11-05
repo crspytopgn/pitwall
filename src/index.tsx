@@ -651,7 +651,7 @@ function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
       {det.wheels.length === 0 && <Row><div style={dim}>No wheel, pedals or shifter recognised.</div></Row>}
       {det.wheels.map((w) => (
         <Row key={w.vid + w.pid}><div style={small}>
-          <b>{w.model ? `${w.brand} ${w.model}` : w.name}</b>: {w.joystick === true ? "visible to games as a joystick" : w.joystick === false ? "not seen as a joystick, so games may ignore it" : "detection unknown"}
+          <b>{w.model ? `${w.brand} ${w.model}` : w.name}</b>: {w.joystick === true ? "recognised as a game controller" : w.joystick === false ? "not recognised as a game controller, so games may ignore it" : "detection unknown"}
         </div></Row>
       ))}
       {det.needs_hwdb && (
@@ -664,7 +664,7 @@ function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
         <Row><ButtonItem layout="below" onClick={toggleHidraw}>{hasHidraw ? "Remove raw HID access" : "Still not seen: try raw HID access (last resort)"}</ButtonItem></Row>
       )}
       <Row><div style={dim}>
-        {det.needs_hwdb ? "This tells Linux these devices are joysticks (a udev rule, kept across reboots). Unplug and replug them afterwards. " : ""}
+        {det.needs_hwdb ? "This tells Linux these devices are game controllers (a udev rule, kept across reboots). Unplug and replug them afterwards. " : ""}
         {appid ? "Adding the wheel ID tells Steam's input layer to treat it as a wheel in this game; your other launch options are kept. Raw HID access (PROTON_ENABLE_HIDRAW) is a last resort: some Proton versions don't pass force feedback through it. " : ""}
         Also check: Steam Input off for the game (Properties, Controller), and a recent Proton such as Proton 10 or Experimental.
       </div></Row>

@@ -137,7 +137,7 @@ def apply_joystick_fix(devs: list[dict], path: str = HWDB_PATH, run=None) -> dic
     run = run or (lambda cmd: subprocess.run(cmd, capture_output=True, timeout=30))
     todo = [d for d in devs if d.get("joystick") is False]
     if not todo:
-        return {"ok": True, "changed": False, "message": "Nothing to fix: your wheel is already seen as a joystick."}
+        return {"ok": True, "changed": False, "message": "Nothing to fix: your wheel is already recognised as a game controller."}
     try:
         cur = open(path).read() if os.path.exists(path) else ""
     except OSError:
@@ -214,10 +214,10 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
                 " ".join(notes + [f"Source: {WHEEL_DB.get('source', '')}"]))
     not_joy = [d for d in devs if d.get("joystick") is False]
     if not_joy:
-        add("joystick", False, "Linux doesn't see " + ", ".join(sorted({d['name'] for d in not_joy})) + " as a joystick",
+        add("joystick", False, "Linux doesn't see " + ", ".join(sorted({d['name'] for d in not_joy})) + " as a game controller",
             "Steam and games may ignore it. Open Wheel, press Fix wheel and pedal detection, then unplug and replug the wheel.")
     elif any(d.get("joystick") for d in devs):
-        add("joystick", True, "Wheel and pedals are visible to games as joysticks")
+        add("joystick", True, "Wheel and pedals are recognised as game controllers")
 
     # Telemetry
     if hub:
