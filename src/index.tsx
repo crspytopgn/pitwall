@@ -97,6 +97,17 @@ type Detection = { wheels: { name: string; vid: string; pid: string; joystick: b
 const wheelDetection = callable<[], Detection>("wheel_detection");
 const wheelDetectionFix = callable<[], { ok: boolean; changed: boolean; message: string }>("wheel_detection_fix");
 const wheelLaunchOptions = callable<[current: string, enable: boolean], string>("wheel_launch_options");
+type FfbDevice = { event: string; name: string; brand: string; model?: string; rank?: string; ffb: boolean; driver?: string;
+  caps: { effects: string[]; missing: string[]; verdict: string }; need: null | { id: string; name: string; repo: string; for: string } };
+type DriverJob = { driver: string; action: string; state: string; step: string; log: string[]; message?: string } | null;
+type FfbStatus = { devices: FfbDevice[]; steamos: boolean; kernel: string; installed: Record<string, { present: boolean; stale: boolean; commit?: string; kernel?: string }>; job: DriverJob };
+const ffbStatus = callable<[], FfbStatus>("ffb_status");
+const ffbTest = callable<[event: string, strength: number], { ok: boolean; message: string }>("ffb_test");
+const driverInstall = callable<[id: string], { ok: boolean; message: string }>("driver_install");
+const driverRemove = callable<[id: string], { ok: boolean; message: string }>("driver_remove");
+const driverJob = callable<[], DriverJob>("driver_job");
+const hidrawLaunchOptions = callable<[current: string, enable: boolean], string>("hidraw_launch_options");
+const DRIVER_NAMES: Record<string, string> = { "universal-pidff": "hid-universal-pidff", "new-lg4ff": "new-lg4ff", "hid-fanatecff": "hid-fanatecff", "hid-tmff2": "hid-tmff2", "simagic-ff": "simagic-ff" };
 
 declare const SteamClient: any;
 const ROUTE = "/pitwall";
@@ -384,6 +395,7 @@ function Wheel({ go }: { go?: Go }) {
         <Row><div style={small}>{st.error}</div></Row>
         <Row><ButtonItem layout="below" onClick={refresh}>Retry</ButtonItem></Row>
       </PanelSection>
+      <FfbSetup />
       <WheelDetection />
     </>
   );
@@ -429,6 +441,7 @@ function Wheel({ go }: { go?: Go }) {
         {prof && Object.keys(prof.games).length > 0 && <Row><div style={dim}>Games: {Object.values(prof.games).join(", ")}</div></Row>}
         {prof && Object.keys(prof.cars).length > 0 && <Row><div style={dim}>Cars: {Object.values(prof.cars).join(", ")}</div></Row>}
       </PanelSection>
+      <FfbSetup />
       <WheelDetection />
     </>
   );
@@ -527,6 +540,87 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
   );
 }
 
+// Force feedback setup: is FFB there, which effects the driver offers, a test pull,
+// and the driver Pitwall can build and install when the wheel needs one.
+function FfbSetup() {
+  const [st, setSt] = useState<FfbStatus | null>(null);
+  const [job, setJob] = useState<DriverJob>(null);
+  const [testing, setTesting] = useState(false);
+  const [strength, setStrength] = useState(20);
+  const load = async () => { const s = await ffbStatus(); setSt(s); setJob(s.job); };
+  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (job?.state !== "running") return;
+    const t = setInterval(async () => {
+      const j = await driverJob(); setJob(j);
+      if (j && j.state !== "running") { clearInterval(t); toast(j.message || (j.state === "done" ? "Done" : "Failed")); load(); }
+    }, 1500);
+    return () => clearInterval(t);
+  }, [job?.state]);
+  if (!st) return <PanelSection title="Force feedback"><Row>Checking…</Row></PanelSection>;
+  const bases = st.devices.filter((d) => d.ffb || d.need || d.caps.effects.length);
+  const start = async (id: string, remove = false) => {
+    const r = await (remove ? driverRemove(id) : driverInstall(id));
+    if (!r.ok) { toast(r.message); return; }
+    setJob(await driverJob());
+  };
+  const test = async (ev: string) => { setTesting(true); try { toast((await ffbTest(ev, strength / 100)).message); } finally { setTesting(false); } };
+  const effects = (d: FfbDevice) => d.caps.effects.filter((e) => e !== "gain" && e !== "autocentre").join(", ");
+  const stale = Object.entries(st.installed).filter(([, r]) => r.stale);
+  return (
+    <PanelSection title="Force feedback">
+      {stale.map(([id]) => (
+        <Row key={"stale" + id}><div style={small}><b style={{ color: "#ffb020" }}>{DRIVER_NAMES[id] ?? id} needs reinstalling.</b> A SteamOS update replaced the kernel ({st.kernel}) and removed it.</div></Row>
+      ))}
+      {stale.map(([id]) => (
+        <Row key={"re" + id}><ButtonItem layout="below" disabled={job?.state === "running"} onClick={() => start(id)}>Reinstall {DRIVER_NAMES[id] ?? id}</ButtonItem></Row>
+      ))}
+      {bases.length === 0 && <Row><div style={dim}>No wheel base found. Plug it in and switch it on, then open this page again.</div></Row>}
+      {bases.map((d) => (
+        <div key={d.event}>
+          <Row><div style={small}>
+            <b>{d.model ? `${d.brand} ${d.model}` : d.name}</b>{": "}
+            {d.ffb
+              ? (d.caps.verdict === "full" ? <span style={{ color: "#3ddc84" }}>force feedback ready</span>
+                : d.caps.verdict === "no_constant" ? <span style={{ color: "#ff6b6b" }}>force feedback without constant force, which most sims need</span>
+                : <span style={{ color: "#ffb020" }}>force feedback, some effects missing ({d.caps.missing.join(", ")})</span>)
+              : <span style={{ color: "#ff6b6b" }}>no force feedback</span>}
+            {d.ffb && <div style={dim}>Driver offers: {effects(d) || "none"}</div>}
+            {!d.ffb && d.driver && <div style={dim}>Needs {d.driver}.</div>}
+          </div></Row>
+          {d.need && (st.steamos ? (
+            <>
+              <Row><div style={dim}>
+                Pitwall can build and install <b>{d.need.name}</b> ({d.need.repo.replace("https://", "")}) for your kernel. It needs internet and takes a few minutes. SteamOS updates remove it; Pitwall will offer to reinstall.
+                {d.need.id === "new-lg4ff" && d.ffb ? " Your wheel works already; this adds the missing effects (spring, damper, friction) and wheel settings." : ""}
+              </div></Row>
+              <Row><ButtonItem layout="below" disabled={job?.state === "running"} onClick={() => start(d.need!.id)}>Install {d.need.name}</ButtonItem></Row>
+            </>
+          ) : (
+            <Row><div style={dim}>Install {d.need.name} with your distribution's package manager or from {d.need.repo.replace("https://", "")}.</div></Row>
+          ))}
+          {d.ffb && <Row><ButtonItem layout="below" disabled={testing} onClick={() => test(d.event)}>{testing ? "Testing… hold the wheel lightly" : "Test force feedback"}</ButtonItem></Row>}
+        </div>
+      ))}
+      {bases.some((d) => d.ffb) && (
+        <>
+          <Row><SliderField label="Test strength" value={strength} min={5} max={40} step={5} showValue valueSuffix="%" onChange={setStrength} /></Row>
+          <Row><div style={dim}>The test pulls the wheel left, then right, through Linux's force feedback interface, the same one games use. Keep hands near the wheel; 20% is gentle even on strong bases.</div></Row>
+        </>
+      )}
+      {job && (
+        <>
+          <Row><div style={small}><b>{job.action === "install" ? "Installing" : "Removing"} {DRIVER_NAMES[job.driver] ?? job.driver}:</b> {job.state === "running" ? job.step : job.message}</div></Row>
+          <Row><div style={{ ...dim, fontFamily: "monospace", fontSize: "10px", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{job.log.slice(-6).join("\n")}</div></Row>
+        </>
+      )}
+      {Object.entries(st.installed).filter(([, r]) => r.present).map(([id, r]) => (
+        <Row key={"rm" + id}><ButtonItem layout="below" disabled={job?.state === "running"} onClick={() => start(id, true)}>Remove {DRIVER_NAMES[id] ?? id} ({r.commit})</ButtonItem></Row>
+      ))}
+    </PanelSection>
+  );
+}
+
 // "The game doesn't see my wheel": the two fixes Pitwall can apply, plus the settings to check.
 function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
   const [det, setDet] = useState<Detection | null>(null);
@@ -536,6 +630,14 @@ function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
   useEffect(() => { load(); }, [appid]);
   if (!det) return null;
   const hasEnv = cur !== null && cur.includes("SDL_JOYSTICK_WHEEL_DEVICES=");
+  const hasHidraw = cur !== null && cur.includes("PROTON_ENABLE_HIDRAW=");
+  const toggleHidraw = async () => {
+    if (!appid || cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
+    const next = await hidrawLaunchOptions(cur, !hasHidraw);
+    SteamClient.Apps.SetAppLaunchOptions(Number(appid), next);
+    setCur(next);
+    toast(hasHidraw ? `Raw HID access removed from ${name}` : `Raw HID access added to ${name}. Restart the game.`);
+  };
   const fixSystem = async () => { setBusy(true); try { toast((await wheelDetectionFix()).message); await load(); } finally { setBusy(false); } };
   const toggleGame = async () => {
     if (!appid || cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
@@ -558,9 +660,12 @@ function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
       {appid && det.sdl_value && (
         <Row><ButtonItem layout="below" onClick={toggleGame}>{hasEnv ? "Remove wheel ID from launch options" : "Add wheel ID to launch options"}</ButtonItem></Row>
       )}
+      {appid && det.sdl_value && (hasEnv || hasHidraw) && (
+        <Row><ButtonItem layout="below" onClick={toggleHidraw}>{hasHidraw ? "Remove raw HID access" : "Still not seen: try raw HID access (last resort)"}</ButtonItem></Row>
+      )}
       <Row><div style={dim}>
         {det.needs_hwdb ? "This tells Linux these devices are joysticks (a udev rule, kept across reboots). Unplug and replug them afterwards. " : ""}
-        {appid ? "Adding the wheel ID tells Steam's input layer to treat it as a wheel in this game; your other launch options are kept. " : ""}
+        {appid ? "Adding the wheel ID tells Steam's input layer to treat it as a wheel in this game; your other launch options are kept. Raw HID access (PROTON_ENABLE_HIDRAW) is a last resort: some Proton versions don't pass force feedback through it. " : ""}
         Also check: Steam Input off for the game (Properties, Controller), and a recent Proton such as Proton 10 or Experimental.
       </div></Row>
     </PanelSection>
@@ -571,14 +676,18 @@ function Checks({ go }: { go?: Go }) {
   const [res, setRes] = useState<Check[] | null>(null);
   const run = async () => { setRes(null); setRes(await healthCheck()); };
   useEffect(() => { run(); }, []);
+  const ffbIssue = res?.some((c) => c.id === "ffb" && c.ok === false);
   return (
-    <PanelSection title="Pre-race checks">
-      <Back go={go} />
-      {!res ? <Row>Checking…</Row> : res.map((c) => (
-        <Row key={c.id}><div style={small}><span style={{ color: c.ok === true ? "#3ddc84" : c.ok === false ? "#ff6b6b" : "#9aa6b2", fontWeight: 700 }}>{c.ok === true ? "OK" : c.ok === false ? "FIX" : "INFO"}</span> <b>{c.title}</b>{c.detail && <div style={dim}>{c.detail}</div>}</div></Row>
-      ))}
-      <Row><ButtonItem layout="below" onClick={run}>Run again</ButtonItem></Row>
-    </PanelSection>
+    <>
+      <PanelSection title="Pre-race checks">
+        <Back go={go} />
+        {!res ? <Row>Checking…</Row> : res.map((c) => (
+          <Row key={c.id}><div style={small}><span style={{ color: c.ok === true ? "#3ddc84" : c.ok === false ? "#ff6b6b" : "#9aa6b2", fontWeight: 700 }}>{c.ok === true ? "OK" : c.ok === false ? "FIX" : "INFO"}</span> <b>{c.title}</b>{c.detail && <div style={dim}>{c.detail}</div>}</div></Row>
+        ))}
+        <Row><ButtonItem layout="below" onClick={run}>Run again</ButtonItem></Row>
+      </PanelSection>
+      {ffbIssue && <FfbSetup />}
+    </>
   );
 }
 

@@ -11,7 +11,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, device, diagnostics, engineer, ffb, health, perf  # noqa: E402
+from pitwall import bridge, device, diagnostics, drivers, engineer, ffb, ffbtest, health, perf  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -386,6 +386,52 @@ class Plugin:
         value = health.sdl_wheel_env(health.input_wheels())
         return health.sdl_launch_options(current, value, enable)
 
+    # ===================================================== force feedback setup
+    async def ffb_status(self) -> dict:
+        """Each wheel base: whether it has force feedback, which effects its driver
+        supports, and the driver Pitwall can install if it needs one."""
+        def go():
+            has_upidff = health.kernel_has_universal_pidff()
+            st = self.drivers.status()
+            out = []
+            for d in health.input_wheels():
+                known = d.get("known") or {}
+                caps = ffbtest.caps_summary(ffbtest.parse_caps(health.ff_caps(d["event"])))
+                need = drivers.driver_for(known, has_upidff)
+                inst = st["installed"].get(need) if need else None
+                # A driver that's installed and loaded isn't "needed" any more, unless FFB is still missing.
+                if need and inst and inst["present"] and d["ffb"] and need != "new-lg4ff":
+                    need = None
+                if need == "new-lg4ff" and inst and inst["present"]:
+                    need = None
+                out.append({"event": d["event"], "name": d["name"], "brand": d["brand"],
+                            "model": known.get("model"), "rank": known.get("rank"), "ffb": d["ffb"],
+                            "caps": caps, "driver": known.get("driver"),
+                            "need": need and {"id": need, **{k: drivers.DRIVERS[need][k] for k in ("name", "repo", "for")}}})
+            # Pedals and shifters have no FFB of their own; list bases first.
+            out.sort(key=lambda x: (not x["ffb"] and not x["need"], x["name"]))
+            return {"devices": out, "steamos": st["steamos"], "kernel": st["kernel"],
+                    "installed": st["installed"], "job": st["job"]}
+        return await self._run(go)
+
+    async def ffb_test(self, event: str, strength: float = 0.2) -> dict:
+        if not event.startswith("event") or not event[5:].isdigit():
+            return {"ok": False, "message": "Unknown device."}
+        return await self._run(ffbtest.run_test, f"/dev/input/{event}", float(strength))
+
+    async def driver_install(self, driver_id: str) -> dict:
+        return self.drivers.start(driver_id, "install")
+
+    async def driver_remove(self, driver_id: str) -> dict:
+        return self.drivers.start(driver_id, "remove")
+
+    async def driver_job(self) -> dict | None:
+        return self.drivers.job_view()
+
+    async def hidraw_launch_options(self, current: str, enable: bool) -> str:
+        value = health.sdl_wheel_env(health.input_wheels())
+        return health.env_launch_options(current, "PROTON_ENABLE_HIDRAW", value, enable)
+
     # ===================================================== health / perf
     async def health_check(self) -> list:
         game = None
@@ -460,6 +506,12 @@ class Plugin:
         self.dashboard.start()
         self.compat = compat_mod.Compat(HOME, DATA_DIR)
         self._apply_rev_lights()
+        self.drivers = drivers.Installer(os.path.join(SETTINGS_DIR, "drivers.json"), os.path.join(DATA_DIR, "driver-build"))
+        stale = [drivers.DRIVERS[d]["name"] for d, r in self.drivers.status()["installed"].items() if r["stale"]]
+        if stale:
+            # A SteamOS update replaced the kernel and removed the driver; say so once the UI is up.
+            self.loop.call_later(20, self._emit, "pitwall_toast",
+                                 f"A SteamOS update removed {', '.join(stale)}. Reinstall it in Pitwall, Wheel, Force feedback.")
         decky.logger.info("Pitwall started; dashboard at %s", self.dashboard.url)
 
     async def _unload(self):

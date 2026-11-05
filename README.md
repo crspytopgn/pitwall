@@ -21,6 +21,7 @@
 | **Auto setup** | Recognises your device and wheel and applies the best starting settings in one tap |
 | **Game guide** | For each sim: whether it runs on SteamOS, how to install it, in-game force feedback settings and known issues, with live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
 | **One-tap telemetry** | Switches on each sim's data output for you where possible, and installs the bridge that Proton games need, without touching your other launch options |
+| **Force feedback setup** | Shows whether your wheel has force feedback and which effects its driver supports, tests it with a gentle pull, and on SteamOS builds and installs the community driver your wheel needs (MOZA on older kernels, Logitech, Fanatec, Thrustmaster, Simagic), with a reinstall prompt after SteamOS updates |
 | **Pre-race checks** | Confirms the wheel, force feedback driver, telemetry and game compatibility before you drive |
 
 ### Drive
@@ -109,6 +110,7 @@ py_modules/pitwall/
   hub.py, store.py          live state, SQLite lap history
   dashboard.py, web/        phone dashboard (HTTP + Server-Sent Events)
   wheels/                   MOZA serial driver; Logitech, Fanatec, Thrustmaster sysfs drivers
+  drivers.py, ffbtest.py    force feedback driver installer for SteamOS, FFB test effect
   leds.py, ffb.py           rev lights, FFB presets and feel tuner
   strategy.py               fuel and tyre strategy
   diagnostics.py            bug-report bundle and pre-filled issue

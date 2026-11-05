@@ -34,3 +34,5 @@ First public preview. Not yet tested on real hardware.
 - Wheel table rebuilt from linux-steering-wheels with every wheel, USB IDs and notes (`scripts/sync_wheels.py`)
 - Wheel and pedal detection: checks whether Linux sees them as joysticks, with a one-tap udev fix and a per-game SDL wheel ID launch option
 - Logitech mice, keyboards and other non-wheel devices are no longer mistaken for wheels
+- Force feedback setup: supported effects per wheel, a gentle left/right FFB test through the Linux input layer, and on SteamOS a one-tap build and install of hid-universal-pidff, new-lg4ff, hid-fanatecff, hid-tmff2 or simagic-ff for the running kernel, with a reinstall prompt after SteamOS updates
+- Per game: raw HID access (PROTON_ENABLE_HIDRAW) as a last-resort detection fix

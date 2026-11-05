@@ -23,6 +23,7 @@ Pitwall's backend uses Decky's `_root` flag. That lets it:
 - talk to MOZA bases over their serial port without you installing a udev rule
 - write wheel settings exposed by kernel drivers under `/sys`
 - read telemetry from `/dev/shm`
+- install a force feedback driver or the wheel detection rule, only when you press the button
 
 It only touches the files listed in this documentation. Files it creates in your home folder (benchmark logs, the telemetry bridge) are handed back to your user.
 

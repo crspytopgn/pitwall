@@ -8,7 +8,11 @@
 
 ## Wheel works but no force feedback in games
 
-**Pre-race checks** shows "Wheel found but no force feedback". MOZA, Cammus, PXN, Asetek, VRS and several other bases need the `hid-universal-pidff` kernel driver, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pre-race checks name your wheel and the driver it needs, and look for the driver itself, so a hand-installed one counts. Update SteamOS first; if it still isn't there, the [universal-pidff](https://github.com/JacKeTUs/universal-pidff) project has a SteamOS install script (redo it after SteamOS updates). See the [wheel support table](wheel-support.md).
+**Pre-race checks** shows "Wheel found but no force feedback". MOZA, Cammus, PXN, Asetek, VRS and several other bases need the `hid-universal-pidff` kernel driver, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pre-race checks name your wheel and the driver it needs, and look for the driver itself, so a hand-installed one counts. Update SteamOS first. If the driver still isn't there, open Pitwall → **Wheel** → **Force feedback** and press **Install** (see [Getting force feedback working](wheels.md#getting-force-feedback-working)); Logitech, Fanatec, Thrustmaster and Simagic drivers install the same way. Then use **Test force feedback**: if the wheel moves there but not in a game, the problem is the game's detection, not the driver. See the [wheel support table](wheel-support.md).
+
+## Force feedback stopped after a SteamOS update
+
+SteamOS updates replace the kernel, which removes drivers Pitwall installed. Pitwall says so when it starts; press **Reinstall** in Wheel → Force feedback.
 
 ## No telemetry
 

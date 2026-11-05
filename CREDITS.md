@@ -32,6 +32,18 @@ Pitwall is unofficial. It isn't affiliated with or endorsed by Valve, MOZA Racin
 
 Pitwall downloads winecarte from its official GitHub releases; it doesn't redistribute it.
 
+### Force feedback drivers Pitwall can build on SteamOS
+
+When you press **Install**, Pitwall downloads the source from the project's own repository and builds it on your machine; it doesn't ship or modify these drivers.
+
+| Project | Author | Licence |
+|---|---|---|
+| [universal-pidff](https://github.com/JacKeTUs/universal-pidff) | JacKeTUs and contributors | GPL-2.0 |
+| [new-lg4ff](https://github.com/berarma/new-lg4ff) | Bernat Arlandis (berarma) | GPL-2.0 |
+| [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) | gotzl | GPL-2.0 |
+| [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (with hid-tminit) | Kimplul | GPL-3.0 |
+| [simagic-ff](https://github.com/JacKeTUs/simagic-ff) | JacKeTUs | GPL-2.0 |
+
 ## Compatibility and community data
 
 | Source | Used for | Licence or terms |

@@ -189,10 +189,10 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
             need = known["driver"]
             extra = ""
             if "universal-pidff" in need and not kernel_has_universal_pidff():
-                extra = (f" It isn't in your kernel ({platform.release()}): update SteamOS, or install it with "
-                         "the universal-pidff project's SteamOS script.")
+                extra = (f" It isn't in your kernel ({platform.release()}). Update SteamOS, or install it from "
+                         "Pitwall: Wheel, Force feedback setup.")
             elif known.get("driver_url") and not known.get("in_kernel"):
-                extra = f" It isn't part of SteamOS: {known['driver_url']}"
+                extra = " It isn't part of SteamOS; Pitwall can install it: Wheel, Force feedback setup."
             add("ffb", False, f"{known['brand']} {known['model']} found but no force feedback",
                 f"It needs {need}.{extra}")
         else:
@@ -254,13 +254,21 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
 SDL_VAR = "SDL_JOYSTICK_WHEEL_DEVICES"
 
 
-def sdl_launch_options(current: str, value: str, enable: bool) -> str:
-    """Add, update or remove SDL_JOYSTICK_WHEEL_DEVICES at the start of a game's
-    launch options, keeping everything else the user (or Pitwall's bridge) set."""
+def env_launch_options(current: str, var: str, value: str, enable: bool) -> str:
+    """Add, update or remove VAR=value at the start of a game's launch options,
+    keeping everything else the user (or Pitwall's bridge) set."""
     cur = (current or "").strip()
-    cur = re.sub(rf"(^|\s){SDL_VAR}=\S+\s*", r"\1", cur).strip()
+    cur = re.sub(rf"(^|\s){re.escape(var)}=\S+\s*", r"\1", cur).strip()
     if not enable or not value:
         return "" if cur == "%command%" else cur
     if "%command%" not in cur:
         cur = f"%command% {cur}".strip()
-    return f"{SDL_VAR}={value} {cur}"
+    return f"{var}={value} {cur}"
+
+
+def sdl_launch_options(current: str, value: str, enable: bool) -> str:
+    return env_launch_options(current, SDL_VAR, value, enable)
+
+
+def ff_caps(event: str, root: str = "/") -> str:
+    return _read(os.path.join(root, "sys/class/input", event, "device/capabilities/ff")) or "0"

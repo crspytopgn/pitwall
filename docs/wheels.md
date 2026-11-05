@@ -19,11 +19,43 @@ Pre-race checks identify your wheel model from its USB ID and show its tested su
 
 Pitwall only offers settings whose driver files actually exist, so the same plugin works with mainline and community drivers.
 
-> **SteamOS note:** community kernel drivers (hid-fanatecff, hid-tmff2, new-lg4ff) aren't part of SteamOS and its system partition is read-only, so installing them takes extra work and may need redoing after SteamOS updates. MOZA and basic Logitech support are in the mainline kernel.
+> **SteamOS note:** community kernel drivers (hid-fanatecff, hid-tmff2, new-lg4ff, simagic-ff) aren't part of SteamOS. Pitwall can install them for you (below), and they need reinstalling after SteamOS updates. MOZA and basic Logitech support are in the mainline kernel.
+
+## Getting force feedback working
+
+Open Pitwall → **Wheel**. The **Force feedback** section shows, for each wheel base:
+
+- whether Linux gives it force feedback, and which effects its driver supports (constant force, spring, damper, friction and so on). Sims mostly need constant force; the others add feel.
+- **Test force feedback**: a gentle pull to the left, then the right, through Linux's force feedback interface, the same one games use through Proton. If the wheel moves, the driver and wheel are fine and any remaining problem is in the game's settings or Proton. The strength is adjustable up to 40% and ramps in softly, so it's safe on strong direct drive bases.
+- **Install**, when your wheel needs a driver that SteamOS doesn't have.
+
+### Installing a driver on SteamOS
+
+| Driver | For | Project |
+|---|---|---|
+| hid-universal-pidff | MOZA, Cammus, PXN, VRS, Asetek, Turtle Beach, FFBeast on kernels older than 6.15 (or the 6.12.24+, 6.13.12+, 6.14.3+ updates) | [JacKeTUs/universal-pidff](https://github.com/JacKeTUs/universal-pidff) |
+| new-lg4ff | Logitech G25, G27, G29, G923 (PlayStation), DFGT, DFP, MOMO: adds the effects the stock driver lacks, and is required for the G923 PlayStation | [berarma/new-lg4ff](https://github.com/berarma/new-lg4ff) |
+| hid-fanatecff | Fanatec bases | [gotzl/hid-fanatecff](https://github.com/gotzl/hid-fanatecff) |
+| hid-tmff2 | Thrustmaster T300RS, T248, TX, TS-XW, TS-PC | [Kimplul/hid-tmff2](https://github.com/Kimplul/hid-tmff2) |
+| simagic-ff | Simagic Alpha family and EVO on firmware v159 or later | [JacKeTUs/simagic-ff](https://github.com/JacKeTUs/simagic-ff) |
+
+Pitwall only offers the driver your wheel needs. Pressing **Install** does what each project documents for Arch-based systems, for your exact kernel:
+
+1. lifts SteamOS's read-only flag
+2. installs the build tools and the headers for your running kernel from SteamOS's own repository (`pacman`)
+3. downloads the driver's source from its official GitHub repository
+4. builds it and installs it in `/usr/lib/modules/<kernel>/updates/pitwall`, plus the project's udev rules where it has them (Fanatec, Thrustmaster)
+5. puts the read-only flag back, loads the driver and reloads udev
+
+It needs internet and takes a few minutes; the log is shown as it runs. Unplug the wheel and plug it back in afterwards, then use **Test force feedback**.
+
+A SteamOS update replaces the system and kernel, which removes the driver. Pitwall remembers what it installed and, after an update, tells you and offers **Reinstall**. **Remove** takes the driver out again and goes back to the kernel's own.
+
+This changes system files, so it's always your choice: Pitwall never installs a driver without you pressing the button. On other distributions, install the driver with your package manager or from the project's instructions.
 
 ## If a game doesn't see your wheel
 
-Pre-race checks tell you whether Linux classes your wheel as a joystick, which Steam and Proton need. If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
+If **Test force feedback** works but a game shows no wheel or no force feedback, it's a detection problem rather than a driver one. Pre-race checks tell you whether Linux classes your wheel as a joystick, which Steam and Proton need. If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
 
 ## MOZA
 
