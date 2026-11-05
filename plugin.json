@@ -6,6 +6,6 @@
   "publish": {
     "tags": ["racing", "sim-racing", "telemetry", "moza", "wheel"],
     "description": "Sim racing companion for SteamOS: live telemetry, lap coaching, a phone dashboard, wheel settings and a game compatibility guide.",
-    "image": "https://opengraph.githubassets.com/1/crspytopgn/pitwall"
+    "image": "https://raw.githubusercontent.com/crspytopgn/pitwall/main/assets/social-preview.png"
   }
 }
