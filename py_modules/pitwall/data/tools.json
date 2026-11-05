@@ -1,0 +1,107 @@
+{
+  "_about": "Linux sim racing tools worth knowing, curated from the community index awesome-linux-simracing and the projects themselves.",
+  "source": "https://github.com/LukasLichten/awesome-linux-simracing",
+  "community": [
+    {
+      "name": "Sim Racing on Linux",
+      "url": "https://simracingonlinux.com/",
+      "what": "Community site and Discord for help and setups."
+    },
+    {
+      "name": "awesome-linux-simracing",
+      "url": "https://github.com/LukasLichten/awesome-linux-simracing",
+      "what": "Community index of Linux sim racing software."
+    },
+    {
+      "name": "linux-steering-wheels",
+      "url": "https://github.com/JacKeTUs/linux-steering-wheels",
+      "what": "Tested force feedback support table for wheels on Linux."
+    }
+  ],
+  "tools": [
+    {
+      "name": "linux-simracing-utils",
+      "url": "https://github.com/srounce/linux-simracing-utils",
+      "category": "SimHub and CrewChief",
+      "what": "One installer for SimHub and CrewChief on Linux, with telemetry bridging via winecarte.",
+      "steamos": "Runs from Desktop Mode; a good choice if you need SimHub dashboards or CrewChief's spotter."
+    },
+    {
+      "name": "winecarte",
+      "url": "https://github.com/srounce/winecarte",
+      "category": "Telemetry bridge",
+      "what": "Mirrors Proton games' shared memory into /dev/shm via a launch option. Pitwall installs it for you.",
+      "steamos": "Prebuilt releases; works on SteamOS."
+    },
+    {
+      "name": "Datalink",
+      "url": "https://github.com/LukasLichten/Datalink",
+      "category": "Telemetry bridge",
+      "what": "Launch-option wrapper that maps shared memory for AC/ACC/EVO, AMS2/PC2, rF2, RaceRoom and ETS2/ATS.",
+      "steamos": "Needs building from source (Rust) or the AUR."
+    },
+    {
+      "name": "simshmbridge",
+      "url": "https://github.com/Spacefreak18/simshmbridge",
+      "category": "Telemetry bridge",
+      "what": "Bridge executables for AC/ACC and PC2/AMS2; can also map Linux memory back into another prefix.",
+      "steamos": "Needs compiling with MinGW."
+    },
+    {
+      "name": "Boxflat",
+      "url": "https://github.com/Lawstorant/boxflat",
+      "category": "Wheel settings",
+      "what": "Full MOZA settings app for Linux (Pitwall's MOZA protocol comes from it).",
+      "steamos": "Flatpak from Flathub, Desktop Mode."
+    },
+    {
+      "name": "Oversteer",
+      "url": "https://github.com/berarma/oversteer",
+      "category": "Wheel settings",
+      "what": "Settings for Logitech, Thrustmaster and Fanatec wheels.",
+      "steamos": "Flatpak, Desktop Mode."
+    },
+    {
+      "name": "monocoque",
+      "url": "https://github.com/Spacefreak18/monocoque",
+      "category": "Hardware",
+      "what": "Bass shakers, tachometers, sim lights and Arduino devices from telemetry.",
+      "steamos": "Builds from source."
+    },
+    {
+      "name": "simlcd / gilles",
+      "url": "https://github.com/Spacefreak18/simlcd",
+      "category": "Dashboards",
+      "what": "Dashboards and overlays from telemetry.",
+      "steamos": "Builds from source."
+    },
+    {
+      "name": "RaceEngineer",
+      "url": "https://github.com/Spacefreak18/raceengineer",
+      "category": "Spotter",
+      "what": "Native spoken race engineer.",
+      "steamos": "Builds from source."
+    },
+    {
+      "name": "acctelemetry",
+      "url": "https://github.com/gotzl/acctelemetry",
+      "category": "Analysis",
+      "what": "Telemetry graphs from MoTeC files, designed for ACC.",
+      "steamos": "Python, Desktop Mode."
+    },
+    {
+      "name": "protopedal",
+      "url": "https://gitlab.com/openirseny/protopedal",
+      "category": "Devices",
+      "what": "Virtual devices to merge or fix pedals and wheels that games don't detect properly.",
+      "steamos": "Advanced."
+    },
+    {
+      "name": "Content Manager (AC)",
+      "url": "https://github.com/LukasLichten/awesome-linux-simracing/blob/master/Additional/AssettoCorsa-Guide.md",
+      "category": "Launcher",
+      "what": "Guide to running Assetto Corsa's Content Manager under Proton.",
+      "steamos": "Proton."
+    }
+  ]
+}

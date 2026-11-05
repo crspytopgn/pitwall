@@ -4,7 +4,7 @@
 
 **Does it work on Steam Deck / desktop Linux?** Yes, anywhere Decky Loader runs. It's designed for the Steam Machine on a TV, hence the phone dashboard.
 
-**Is it a SimHub replacement?** It covers the parts most people use on SteamOS: dashboard, rev lights, lap analysis. It doesn't do bass shakers or custom dash designs.
+**Is it a SimHub replacement?** It covers the parts most people use on SteamOS: dashboard, rev lights, lap analysis. It doesn't do bass shakers or custom dash designs. If you need SimHub or CrewChief themselves, [linux-simracing-utils](https://github.com/srounce/linux-simracing-utils) installs both on Linux; see the [toolbox](toolbox.md).
 
 **Can it update MOZA firmware?** No. The update process isn't reverse engineered and a bad write can brick a base. Use Pit House on Windows.
 

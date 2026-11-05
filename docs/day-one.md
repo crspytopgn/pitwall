@@ -4,13 +4,13 @@ A checklist for setting up a new Steam Machine (or Steam Deck) for sim racing wi
 
 ## Before it arrives
 
-- [ ] Decide which sims you'll play first and check them in the [compatibility guide](compatibility.md). BeamNG.drive, DiRT Rally 2.0, Forza Horizon and F1 23 are the easiest starts.
+- [ ] Decide which sims you'll play first and check them in the [compatibility guide](compatibility.md) or on the [website](https://crspytopgn.github.io/pitwall/). BeamNG.drive, DiRT Rally 2.0, Forza Horizon and F1 23 are the easiest starts.
 - [ ] If your MOZA base needs a firmware update, do it now on a Windows PC with Pit House. Pitwall can't update firmware.
 - [ ] Have a USB hub or enough ports: wheel base, pedals (if separate), and a keyboard helps for Desktop Mode.
 
 ## 1. Update SteamOS
 
-Settings → System → check for updates. Recent SteamOS versions include the Linux kernel driver MOZA bases need for force feedback (`hid-universal-pidff`, Linux 6.15 and newer).
+Settings → System → check for updates. MOZA bases need the `hid-universal-pidff` kernel driver for force feedback, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pitwall's Pre-race checks tell you if your kernel is too old.
 
 ## 2. Install Decky Loader (5 minutes)
 
@@ -20,7 +20,7 @@ Settings → System → check for updates. Recent SteamOS versions include the L
 
 ## 3. Install Pitwall (2 minutes)
 
-1. Download `Pitwall-x.y.z.zip` from the [Releases page](../../../releases) (in Desktop Mode, or put it on a USB stick).
+1. Download the latest Pitwall zip from the repository's **Actions → build → newest run → Artifacts** (in Desktop Mode, or put it on a USB stick). A Releases page will follow after testing.
 2. Gaming Mode → `...` → plug icon → cog → **Developer mode** on → **Install Plugin from ZIP File**.
 
 ## 4. Plug in the wheel and run auto setup (1 minute)

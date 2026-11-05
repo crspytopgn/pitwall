@@ -7,7 +7,7 @@ game's shared memory into /dev/shm. Pitwall downloads the latest release
 from GitHub into ~/.local/share/pitwall/bin and builds the Steam launch
 option; the frontend applies it to the game.
 
-Supported by winecarte: Assetto Corsa, ACC, AC EVO, Le Mans Ultimate,
+Supported by winecarte: Assetto Corsa, ACC, AC EVO, AC Rally, Le Mans Ultimate,
 rFactor 2, Project CARS 2, Automobilista 2.
 """
 
@@ -25,7 +25,7 @@ import zipfile
 API = "https://api.github.com/repos/srounce/winecarte/releases/latest"
 UA = "Pitwall (+https://github.com/crspytopgn/pitwall)"
 NEEDED = ("winecarte-run", "wine2linux.exe")
-SUPPORTED_APPIDS = {244210, 805550, 3058630, 2399420, 365960, 378860, 1066890}
+SUPPORTED_APPIDS = {244210, 805550, 3058630, 3917090, 2399420, 365960, 378860, 1066890}
 
 
 def bin_dir(home: str) -> str:

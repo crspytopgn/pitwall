@@ -72,7 +72,7 @@
   </div>
   <div class="tips" id="tips"><span class="label">Coaching appears after your second lap</span></div>
   <div class="map"><canvas id="map"></canvas><div class="empty" id="mapEmpty">Track map appears after your first lap</div></div>
-  <div class="bottom"><button class="voice" id="voice">🔈 Voice off</button><button class="units" id="units">km/h ⇄ mph</button></div>
+  <div class="bottom"><button class="voice" id="voice">Voice off</button><button class="units" id="units">km/h / mph</button></div>
 <script>
 const $ = id => document.getElementById(id);
 const N_LIGHTS = 15;
@@ -120,7 +120,7 @@ loadTrack(); setInterval(loadTrack, 15000);
 // ---- voice
 let voice = false, lastLapId = null;
 try { voice = localStorage.getItem("pitwall-voice") === "1"; } catch (e) {}
-const setVoiceBtn = () => { $("voice").textContent = voice ? "🔊 Voice on" : "🔈 Voice off"; $("voice").className = "voice" + (voice ? " on" : ""); };
+const setVoiceBtn = () => { $("voice").textContent = voice ? "Voice on" : "Voice off"; $("voice").className = "voice" + (voice ? " on" : ""); };
 setVoiceBtn();
 $("voice").onclick = () => {
   voice = !voice; setVoiceBtn();
@@ -179,8 +179,8 @@ function render(d) {
     }
     lastLapId = d.lap_id;
   }
-  if (d.tips && d.tips.length) $("tips").innerHTML = d.tips.map(t => "<div>💡 " + t.replace(/</g, "&lt;") + "</div>").join("");
-  else if (d.coached) $("tips").innerHTML = "<div>✅ No corner lost time against your best lap. Keep it up.</div>";
+  if (d.tips && d.tips.length) $("tips").innerHTML = d.tips.map(t => "<div>" + t.replace(/</g, "&lt;") + "</div>").join("");
+  else if (d.coached) $("tips").innerHTML = "<div>No corner lost time against your best lap.</div>";
 }
 let drawPending = false;
 function scheduleDraw() { if (!drawPending) { drawPending = true; requestAnimationFrame(() => { drawPending = false; drawMap(); }); } }

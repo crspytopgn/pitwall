@@ -178,6 +178,49 @@ class LogitechDriver(SysfsDriver):
     }
 
 
+    # Rev lights: hid-lg4ff / new-lg4ff register five LEDs named "<hid device>::RPM1..5"
+    # (G27, G29, G923 where the driver supports them).
+    LED_GLOB = "/sys/class/leds/*::RPM{n}/brightness"
+
+    def _led_files(self):
+        files = []
+        for n in range(1, 6):
+            hits = sorted(glob.glob(self.LED_GLOB.format(n=n)))
+            if not hits:
+                return []
+            files.append(hits[0])
+        return files
+
+    @property
+    def leds_supported(self):
+        return bool(self._led_files())
+
+    def leds_begin(self):
+        self._led_last = None
+        return self.leds_supported
+
+    def leds_end(self):
+        return self.leds(0)
+
+    def leds(self, mask: int) -> bool:
+        files = self._led_files()
+        if not files:
+            return False
+        lit10 = bin(mask & 0x3FF).count("1")
+        lit = (lit10 + 1) // 2                 # 10 Pitwall LEDs -> 5 Logitech LEDs
+        if lit == getattr(self, "_led_last", None):
+            return True
+        try:
+            for i, path in enumerate(files):
+                with open(path, "w") as f:
+                    f.write("1" if i < lit else "0")
+            self._led_last = lit
+            return True
+        except OSError as e:
+            self.error = f"rev lights: {e.strerror}"
+            return False
+
+
 class ThrustmasterDriver(SysfsDriver):
     brand = "Thrustmaster"
     _B = "/sys/bus/hid/drivers/tmff2/*/"

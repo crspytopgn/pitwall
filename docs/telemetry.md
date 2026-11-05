@@ -19,10 +19,10 @@ Pitwall listens on these UDP ports: 4444 (OutGauge), 4445 (MotionSim), 5300 (For
 
 | Format | Speed/RPM/gear/pedals | Position (track map, start line) | Laps | Tyres |
 |---|---|---|---|---|
-| OutGauge (BeamNG, LFS) | ✅ | BeamNG via MotionSim | LFS: no (use a start line) | – |
-| Forza Data Out | ✅ | ✅ | ✅ | temperatures |
-| Codemasters (DR2) | ✅ | ✅ | ✅ | – |
-| F1 2021–23 | ✅ | ✅ | ✅ | surface temperatures |
+| OutGauge (BeamNG, LFS) | Yes | BeamNG only, via MotionSim | BeamNG via a start line; LFS: no | No |
+| Forza Data Out | Yes | Yes | Yes | Temperatures (wear in Forza Motorsport) |
+| Codemasters (DiRT Rally 1/2, DiRT 4) | Yes | Yes | Yes | No |
+| F1 2021–23 | Yes | Yes | Yes | Surface temperatures |
 
 Sources: [BeamNG protocols](https://documentation.beamng.com/modding/protocols), Forza's Data Out documentation, the Codemasters UDP "extradata 3" format.
 
@@ -39,11 +39,11 @@ Restart the game afterwards. **Pre-race checks** shows whether the bridge is run
 
 | Sim | Map Pitwall reads | Notes |
 |---|---|---|
-| Assetto Corsa / ACC / AC EVO | `acpmf_physics`, `acpmf_graphics`, `acpmf_static` | |
+| Assetto Corsa / ACC / AC EVO / AC Rally | `acpmf_physics`, `acpmf_graphics`, `acpmf_static` | |
 | Automobilista 2 / Project CARS 2 | `$pcars2$` | Set Shared Memory to "Project CARS 2" in the game's options |
 | rFactor 2 | `$rFactor2SMMP_Telemetry$`, `$rFactor2SMMP_Scoring$` | Needs the Windows rF2SharedMemoryMapPlugin |
 | Le Mans Ultimate | `LMU_Data` | |
-| RaceRoom | `$R3E` | No automatic bridge yet |
+| RaceRoom | `$R3E` | No one-tap bridge: [Datalink](https://github.com/LukasLichten/Datalink) supports it but must be built from source or installed from the AUR |
 | Euro Truck Simulator 2 / ATS | `SCS/SCSTelemetry` | Native Linux: install the [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin) `.so` in `bin/linux_x64/plugins`; no bridge needed |
 
 Layouts come from the C headers in [simapi](https://github.com/Spacefreak18/simapi). Pitwall's tests fill those real structs from C and check every field is decoded correctly (`tools/shm_fixtures.c`).

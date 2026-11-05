@@ -13,7 +13,7 @@ Sims that report litres (AC, ACC, AMS2, Project CARS 2, rFactor 2, Le Mans Ultim
 
 ## Tyres
 
-- **Temperatures** for each corner: core temperature in AC/ACC, tyre temperature in AMS2, carcass temperature in rFactor 2/LMU, centre tread in RaceRoom, and Forza's tyre temperature.
+- **Temperatures** for each corner: core temperature in AC/ACC, tyre temperature in AMS2, carcass temperature in rFactor 2/LMU, centre tread in RaceRoom, Forza's tyre temperature and F1's tyre surface temperature.
 - **Window**: RaceRoom reports each tyre's cold, ideal and hot temperature, so Pitwall colours them blue, green or red. Other sims don't publish a window.
 - **Balance**: if the fronts run much hotter than the rears (or the reverse) Pitwall says so, with the usual cause.
 - **Wear**: change per lap for each tyre, the worst tyre, and roughly how many laps each 10% takes. Sims count wear in different directions, so Pitwall only uses the change, never the absolute value.

@@ -7,37 +7,37 @@ The Pitwall app shows the same entries plus **live** ratings from Valve (Steam D
 
 | Game | Status | Runs via | Pitwall telemetry |
 |---|---|---|---|
-| [BeamNG.drive](#beamngdrive) | ✅ Works | Native Linux | ✅ Full |
-| [Assetto Corsa](#assetto-corsa) | 🛠️ Works with setup | Proton | ✅ Full |
-| [Assetto Corsa Competizione](#assetto-corsa-competizione) | 🛠️ Works with setup | Proton | ✅ Full |
-| [Assetto Corsa EVO](#assetto-corsa-evo) | 🛠️ Works with setup | Proton | 🟡 Partial |
-| [Automobilista 2](#automobilista-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [Project CARS 2](#project-cars-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [rFactor 2](#rfactor-2) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [Le Mans Ultimate](#le-mans-ultimate) | ⚠️ Community fixes only | Proton | 🧪 Experimental |
-| [RaceRoom Racing Experience](#raceroom-racing-experience) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [DiRT Rally 2.0](#dirt-rally-20) | ✅ Works | Proton | ✅ Full |
-| [Forza Horizon 5](#forza-horizon-5) | ✅ Works | Proton | ✅ Full |
-| [Forza Horizon 4](#forza-horizon-4) | ✅ Works | Proton | ✅ Full |
-| [Forza Horizon 6](#forza-horizon-6) | ✅ Works | Proton | 🧪 Untested |
-| [Forza Motorsport](#forza-motorsport) | ⚠️ Community fixes only | Proton | ✅ Full |
-| [Live for Speed](#live-for-speed) | ✅ Works | Proton | ✅ Basic |
-| [F1 23](#f1-23) | ✅ Works | Proton | 🧪 Experimental |
-| [F1 22](#f1-22) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [F1 2021](#f1-2021) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [DiRT Rally](#dirt-rally) | ✅ Works | Proton | ✅ Full |
-| [DiRT 4](#dirt-4) | 🛠️ Works with setup | Proton | ✅ Full |
-| [Euro Truck Simulator 2](#euro-truck-simulator-2) | ✅ Works | Native Linux | 🧪 Experimental |
-| [American Truck Simulator](#american-truck-simulator) | ✅ Works | Native Linux | 🧪 Experimental |
-| [Assetto Corsa Rally](#assetto-corsa-rally) | 🛠️ Works with setup | Proton | 🧪 Experimental |
-| [iRacing](#iracing) | ⚠️ Community fixes only | Proton | – |
-| [EA SPORTS WRC](#ea-sports-wrc) | ⛔ Doesn't run | n/a | – |
-| [F1 24](#f1-24) | ⛔ Doesn't run | n/a | – |
-| [F1 25](#f1-25) | ⛔ Doesn't run | n/a | – |
+| [BeamNG.drive](#beamngdrive) | Works | Native Linux | Full |
+| [Assetto Corsa](#assetto-corsa) | Works with setup | Proton | Full |
+| [Assetto Corsa Competizione](#assetto-corsa-competizione) | Works with setup | Proton | Full |
+| [Assetto Corsa EVO](#assetto-corsa-evo) | Works with setup | Proton | Partial |
+| [Automobilista 2](#automobilista-2) | Works with setup | Proton | Experimental |
+| [Project CARS 2](#project-cars-2) | Works with setup | Proton | Experimental |
+| [rFactor 2](#rfactor-2) | Works with setup | Proton | Experimental |
+| [Le Mans Ultimate](#le-mans-ultimate) | Community fixes only | Proton | Experimental |
+| [RaceRoom Racing Experience](#raceroom-racing-experience) | Works with setup | Proton | Experimental |
+| [DiRT Rally 2.0](#dirt-rally-20) | Works | Proton | Full |
+| [Forza Horizon 5](#forza-horizon-5) | Works | Proton | Full |
+| [Forza Horizon 4](#forza-horizon-4) | Works | Proton | Full |
+| [Forza Horizon 6](#forza-horizon-6) | Works | Proton | Untested |
+| [Forza Motorsport](#forza-motorsport) | Community fixes only | Proton | Full |
+| [Live for Speed](#live-for-speed) | Works | Proton | Basic |
+| [F1 23](#f1-23) | Works | Proton | Experimental |
+| [F1 22](#f1-22) | Works with setup | Proton | Experimental |
+| [F1 2021](#f1-2021) | Works with setup | Proton | Experimental |
+| [DiRT Rally](#dirt-rally) | Works | Proton | Full |
+| [DiRT 4](#dirt-4) | Works with setup | Proton | Full |
+| [Euro Truck Simulator 2](#euro-truck-simulator-2) | Works | Native Linux | Experimental |
+| [American Truck Simulator](#american-truck-simulator) | Works | Native Linux | Experimental |
+| [Assetto Corsa Rally](#assetto-corsa-rally) | Works with setup | Proton | Experimental |
+| [iRacing](#iracing) | Community fixes only | Proton | – |
+| [EA SPORTS WRC](#ea-sports-wrc) | Doesn't run | n/a | – |
+| [F1 24](#f1-24) | Doesn't run | n/a | – |
+| [F1 25](#f1-25) | Doesn't run | n/a | – |
 
 ## BeamNG.drive
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Native Linux  
 **Steam:** [284160](https://store.steampowered.com/app/284160) · [ProtonDB](https://www.protondb.com/app/284160)
 
@@ -73,7 +73,7 @@ Sources: <https://docs.beamng.com/support/hardware/steering_wheel_setup/>, <http
 
 ## Assetto Corsa
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [244210](https://store.steampowered.com/app/244210) · [ProtonDB](https://www.protondb.com/app/244210)
 
@@ -102,7 +102,7 @@ Sources: <https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-c
 
 ## Assetto Corsa Competizione
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [805550](https://store.steampowered.com/app/805550) · [ProtonDB](https://www.protondb.com/app/805550)
 
@@ -130,7 +130,7 @@ Sources: <https://simracingsetup.com/product-guides/acc-moza-force-feedback-sett
 
 ## Assetto Corsa EVO
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [3058630](https://store.steampowered.com/app/3058630) · [ProtonDB](https://www.protondb.com/app/3058630)
 
@@ -149,7 +149,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Automobilista 2
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [1066890](https://store.steampowered.com/app/1066890) · [ProtonDB](https://www.protondb.com/app/1066890)
 
@@ -170,7 +170,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Project CARS 2
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [378860](https://store.steampowered.com/app/378860) · [ProtonDB](https://www.protondb.com/app/378860)
 
@@ -186,7 +186,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## rFactor 2
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [365960](https://store.steampowered.com/app/365960) · [ProtonDB](https://www.protondb.com/app/365960)
 
@@ -207,7 +207,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte), [rF2SharedMemoryMapP
 
 ## Le Mans Ultimate
 
-**Status:** ⚠️ Community fixes only  
+**Status:** Community fixes only  
 **Runs via:** Proton  
 **Steam:** [2399420](https://store.steampowered.com/app/2399420) · [ProtonDB](https://www.protondb.com/app/2399420)
 
@@ -228,22 +228,25 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## RaceRoom Racing Experience
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [211500](https://store.steampowered.com/app/211500) · [ProtonDB](https://www.protondb.com/app/211500)
 
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Telemetry: Pitwall reads RaceRoom's $R3E shared memory, but it needs a bridge that mirrors it into /dev/shm. winecarte doesn't list RaceRoom yet, so this is for advanced users for now.
+2. Telemetry needs a bridge that mirrors $R3E into /dev/shm. Datalink supports RaceRoom (launch option `Datalink %command%`) but has to be built from source or installed from the AUR, so this is for advanced users.
+
+Bridges: [Datalink](https://github.com/LukasLichten/Datalink)
 
 ### Known issues
 
 - Community report: force feedback didn't work with a Logitech G29 even though the wheel worked in other games. ([source](https://www.protondb.com/app/211500))
+- Datalink ships a RaceRoom memory-map config. ([source](https://github.com/LukasLichten/Datalink))
 
 ## DiRT Rally 2.0
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton  
 **Steam:** [690790](https://store.steampowered.com/app/690790) · [ProtonDB](https://www.protondb.com/app/690790)
 
@@ -256,7 +259,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Forza Horizon 5
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton  
 **Steam:** [1551360](https://store.steampowered.com/app/1551360) · [ProtonDB](https://www.protondb.com/app/1551360)
 
@@ -271,7 +274,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Forza Horizon 4
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton  
 **Steam:** [1293830](https://store.steampowered.com/app/1293830) · [ProtonDB](https://www.protondb.com/app/1293830)
 
@@ -282,7 +285,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Forza Horizon 6
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton
 
 ### Setup
@@ -296,7 +299,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Forza Motorsport
 
-**Status:** ⚠️ Community fixes only  
+**Status:** Community fixes only  
 **Runs via:** Proton  
 **Steam:** [2440510](https://store.steampowered.com/app/2440510) · [ProtonDB](https://www.protondb.com/app/2440510)
 
@@ -311,7 +314,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Live for Speed
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton
 
 ### Setup
@@ -322,10 +325,11 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 ### Known issues
 
 - BeamNG's OutGauge uses the Live for Speed format, so the same Pitwall adapter reads both. ([source](https://docs.beamng.com/modding/protocols/))
+- OutGauge carries no position or lap data, so Pitwall shows the live dashboard for LFS but can't time laps or coach. ([source](https://docs.beamng.com/modding/protocols/))
 
 ## F1 23
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton  
 **Steam:** [2108330](https://store.steampowered.com/app/2108330) · [ProtonDB](https://www.protondb.com/app/2108330)
 
@@ -340,7 +344,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## F1 22
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [1692250](https://store.steampowered.com/app/1692250) · [ProtonDB](https://www.protondb.com/app/1692250)
 
@@ -351,7 +355,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## F1 2021
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [1134570](https://store.steampowered.com/app/1134570) · [ProtonDB](https://www.protondb.com/app/1134570)
 
@@ -366,7 +370,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## DiRT Rally
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Proton  
 **Steam:** [310560](https://store.steampowered.com/app/310560) · [ProtonDB](https://www.protondb.com/app/310560)
 
@@ -381,7 +385,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## DiRT 4
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [421020](https://store.steampowered.com/app/421020) · [ProtonDB](https://www.protondb.com/app/421020)
 
@@ -392,7 +396,7 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ## Euro Truck Simulator 2
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Native Linux  
 **Steam:** [227300](https://store.steampowered.com/app/227300) · [ProtonDB](https://www.protondb.com/app/227300)
 
@@ -403,9 +407,13 @@ Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 Bridges: [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
 
+### Known issues
+
+- winecarte's companion installer and Datalink both list ETS2/ATS; on SteamOS the native Linux plugin is simpler. ([source](https://github.com/srounce/linux-simracing-utils))
+
 ## American Truck Simulator
 
-**Status:** ✅ Works  
+**Status:** Works  
 **Runs via:** Native Linux  
 **Steam:** [270880](https://store.steampowered.com/app/270880) · [ProtonDB](https://www.protondb.com/app/270880)
 
@@ -416,26 +424,32 @@ Bridges: [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
 
 Bridges: [scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
 
+### Known issues
+
+- winecarte's companion installer and Datalink both list ETS2/ATS; on SteamOS the native Linux plugin is simpler. ([source](https://github.com/srounce/linux-simracing-utils))
+
 ## Assetto Corsa Rally
 
-**Status:** 🛠️ Works with setup  
+**Status:** Works with setup  
 **Runs via:** Proton  
 **Steam:** [3917090](https://store.steampowered.com/app/3917090) · [ProtonDB](https://www.protondb.com/app/3917090)
 
 ### Setup
 
 1. Install from Steam; runs under Proton.
-2. Telemetry uses the Assetto Corsa maps through a bridge; winecarte doesn't list AC Rally yet, so use simshmbridge or linux-sim-launcher's AC bridge.
+2. For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game.
 
-Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge)
+> Pitwall can set up the telemetry bridge for you: Game guide → this game → **Set up telemetry bridge**.
+
+Bridges: [winecarte](https://github.com/srounce/winecarte)
 
 ### Known issues
 
-- Community launcher configs enable the AC shared-memory bridge for AC Rally. ([source](https://gh.r-mj.com/giantorth/linux-sim-launcher))
+- winecarte's companion installer lists Assetto Corsa Rally among supported games. ([source](https://github.com/srounce/linux-simracing-utils))
 
 ## iRacing
 
-**Status:** ⚠️ Community fixes only  
+**Status:** Community fixes only  
 **Runs via:** Proton  
 **Steam:** [266410](https://store.steampowered.com/app/266410) · [ProtonDB](https://www.protondb.com/app/266410)
 
@@ -451,7 +465,7 @@ Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge)
 
 ## EA SPORTS WRC
 
-**Status:** ⛔ Doesn't run  
+**Status:** Doesn't run  
 **Runs via:** n/a  
 **Steam:** [1849250](https://store.steampowered.com/app/1849250) · [ProtonDB](https://www.protondb.com/app/1849250)
 
@@ -465,7 +479,7 @@ Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge)
 
 ## F1 24
 
-**Status:** ⛔ Doesn't run  
+**Status:** Doesn't run  
 **Runs via:** n/a  
 **Steam:** [2488620](https://store.steampowered.com/app/2488620) · [ProtonDB](https://www.protondb.com/app/2488620)
 
@@ -479,7 +493,7 @@ Bridges: [simshmbridge](https://github.com/Spacefreak18/simshmbridge)
 
 ## F1 25
 
-**Status:** ⛔ Doesn't run  
+**Status:** Doesn't run  
 **Runs via:** n/a
 
 ### Setup

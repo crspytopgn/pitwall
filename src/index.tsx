@@ -97,13 +97,14 @@ const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>
 declare const SteamClient: any;
 const ROUTE = "/pitwall";
 
-const toast = (body: string) => toaster.toast({ title: "Pitwall", body });
-const fmt = (s: number | null | undefined) => {
+const toast = (body: string) =>toaster.toast({ title: "Pitwall", body });
+const fmt = (s: number | null | undefined) =>{
   if (s == null || !isFinite(s) || s <= 0) return "–";
   const m = Math.floor(s / 60), r = s - m * 60;
   return (m ? `${m}:${r < 10 ? "0" : ""}` : "") + r.toFixed(3);
 };
-const STATUS: Record<string, string> = { works: "✅ Works", setup: "🛠️ Works with setup", community: "⚠️ Community fixes only", broken: "⛔ Doesn't run" };
+const STATUS: Record<string, string> = { works: "Works", setup: "Works with setup", community: "Community fixes only", broken: "Doesn't run" };
+const STATUS_COLOUR: Record<string, string> = { works: "#3ddc84", setup: "#4da3ff", community: "#ffb020", broken: "#ff6b6b" };
 const small = { fontSize: "12px", lineHeight: 1.35 } as const;
 const dim = { ...small, opacity: 0.7 } as const;
 
@@ -112,14 +113,14 @@ function runningApp(): { appid: string; name: string } | null {
   return app ? { appid: String(app.appid), name: app.display_name ?? `App ${app.appid}` } : null;
 }
 
-function usePoll<T>(fn: () => Promise<T>, ms: number): T | null {
+function usePoll<T>(fn: () =>Promise<T>, ms: number): T | null {
   const [v, setV] = useState<T | null>(null);
-  useEffect(() => {
+  useEffect(() =>{
     let live = true;
-    const tick = async () => { try { const r = await fn(); if (live) setV(r); } catch { /* backend busy */ } };
+    const tick = async () =>{ try { const r = await fn(); if (live) setV(r); } catch { /* backend busy */ } };
     tick();
     const id = setInterval(tick, ms);
-    return () => { live = false; clearInterval(id); };
+    return () =>{ live = false; clearInterval(id); };
   }, []);
   return v;
 }
@@ -128,11 +129,11 @@ function Row({ children }: { children: ReactNode }) {
   return <PanelSectionRow>{children}</PanelSectionRow>;
 }
 
-type Go = ((p: string) => void) | undefined;
+type Go = ((p: string) =>void) | undefined;
 function Back({ go }: { go: Go }) {
-  return go ? <Row><ButtonItem layout="below" onClick={() => go("home")}>‹ Back</ButtonItem></Row> : null;
+  return go ? <Row><ButtonItem layout="below" onClick={() =>go("home")}>‹ Back</ButtonItem></Row> : null;
 }
-const src = (u: string) => u.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
+const src = (u: string) =>u.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
 
 // ------------------------------------------------------------------ pages
 function QR({ value, size = 168 }: { value: string; size?: number }) {
@@ -154,8 +155,7 @@ function DashQR({ url }: { url: string }) {
   const [show, setShow] = useState(false);
   return (
     <>
-      <Row><ToggleField label="Show QR code" checked={show} onChange={setShow} /></Row>
-      {show && <Row><QR value={url} /></Row>}
+      <Row><ToggleField label="Show QR code" checked={show} onChange={setShow} /></Row>{show && <Row><QR value={url} /></Row>}
     </>
   );
 }
@@ -164,39 +164,32 @@ function Strategy({ go }: { go?: Go }) {
   const r = usePoll(strategyReport, 2000);
   const [laps, setLaps] = useState(0);
   const [mins, setMins] = useState(0);
-  useEffect(() => { if (r && laps === 0 && mins === 0) { setLaps(r.target_laps ?? 0); setMins(r.target_minutes ?? 0); } }, [r]);
-  const push = (l: number, m: number) => strategySetTarget(l, m);
+  useEffect(() =>{ if (r && laps === 0 && mins === 0) { setLaps(r.target_laps ?? 0); setMins(r.target_minutes ?? 0); } }, [r]);
+  const push = (l: number, m: number) =>strategySetTarget(l, m);
   const f = r?.fuel, t = r?.tyres;
-  const temp = (k: string) => {
+  const temp = (k: string) =>{
     const v = t?.temps?.[k];
     if (v == null) return "–";
     const w = t?.window;
-    const col = w ? (v < w[0] ? "#4da3ff" : v > w[2] ? "#ff6b6b" : "#3ddc84") : undefined;
+    const col = w ? (v < w[0] ? "#4da3ff" : v >w[2] ? "#ff6b6b" : "#3ddc84") : undefined;
     return <span style={{ color: col }}>{Math.round(v)}°</span>;
   };
   return (
     <>
       <PanelSection title="Fuel">
-        <Back go={go} />
-        {!f ? <Row><div style={small}>Waiting for fuel data from the sim.</div></Row> : (
-          <Row><div style={small}>
-            In tank: <b>{f.now ?? "–"} {f.unit}</b><br />
-            Per lap: <b>{f.per_lap != null ? `${f.per_lap} ${f.unit}` : `measuring (${f.laps_measured} laps)`}</b><br />
-            Laps of fuel left: <b>{f.laps_left ?? "–"}</b>
-            {f.to_add != null && <><br />To finish: {f.to_finish} {f.unit} · <b>add {f.to_add} {f.unit}</b>{f.stops ? ` · ${f.stops} stop(s)` : ""}</>}
-            {f.advice && <div style={{ marginTop: 4 }}>⛽ {f.advice}</div>}
+        <Back go={go} />{!f ? <Row><div style={small}>Waiting for fuel data from the sim.</div></Row> : (
+          <Row><div style={small}>In tank: <b>{f.now ?? "–"} {f.unit}</b><br />Per lap: <b>{f.per_lap != null ? `${f.per_lap} ${f.unit}` : `measuring (${f.laps_measured} laps)`}</b><br />Laps of fuel left: <b>{f.laps_left ?? "–"}</b>{f.to_add != null && <><br />To finish: {f.to_finish} {f.unit} · <b>add {f.to_add} {f.unit}</b>{f.stops ? ` · ${f.stops} stop(s)` : ""}</>}
+            {f.advice && <div style={{ marginTop: 4 }}>{f.advice}</div>}
           </div></Row>
         )}
         <Row><SliderField label="Race laps remaining" value={laps} min={0} max={200} step={1} showValue
-          onChange={(v: number) => { setLaps(v); setMins(0); push(v, 0); }} /></Row>
+          onChange={(v: number) =>{ setLaps(v); setMins(0); push(v, 0); }} /></Row>
         <Row><SliderField label="…or minutes remaining" value={mins} min={0} max={360} step={5} showValue
-          onChange={(v: number) => { setMins(v); setLaps(0); push(0, v); }} /></Row>
+          onChange={(v: number) =>{ setMins(v); setLaps(0); push(0, v); }} /></Row>
         <Row><div style={dim}>Fuel per lap uses the median of your last 5 clean laps; refuelling laps are ignored. Advice includes one lap of margin.</div></Row>
       </PanelSection>
-      <PanelSection title="Tyres">
-        {!t ? <Row><div style={small}>This sim doesn't report tyre data, or no data yet.</div></Row> : (
-          <>
-            {t.temps && (
+      <PanelSection title="Tyres">{!t ? <Row><div style={small}>This sim doesn't report tyre data, or no data yet.</div></Row> : (
+          <>{t.temps && (
               <Row><div style={{ ...small, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, textAlign: "center" }}>
                 <div>FL {temp("FL")}</div><div>FR {temp("FR")}</div><div>RL {temp("RL")}</div><div>RR {temp("RR")}</div>
               </div></Row>
@@ -221,14 +214,11 @@ function Diagnostics({ go }: { go?: Go }) {
     <PanelSection title="Send diagnostics">
       <Back go={go} />
       <Row><div style={small}>Creates a zip with your setup, wheel and telemetry status, check results and Pitwall's recent logs (your API key is removed). Nothing is sent automatically.</div></Row>
-      <Row><ButtonItem layout="below" disabled={busy} onClick={async () => { setBusy(true); try { setD(await diagnosticsCreate()); } finally { setBusy(false); } }}>
-        {busy ? "Collecting…" : d ? "Create again" : "Create diagnostics"}
-      </ButtonItem></Row>
-      {d && (
+      <Row><ButtonItem layout="below" disabled={busy} onClick={async () =>{ setBusy(true); try { setD(await diagnosticsCreate()); } finally { setBusy(false); } }}>{busy ? "Collecting…" : d ? "Create again" : "Create diagnostics"}
+      </ButtonItem></Row>{d && (
         <>
           <Row><div style={{ ...small, whiteSpace: "pre-wrap" }}>{d.summary}</div></Row>
-          <Row><div style={dim}>Saved to {d.path}</div></Row>
-          {d.download_url && (
+          <Row><div style={dim}>Saved to {d.path}</div></Row>{d.download_url && (
             <Row><div style={small}><b>1. Scan to download the zip on your phone</b> (link works once, for 10 minutes)<QR value={d.download_url} /></div></Row>
           )}
           <Row><div style={small}><b>2. Scan to open a pre-filled bug report</b>, then attach the zip<QR value={d.issue_url} size={200} /></div></Row>
@@ -244,7 +234,7 @@ function AutoSetup({ go }: { go?: Go }) {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [res, setRes] = useState<{ step: string; ok: boolean; detail: string }[] | null>(null);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { autoSetupPlan().then(setPlan); }, []);
+  useEffect(() =>{ autoSetupPlan().then(setPlan); }, []);
   if (!plan) return <PanelSection><Back go={go} /><Row>Checking your setup…</Row></PanelSection>;
   const d = plan.device;
   return (
@@ -254,15 +244,14 @@ function AutoSetup({ go }: { go?: Go }) {
         <b>{DEVICE[d.kind] ?? "PC"}</b>{d.product ? ` (${d.product})` : ""} · {d.cpus} CPU threads{d.ram_gb ? ` · ${d.ram_gb} GB RAM` : ""}{d.vram_gb ? ` · ${d.vram_gb} GB VRAM` : ""}
         <div style={dim}>{d.os}</div>
       </div></Row>
-      <Row><div style={small}><b>Pitwall will:</b></div></Row>
-      {plan.steps.map((s) => <Row key={s.id}><div style={small}>• <b>{s.title}</b><div style={dim}>{s.detail}</div></div></Row>)}
+      <Row><div style={small}><b>Pitwall will:</b></div></Row>{plan.steps.map((s) => <Row key={s.id}><div style={small}>• <b>{s.title}</b><div style={dim}>{s.detail}</div></div></Row>)}
       {!res && (
-        <Row><ButtonItem layout="below" disabled={busy} onClick={async () => {
+        <Row><ButtonItem layout="below" disabled={busy} onClick={async () =>{
           setBusy(true);
           try { const r = await autoSetupApply(); setRes(r.results); toast("Auto setup done"); } finally { setBusy(false); }
         }}>{busy ? "Setting up…" : "Do it"}</ButtonItem></Row>
       )}
-      {res && res.map((r) => <Row key={r.step}><div style={small}>{r.ok ? "✅" : "⚠️"} {r.detail}</div></Row>)}
+      {res && res.map((r) => <Row key={r.step}><div style={small}><span style={{ color: r.ok ? "#3ddc84" : "#ffb020", fontWeight: 700 }}>{r.ok ? "Done" : "Check"}</span>{r.detail}</div></Row>)}
       {res && <Row><div style={dim}>Next: open the Game guide for each sim you play, then run Pre-race checks with the game running.</div></Row>}
       <Row><div style={dim}>Graphics settings aren't changed automatically: use Performance to measure, and Pitwall will say what to change.</div></Row>
     </PanelSection>
@@ -273,60 +262,51 @@ function Home({ go }: { go?: Go }) {
   const s = usePoll(sessionStatus, 1000);
   const game = runningApp();
   const [firstRun, setFirstRun] = useState(false);
-  useEffect(() => { getSettings().then((x: any) => setFirstRun(!x.setup_done)); }, []);
+  useEffect(() =>{ getSettings().then((x: any) =>setFirstRun(!x.setup_done)); }, []);
   return (
-    <>
-      {firstRun && go && (
+    <>{firstRun && go && (
         <PanelSection title="Welcome to Pitwall">
           <Row><div style={small}>Let Pitwall check your device and wheel and apply the best starting settings. Takes a few seconds.</div></Row>
-          <Row><ButtonItem layout="below" onClick={() => go("auto")}>✨ Run auto setup</ButtonItem></Row>
-          <Row><ButtonItem layout="below" onClick={async () => { await dismissFirstRun(); setFirstRun(false); }}>Not now</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={() =>go("auto")}>Run auto setup</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={async () =>{ await dismissFirstRun(); setFirstRun(false); }}>Not now</ButtonItem></Row>
         </PanelSection>
       )}
-      <PanelSection title="Session">
-        {!s ? <Row>Starting…</Row> : (
+      <PanelSection title="Session">{!s ? <Row>Starting…</Row> : (
           <>
             <Row>
-              <div style={small}>
-                {s.receiving ? <>📡 Telemetry: <b>{s.sim}</b>{s.track ? ` · ${s.track}` : ""}</> : <>📡 Waiting for telemetry{game ? ` from ${game.name}` : ""}</>}
+              <div style={small}>{s.receiving ? <>Telemetry: <b>{s.sim}</b>{s.track ? ` · ${s.track}` : ""}</> : <>Waiting for telemetry{game ? ` from ${game.name}` : ""}</>}
               </div>
-            </Row>
-            {s.receiving && (
+            </Row>{s.receiving && (
               <Row>
-                <div style={small}>
-                  Lap {fmt(s.live.lap_time)} {s.live.delta != null && <b style={{ color: s.live.delta > 0 ? "#ff6b6b" : "#3ddc84" }}>{s.live.delta > 0 ? "+" : ""}{s.live.delta.toFixed(2)}</b>}
+                <div style={small}>Lap {fmt(s.live.lap_time)} {s.live.delta != null && <b style={{ color: s.live.delta >0 ? "#ff6b6b" : "#3ddc84" }}>{s.live.delta >0 ? "+" : ""}{s.live.delta.toFixed(2)}</b>}
                   <br />Last {fmt(s.last_lap?.time)} · Best {fmt(s.best)} · {s.session_laps} laps
                 </div>
               </Row>
             )}
             {s.has_position && (
               <Row>
-                <ButtonItem layout="below" onClick={async () => toast((await setStartLine()) ? "Start line set here" : "No position data yet")}>
-                  {s.needs_start_line ? "Set start line here (needed for laps)" : "Move start line here"}
+                <ButtonItem layout="below" onClick={async () =>toast((await setStartLine()) ? "Start line set here" : "No position data yet")}>{s.needs_start_line ? "Set start line here (needed for laps)" : "Move start line here"}
                 </ButtonItem>
               </Row>
             )}
-            {s.tips.length > 0 && <Row><div style={small}>{s.tips.map((t) => <div key={t}>💡 {t}</div>)}</div></Row>}
+            {s.tips.length >0 && <Row><div style={small}>{s.tips.map((t) => <div key={t}>{t}</div>)}</div></Row>}
             <Row>
-              <div style={dim}>
-                {s.dashboard_url ? <>📱 Dashboard: <b>{s.dashboard_url}</b> (scan with a phone on the same Wi-Fi)</> : s.dashboard_error}
+              <div style={dim}>{s.dashboard_url ? <>Dashboard: <b>{s.dashboard_url}</b> (scan with a phone on the same Wi-Fi)</> : s.dashboard_error}
               </div>
-            </Row>
-            {s.dashboard_url && (go ? <DashQR url={s.dashboard_url} /> : <Row><QR value={s.dashboard_url} size={200} /></Row>)}
+            </Row>{s.dashboard_url && (go ? <DashQR url={s.dashboard_url} /> : <Row><QR value={s.dashboard_url} size={200} /></Row>)}
           </>
         )}
-      </PanelSection>
-      {go && <PanelSection title="Tools">
-        <Row><ButtonItem layout="below" onClick={() => go("auto")}>✨ Auto setup</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => { Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>🖥️ Open Pitwall full screen</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("wheel")}>🛞 Wheel settings &amp; profiles</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("feel")}>🎚️ Force feedback feel</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("games")}>📖 Game guide &amp; compatibility</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("checks")}>✅ Pre-race checks</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("perf")}>⚡ Performance</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("strategy")}>⛽ Fuel &amp; tyre strategy</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("debrief")}>🎧 Engineer debrief</ButtonItem></Row>
-        <Row><ButtonItem layout="below" onClick={() => go("diag")}>🩺 Send diagnostics</ButtonItem></Row>
+      </PanelSection>{go && <PanelSection title="Tools">
+        <Row><ButtonItem layout="below" onClick={() =>go("auto")}>Auto setup</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>{ Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>Open Pitwall full screen</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("wheel")}>Wheel settings &amp; profiles</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("feel")}>Force feedback feel</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("games")}>Game guide &amp; compatibility</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("checks")}>Pre-race checks</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("perf")}>Performance</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("strategy")}>Fuel &amp; tyre strategy</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("debrief")}>Engineer debrief</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() =>go("diag")}>Send diagnostics</ButtonItem></Row>
       </PanelSection>}
     </>
   );
@@ -334,10 +314,10 @@ function Home({ go }: { go?: Go }) {
 
 function useDebounced(delay = 200) {
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), []);
-  return (key: string, v: number) => {
+  useEffect(() => () =>Object.values(timers.current).forEach(clearTimeout), []);
+  return (key: string, v: number) =>{
     clearTimeout(timers.current[key]);
-    timers.current[key] = setTimeout(() => wheelSet(key, v), delay);
+    timers.current[key] = setTimeout(() =>wheelSet(key, v), delay);
   };
 }
 
@@ -351,15 +331,15 @@ function Wheel({ go }: { go?: Go }) {
   const write = useDebounced();
   const game = runningApp();
 
-  const refresh = async () => {
+  const refresh = async () =>{
     const s = await wheelStatus();
     setSt(s);
     setProf(await getProfiles());
     if (s.connected) { const v = await wheelRead(); if (v) setVals(v); }
   };
-  useEffect(() => { refresh(); }, []);
-  const change = (k: string, v: number) => { setVals((o) => ({ ...o, [k]: v })); write(k, v); };
-  const save = async (appid: string, name: string) => {
+  useEffect(() =>{ refresh(); }, []);
+  const change = (k: string, v: number) =>{ setVals((o) => ({ ...o, [k]: v })); write(k, v); };
+  const save = async (appid: string, name: string) =>{
     toast((await saveProfile(appid, name)) ? `Saved wheel profile: ${name}` : "Couldn't read settings from the wheel");
     setProf(await getProfiles());
   };
@@ -372,24 +352,23 @@ function Wheel({ go }: { go?: Go }) {
     </PanelSection>
   );
   const defs = st.settings ?? {};
-  const render = (k: string) => {
+  const render = (k: string) =>{
     const d = defs[k];
     if (!d || vals[k] === undefined) return null;
-    if (d.toggle) return <Row key={k}><ToggleField label={d.label} checked={vals[k] === 1} onChange={(c: boolean) => change(k, c ? 1 : 0)} /></Row>;
-    return <Row key={k}><SliderField label={d.label} value={vals[k]} min={d.min} max={d.max} step={d.step} showValue valueSuffix={d.suffix} onChange={(v: number) => change(k, v)} /></Row>;
+    if (d.toggle) return <Row key={k}><ToggleField label={d.label} checked={vals[k] === 1} onChange={(c: boolean) =>change(k, c ? 1 : 0)} /></Row>;
+    return <Row key={k}><SliderField label={d.label} value={vals[k]} min={d.min} max={d.max} step={d.step} showValue valueSuffix={d.suffix} onChange={(v: number) =>change(k, v)} /></Row>;
   };
   const hasProfile = game && prof?.games[game.appid] !== undefined;
   return (
     <>
       <PanelSection title={st.name}>
-        <Back go={go} />
-        {CORE_KEYS.map(render)}
+        <Back go={go} />{CORE_KEYS.map(render)}
         {st.can_center && (
-          <Row><ButtonItem layout="below" onClick={async () => toast((await wheelCenter()) ? "Centre set" : "Centre failed")}>Set centre (hold wheel straight)</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={async () =>toast((await wheelCenter()) ? "Centre set" : "Centre failed")}>Set centre (hold wheel straight)</ButtonItem></Row>
         )}
         {st.leds && (
           <Row><ToggleField label="Rev lights from telemetry" description="Drive the wheel's RPM LEDs from the game" checked={!!st.rev_lights}
-            onChange={async (c: boolean) => { await setSetting("rev_lights", c); setSt({ ...st, rev_lights: c }); }} /></Row>
+            onChange={async (c: boolean) =>{ await setSetting("rev_lights", c); setSt({ ...st, rev_lights: c }); }} /></Row>
         )}
         {Object.keys(defs).some((k) => !CORE_KEYS.includes(k)) && (
           <Row><ToggleField label="Effect settings" checked={more} onChange={setMore} /></Row>
@@ -397,37 +376,33 @@ function Wheel({ go }: { go?: Go }) {
         {more && Object.keys(defs).filter((k) => !CORE_KEYS.includes(k)).map(render)}
       </PanelSection>
       <PanelSection title="Profiles">
-        <Row><ToggleField label="Auto-apply per game" checked={prof?.auto_apply ?? true} onChange={async (c: boolean) => { await setAutoApply(c); setProf(await getProfiles()); }} /></Row>
-        {game && <Row><ButtonItem layout="below" onClick={() => save(game.appid, game.name)}>{hasProfile ? "Update" : "Save"} profile for {game.name}</ButtonItem></Row>}
-        {game && hasProfile && <Row><ButtonItem layout="below" onClick={async () => { await deleteProfile(game.appid); setProf(await getProfiles()); }}>Delete profile for {game.name}</ButtonItem></Row>}
+        <Row><ToggleField label="Auto-apply per game" checked={prof?.auto_apply ?? true} onChange={async (c: boolean) =>{ await setAutoApply(c); setProf(await getProfiles()); }} /></Row>{game && <Row><ButtonItem layout="below" onClick={() =>save(game.appid, game.name)}>{hasProfile ? "Update" : "Save"} profile for {game.name}</ButtonItem></Row>}
+        {game && hasProfile && <Row><ButtonItem layout="below" onClick={async () =>{ await deleteProfile(game.appid); setProf(await getProfiles()); }}>Delete profile for {game.name}</ButtonItem></Row>}
         {prof?.current_car && (
-          <Row><ButtonItem layout="below" onClick={() => save(`car:${prof.current_car!.key}`, prof.current_car!.name)}>
-            {prof.cars[prof.current_car.key] !== undefined ? "Update" : "Save"} profile for this car ({prof.current_car.name})
+          <Row><ButtonItem layout="below" onClick={() =>save(`car:${prof.current_car!.key}`, prof.current_car!.name)}>{prof.cars[prof.current_car.key] !== undefined ? "Update" : "Save"} profile for this car ({prof.current_car.name})
           </ButtonItem></Row>
         )}
         {prof?.current_car && prof.cars[prof.current_car.key] !== undefined && (
-          <Row><ButtonItem layout="below" onClick={async () => { await deleteProfile(`car:${prof.current_car!.key}`); setProf(await getProfiles()); }}>Delete profile for {prof.current_car.name}</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={async () =>{ await deleteProfile(`car:${prof.current_car!.key}`); setProf(await getProfiles()); }}>Delete profile for {prof.current_car.name}</ButtonItem></Row>
         )}
-        <Row><ButtonItem layout="below" onClick={() => save("default", "Default")}>{prof?.has_default ? "Update" : "Save"} default (outside games)</ButtonItem></Row>
-        <Row><div style={dim}>A car profile overrides the game profile when that car is on track. Car names come from telemetry (not available in BeamNG).</div></Row>
-        {prof && Object.keys(prof.games).length > 0 && <Row><div style={dim}>Games: {Object.values(prof.games).join(", ")}</div></Row>}
-        {prof && Object.keys(prof.cars).length > 0 && <Row><div style={dim}>Cars: {Object.values(prof.cars).join(", ")}</div></Row>}
+        <Row><ButtonItem layout="below" onClick={() =>save("default", "Default")}>{prof?.has_default ? "Update" : "Save"} default (outside games)</ButtonItem></Row>
+        <Row><div style={dim}>A car profile overrides the game profile when that car is on track. Car names come from telemetry (not available in BeamNG).</div></Row>{prof && Object.keys(prof.games).length >0 && <Row><div style={dim}>Games: {Object.values(prof.games).join(", ")}</div></Row>}
+        {prof && Object.keys(prof.cars).length >0 && <Row><div style={dim}>Cars: {Object.values(prof.cars).join(", ")}</div></Row>}
       </PanelSection>
     </>
   );
 }
 
-function Games({ go, open }: { go?: Go; open: (id: string) => void }) {
+function Games({ go, open }: { go?: Go; open: (id: string) =>void }) {
   const list = usePoll(compatList, 30000);
   return (
     <PanelSection title="Game guide">
-      <Back go={go} />
-      {!list ? <Row>Loading…</Row> : list.map((g) => (
+      <Back go={go} />{!list ? <Row>Loading…</Row> : list.map((g) => (
         <Row key={g.id}>
-          <ButtonItem layout="below" onClick={() => open(g.id)}>
+          <ButtonItem layout="below" onClick={() =>open(g.id)}>
             <div style={{ textAlign: "left" }}>
               <div>{g.name}{g.installed ? " · installed" : ""}</div>
-              <div style={dim}>{STATUS[g.status] ?? g.status}{g.telemetry && g.telemetry !== "planned" ? ` · telemetry: ${g.telemetry}` : g.telemetry === "planned" ? " · telemetry planned" : ""}</div>
+              <div style={dim}><span style={{ color: STATUS_COLOUR[g.status] }}>{STATUS[g.status] ?? g.status}</span>{g.telemetry && g.telemetry !== "planned" ? ` · telemetry: ${g.telemetry}` : g.telemetry === "planned" ? " · telemetry planned" : ""}</div>
             </div>
           </ButtonItem>
         </Row>
@@ -436,9 +411,9 @@ function Games({ go, open }: { go?: Go; open: (id: string) => void }) {
   );
 }
 
-function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
+function GamePage({ id, go, back }: { id: string; go?: Go; back: () =>void }) {
   const [g, setG] = useState<GameDetail | null>(null);
-  useEffect(() => { compatDetail(id).then(setG); }, [id]);
+  useEffect(() =>{ compatDetail(id).then(setG); }, [id]);
   if (!g) return <PanelSection><Back go={go} /><Row>Fetching live ratings…</Row></PanelSection>;
   const ing = (g as any).ffb_ingame as FfbCat["ingame"];
   return (
@@ -447,30 +422,23 @@ function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
         <Row><ButtonItem layout="below" onClick={back}>‹ All games</ButtonItem></Row>
         <Row>
           <div style={small}>
-            <b>{STATUS[g.status]}</b> ({g.runtime === "native" ? "native Linux" : g.runtime === "proton" ? "Proton" : "not runnable"})<br />
-            Steam Deck rating (Valve): <b>{g.live_deck?.category ?? "unavailable"}</b><br />
-            ProtonDB: <b>{g.live_protondb?.tier ?? "unavailable"}</b>{g.live_protondb?.trendingTier && g.live_protondb.trendingTier !== g.live_protondb.tier ? ` (trending ${g.live_protondb.trendingTier})` : ""}{g.live_protondb?.total ? ` · ${g.live_protondb.total} reports` : ""}<br />
-            {g.live_anticheat && <>Anti-cheat: <b>{g.live_anticheat.status}</b> ({g.live_anticheat.anticheats?.join(", ")})</>}
+            <b style={{ color: STATUS_COLOUR[g.status] }}>{STATUS[g.status]}</b> ({g.runtime === "native" ? "native Linux" : g.runtime === "proton" ? "Proton" : "not runnable"})<br />Steam Deck rating (Valve): <b>{g.live_deck?.category ?? "unavailable"}</b><br />ProtonDB: <b>{g.live_protondb?.tier ?? "unavailable"}</b>{g.live_protondb?.trendingTier && g.live_protondb.trendingTier !== g.live_protondb.tier ? ` (trending ${g.live_protondb.trendingTier})` : ""}{g.live_protondb?.total ? ` · ${g.live_protondb.total} reports` : ""}<br />{g.live_anticheat && <>Anti-cheat: <b>{g.live_anticheat.status}</b> ({g.live_anticheat.anticheats?.join(", ")})</>}
           </div>
         </Row>
       </PanelSection>
-      <PanelSection title="Setup">
-        {g.install.map((s, i) => <Row key={i}><div style={small}>{i + 1}. {s}</div></Row>)}
+      <PanelSection title="Setup">{g.install.map((s, i) => <Row key={i}><div style={small}>{i + 1}. {s}</div></Row>)}
         {g.auto_setup && (
-          <Row><ButtonItem layout="below" onClick={async () => toast((await compatAutoSetup(g.id)).message)}>Do this for me</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={async () =>toast((await compatAutoSetup(g.id)).message)}>Do this for me</ButtonItem></Row>
         )}
         {(g as any).bridge_auto && (g as any).steam_appid && <BridgeSetup appid={String((g as any).steam_appid)} name={g.name} />}
-        {g.wheel && <Row><div style={small}>🛞 Suggested rotation {g.wheel.rotation}°. {g.wheel.note}</div></Row>}
-      </PanelSection>
-      {ing && (
-        <PanelSection title="In-game force feedback">
-          {ing.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
+        {g.wheel && <Row><div style={small}>Suggested rotation {g.wheel.rotation}°. {g.wheel.note}</div></Row>}
+      </PanelSection>{ing && (
+        <PanelSection title="In-game force feedback">{ing.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
           <Row><div style={small}>{ing.starting_points}<div style={dim}>{ing.sources.map(src).join(" · ")}</div></div></Row>
         </PanelSection>
       )}
-      {g.known_issues.length > 0 && (
-        <PanelSection title="Known issues">
-          {g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{src(k.source)}</div></div></Row>)}
+      {g.known_issues.length >0 && (
+        <PanelSection title="Known issues">{g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{src(k.source)}</div></div></Row>)}
         </PanelSection>
       )}
     </>
@@ -482,9 +450,9 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
   const [busy, setBusy] = useState(false);
   const [cur, setCur] = useState<string | null>(null);
   const enabled = cur !== null && cur.includes("winecarte-run");
-  useEffect(() => { bridgeStatus(appid).then(setSt); getLaunchOptions(appid).then(setCur); }, [appid]);
+  useEffect(() =>{ bridgeStatus(appid).then(setSt); getLaunchOptions(appid).then(setCur); }, [appid]);
   if (!st?.supported) return null;
-  const apply = async (enable: boolean) => {
+  const apply = async (enable: boolean) =>{
     if (cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
     setBusy(true);
     try {
@@ -501,8 +469,7 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
   };
   return (
     <>
-      <Row><ButtonItem layout="below" disabled={busy} onClick={() => apply(!enabled)}>
-        {busy ? "Working…" : enabled ? "Remove telemetry bridge" : "Set up telemetry bridge"}
+      <Row><ButtonItem layout="below" disabled={busy} onClick={() =>apply(!enabled)}>{busy ? "Working…" : enabled ? "Remove telemetry bridge" : "Set up telemetry bridge"}
       </ButtonItem></Row>
       <Row><div style={dim}>Uses winecarte (github.com/srounce/winecarte). It's added to the game's launch options; your existing options are kept.</div></Row>
     </>
@@ -511,13 +478,12 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
 
 function Checks({ go }: { go?: Go }) {
   const [res, setRes] = useState<Check[] | null>(null);
-  const run = async () => { setRes(null); setRes(await healthCheck()); };
-  useEffect(() => { run(); }, []);
+  const run = async () =>{ setRes(null); setRes(await healthCheck()); };
+  useEffect(() =>{ run(); }, []);
   return (
     <PanelSection title="Pre-race checks">
-      <Back go={go} />
-      {!res ? <Row>Checking…</Row> : res.map((c) => (
-        <Row key={c.id}><div style={small}>{c.ok === true ? "✅" : c.ok === false ? "❌" : "ℹ️"} <b>{c.title}</b>{c.detail && <div style={dim}>{c.detail}</div>}</div></Row>
+      <Back go={go} />{!res ? <Row>Checking…</Row> : res.map((c) => (
+        <Row key={c.id}><div style={small}>{c.ok === true ? "" : c.ok === false ? "" : ""} <b>{c.title}</b>{c.detail && <div style={dim}>{c.detail}</div>}</div></Row>
       ))}
       <Row><ButtonItem layout="below" onClick={run}>Run again</ButtonItem></Row>
     </PanelSection>
@@ -525,24 +491,24 @@ function Checks({ go }: { go?: Go }) {
 }
 
 const LS_KEY = "pitwall-saved-launch-options";
-function savedOpts(): Record<string, string> { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; } }
+function savedOpts(): Record<string, string>{ try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; } }
 function storeOpts(v: Record<string, string>) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch { /* ignore */ } }
-async function getLaunchOptions(appid: string): Promise<string | null> {
+async function getLaunchOptions(appid: string): Promise<string | null>{
   // Steam only keeps details for apps it has loaded, so ask for them if needed.
   try {
     const d = (window as any).appDetailsStore?.GetAppDetails?.(Number(appid));
     if (typeof d?.strLaunchOptions === "string") return d.strLaunchOptions;
   } catch { /* fall through */ }
-  return new Promise((resolve) => {
+  return new Promise((resolve) =>{
     let done = false;
-    let reg: { unregister: () => void } | undefined;
-    const finish = (v: string | null) => { if (!done) { done = true; reg?.unregister(); resolve(v); } };
+    let reg: { unregister: () =>void } | undefined;
+    const finish = (v: string | null) =>{ if (!done) { done = true; reg?.unregister(); resolve(v); } };
     try {
-      reg = SteamClient.Apps.RegisterForAppDetails(Number(appid), (det: any) => {
+      reg = SteamClient.Apps.RegisterForAppDetails(Number(appid), (det: any) =>{
         if (typeof det?.strLaunchOptions === "string") finish(det.strLaunchOptions);
       });
     } catch { finish(null); }
-    setTimeout(() => finish(null), 3000);
+    setTimeout(() =>finish(null), 3000);
   });
 }
 
@@ -552,10 +518,10 @@ function PerfPage({ go }: { go?: Go }) {
   const [lastApp, setLastApp] = useState<{ appid: string; name: string } | null>(null);
   const [benchFor, setBenchFor] = useState<string[]>(Object.keys(savedOpts()));
   const game = runningApp();
-  useEffect(() => { getSettings().then((s) => setTarget(s.target_fps)); }, []);
+  useEffect(() =>{ getSettings().then((s) =>setTarget(s.target_fps)); }, []);
 
-  const pickApp = () => game ?? lastApp;
-  const startBench = async () => {
+  const pickApp = () =>game ?? lastApp;
+  const startBench = async () =>{
     const app = pickApp();
     if (!app) { toast("Open a game's page or launch it first"); return; }
     const cur = await getLaunchOptions(app.appid);
@@ -569,7 +535,7 @@ function PerfPage({ go }: { go?: Go }) {
     setBenchFor(Object.keys(saved)); setLastApp(app);
     toast(`Benchmark armed for ${app.name}. Restart the game and drive for 90 s.`);
   };
-  const restore = (appid: string) => {
+  const restore = (appid: string) =>{
     const saved = savedOpts();
     if (appid in saved) { SteamClient.Apps.SetAppLaunchOptions(Number(appid), saved[appid]); delete saved[appid]; storeOpts(saved); }
     setBenchFor(Object.keys(saved));
@@ -579,16 +545,13 @@ function PerfPage({ go }: { go?: Go }) {
   return (
     <PanelSection title="Performance">
       <Back go={go} />
-      <Row><SliderField label="Target FPS" value={target} min={30} max={144} step={1} showValue onChange={(v: number) => { setTarget(v); setSetting("target_fps", v); }} notchTicksVisible={false} /></Row>
+      <Row><SliderField label="Target FPS" value={target} min={30} max={144} step={1} showValue onChange={(v: number) =>{ setTarget(v); setSetting("target_fps", v); }} notchTicksVisible={false} /></Row>
       <Row><div style={dim}>Match your TV: usually 60 or 120.</div></Row>
-      <Row><ButtonItem layout="below" onClick={startBench}>Arm 90 s benchmark{pickApp() ? ` for ${pickApp()!.name}` : ""}</ButtonItem></Row>
-      {benchFor.map((a) => <Row key={a}><ButtonItem layout="below" onClick={() => restore(a)}>Restore launch options (app {a})</ButtonItem></Row>)}
-      <Row><ButtonItem layout="below" onClick={async () => { const a = pickApp(); setRes(await perfAnalyse(a?.appid ?? "", a?.name ?? "")); }}>Analyse latest benchmark</ButtonItem></Row>
-      {res && (!res.ok ? <Row><div style={small}>{res.message}</div></Row> : (
+      <Row><ButtonItem layout="below" onClick={startBench}>Arm 90 s benchmark{pickApp() ? ` for ${pickApp()!.name}` : ""}</ButtonItem></Row>{benchFor.map((a) => <Row key={a}><ButtonItem layout="below" onClick={() =>restore(a)}>Restore launch options (app {a})</ButtonItem></Row>)}
+      <Row><ButtonItem layout="below" onClick={async () =>{ const a = pickApp(); setRes(await perfAnalyse(a?.appid ?? "", a?.name ?? "")); }}>Analyse latest benchmark</ButtonItem></Row>{res && (!res.ok ? <Row><div style={small}>{res.message}</div></Row> : (
         <Row>
           <div style={small}>
-            <b>{res.verdict === "great" ? "✅ Smooth" : res.verdict === "stutters" ? "⚠️ Stuttering" : "❌ Below target"}</b><br />
-            Average {res.avg_fps} FPS · 1% low {res.low1_fps} · {res.stutters_per_min} stutters/min
+            <b style={{ color: res.verdict === "great" ? "#3ddc84" : res.verdict === "stutters" ? "#ffb020" : "#ff6b6b" }}>{res.verdict === "great" ? "Smooth" : res.verdict === "stutters" ? "Stuttering" : "Below target"}</b><br />Average {res.avg_fps} FPS · 1% low {res.low1_fps} · {res.stutters_per_min} stutters/min
             {res.advice?.map((a) => <div key={a} style={{ marginTop: 4 }}>• {a}</div>)}
           </div>
         </Row>
@@ -601,22 +564,20 @@ function DebriefPage({ go }: { go?: Go }) {
   const [d, setD] = useState<Debrief | null>(null);
   const [hasKey, setHasKey] = useState(false);
   const [key, setKey] = useState("");
-  const run = async () => { setD(null); setD(await debrief()); };
-  useEffect(() => { run(); getSettings().then((s) => setHasKey(s.anthropic_api_key)); }, []);
+  const run = async () =>{ setD(null); setD(await debrief()); };
+  useEffect(() =>{ run(); getSettings().then((s) =>setHasKey(s.anthropic_api_key)); }, []);
   return (
     <PanelSection title="Engineer debrief">
-      <Back go={go} />
-      {!d ? <Row>Analysing session…</Row> : (
-        <>
-          {d.lines.map((l) => <Row key={l}><div style={small}>{l}</div></Row>)}
+      <Back go={go} />{!d ? <Row>Analysing session…</Row> : (
+        <>{d.lines.map((l) => <Row key={l}><div style={small}>{l}</div></Row>)}
           {d.claude && <Row><div style={small}><b>Claude:</b> {d.claude}</div></Row>}
           {d.error && <Row><div style={dim}>{d.error}</div></Row>}
         </>
       )}
       <Row><ButtonItem layout="below" onClick={run}>Refresh</ButtonItem></Row>
       <Row><div style={dim}>{hasKey ? "Claude debriefs are on." : "Optional: add an Anthropic API key for Claude-written debriefs. Lap data is sent to Anthropic when you open this page."}</div></Row>
-      <Row><TextField label="Anthropic API key" bIsPassword value={key} onChange={(e: any) => setKey(e?.target?.value ?? "")} /></Row>
-      <Row><ButtonItem layout="below" onClick={async () => { await setSetting("anthropic_api_key", key.trim()); setHasKey(!!key.trim()); setKey(""); toast(key.trim() ? "API key saved" : "API key removed"); }}>{key.trim() ? "Save key" : "Remove key"}</ButtonItem></Row>
+      <Row><TextField label="Anthropic API key" bIsPassword value={key} onChange={(e: any) =>setKey(e?.target?.value ?? "")} /></Row>
+      <Row><ButtonItem layout="below" onClick={async () =>{ await setSetting("anthropic_api_key", key.trim()); setHasKey(!!key.trim()); setKey(""); toast(key.trim() ? "API key saved" : "API key removed"); }}>{key.trim() ? "Save key" : "Remove key"}</ButtonItem></Row>
     </PanelSection>
   );
 }
@@ -624,9 +585,9 @@ function DebriefPage({ go }: { go?: Go }) {
 function Feel({ go }: { go?: Go }) {
   const [cat, setCat] = useState<FfbCat | null>(null);
   const [last, setLast] = useState<FfbResult | null>(null);
-  const load = async () => setCat(await ffbCatalogue());
-  useEffect(() => { load(); }, []);
-  const show = async (r: FfbResult, label: string) => {
+  const load = async () =>setCat(await ffbCatalogue());
+  useEffect(() =>{ load(); }, []);
+  const show = async (r: FfbResult, label: string) =>{
     setLast(r);
     toast(r.ok ? (r.changes && r.changes.length === 0 ? "Already at the limit for this" : `${label} applied`) : r.message ?? "Failed");
     load();
@@ -637,20 +598,18 @@ function Feel({ go }: { go?: Go }) {
       <PanelSection title="Force feedback feel">
         <Back go={go} />
         <Row><div style={dim}>Change one thing at a time and drive a few corners before changing the next. Every change can be undone.</div></Row>
-        <Row><div style={small}><b>What feels wrong?</b></div></Row>
-        {cat.symptoms.map((x) => (
-          <Row key={x.id}><ButtonItem layout="below" onClick={async () => show(await ffbNudge(x.id), "Adjustment")}>{x.label}</ButtonItem></Row>
+        <Row><div style={small}><b>What feels wrong?</b></div></Row>{cat.symptoms.map((x) => (
+          <Row key={x.id}><ButtonItem layout="below" onClick={async () =>show(await ffbNudge(x.id), "Adjustment")}>{x.label}</ButtonItem></Row>
         ))}
-        {last?.changes && last.changes.length > 0 && (
+        {last?.changes && last.changes.length >0 && (
           <Row><div style={small}>{last.changes.map((c) => <div key={c.label}>• {c.label}: {c.from} → {c.to} ({c.why})</div>)}</div></Row>
         )}
-        {last?.tip && <Row><div style={small}>🎮 {last.tip}</div></Row>}
-        {cat.can_undo && <Row><ButtonItem layout="below" onClick={async () => show(await ffbUndo(), "Undo")}>↩ Undo last change</ButtonItem></Row>}
+        {last?.tip && <Row><div style={small}>{last.tip}</div></Row>}
+        {cat.can_undo && <Row><ButtonItem layout="below" onClick={async () =>show(await ffbUndo(), "Undo")}>↩ Undo last change</ButtonItem></Row>}
       </PanelSection>
-      <PanelSection title="Starting presets">
-        {cat.presets.map((p) => (
+      <PanelSection title="Starting presets">{cat.presets.map((p) => (
           <Row key={p.id}>
-            <ButtonItem layout="below" onClick={async () => show(await ffbApplyPreset(p.id), p.name)}>
+            <ButtonItem layout="below" onClick={async () =>show(await ffbApplyPreset(p.id), p.name)}>
               <div style={{ textAlign: "left" }}>
                 <div>{p.name}</div>
                 <div style={dim}>{p.summary}</div>
@@ -659,10 +618,8 @@ function Feel({ go }: { go?: Go }) {
             </ButtonItem>
           </Row>
         ))}
-      </PanelSection>
-      {cat.ingame && (
-        <PanelSection title={`In ${cat.game}`}>
-          {cat.ingame.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
+      </PanelSection>{cat.ingame && (
+        <PanelSection title={`In ${cat.game}`}>{cat.ingame.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
           <Row><div style={small}>{cat.ingame.starting_points}</div></Row>
         </PanelSection>
       )}
@@ -673,8 +630,7 @@ function Feel({ go }: { go?: Go }) {
 function Laps() {
   const laps = usePoll(recentLaps, 5000);
   return (
-    <PanelSection title="Recent laps">
-      {!laps ? <Row>Loading…</Row> : laps.length === 0 ? <Row><div style={small}>No laps yet.</div></Row> : laps.map((l) => (
+    <PanelSection title="Recent laps">{!laps ? <Row>Loading…</Row> : laps.length === 0 ? <Row><div style={small}>No laps yet.</div></Row> : laps.map((l) => (
         <Row key={l.id}>
           <div style={small}><b>{fmt(l.time)}</b> · {l.sim}{l.track ? ` · ${l.track}` : ""}{l.car ? ` · ${l.car}` : ""}
             <div style={dim}>{new Date(l.created * 1000).toLocaleString()} · {Math.round(l.length)} m</div></div>
@@ -686,7 +642,7 @@ function Laps() {
 
 function GuideBrowser({ go }: { go?: Go }) {
   const [id, setId] = useState<string | null>(null);
-  return id ? <GamePage id={id} go={go} back={() => setId(null)} /> : <Games go={go} open={setId} />;
+  return id ? <GamePage id={id} go={go} back={() =>setId(null)} /> : <Games go={go} open={setId} />;
 }
 
 function FullScreen() {
@@ -717,11 +673,11 @@ function FullScreen() {
 function Content() {
   const [page, setPage] = useState("home");
   const [gameId, setGameId] = useState<string | null>(null);
-  const go = (p: string) => setPage(p);
+  const go = (p: string) =>setPage(p);
   switch (page) {
     case "wheel": return <Wheel go={go} />;
-    case "games": return <Games go={go} open={(id) => { setGameId(id); setPage("game"); }} />;
-    case "game": return gameId ? <GamePage id={gameId} go={go} back={() => setPage("games")} /> : <Home go={go} />;
+    case "games": return <Games go={go} open={(id) =>{ setGameId(id); setPage("game"); }} />;
+    case "game": return gameId ? <GamePage id={gameId} go={go} back={() =>setPage("games")} /> : <Home go={go} />;
     case "feel": return <Feel go={go} />;
     case "strategy": return <Strategy go={go} />;
     case "auto": return <AutoSetup go={go} />;
@@ -733,11 +689,11 @@ function Content() {
   }
 }
 
-export default definePlugin(() => {
-  let reg: { unregister: () => void } | undefined;
+export default definePlugin(() =>{
+  let reg: { unregister: () =>void } | undefined;
   try {
     reg = SteamClient.GameSessions.RegisterForAppLifetimeNotifications(
-      async (e: { unAppID: number; bRunning: boolean }) => {
+      async (e: { unAppID: number; bRunning: boolean }) =>{
         const app = runningApp();
         const name = app && app.appid === String(e.unAppID) ? app.name : "";
         const r = await gameChanged(String(e.unAppID), name, e.bRunning);
@@ -749,7 +705,7 @@ export default definePlugin(() => {
     console.error("Pitwall: game notifications unavailable", err);
   }
   routerHook.addRoute(ROUTE, FullScreen);
-  const toastListener = addEventListener<[msg: string]>("pitwall_toast", (msg) => toast(msg));
+  const toastListener = addEventListener<[msg: string]>("pitwall_toast", (msg) =>toast(msg));
   return {
     name: "Pitwall",
     titleView: <div className={staticClasses.Title}>Pitwall</div>,

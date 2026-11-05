@@ -10,7 +10,7 @@ Follow the instructions at [decky.xyz](https://decky.xyz). In short: switch to D
 
 ## 2. Install Pitwall
 
-1. Download the latest `Pitwall-x.y.z.zip` from [Releases](../../../releases) or from the latest successful build under **Actions → build → Artifacts**.
+1. Download the latest Pitwall zip from the newest successful run under **Actions → build → Artifacts** (you need to be signed in to GitHub). GitHub wraps it in another zip: extract that once to get `Pitwall-0.1.0.zip`. A Releases page will follow once 0.1 has been tested on hardware.
 2. In Gaming Mode press `...`, open Decky (the plug icon) and select the cog.
 3. Under **General**, switch on **Developer mode**.
 4. Open **Developer → Install Plugin from ZIP File** and pick the zip.

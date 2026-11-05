@@ -9,11 +9,13 @@ Pitwall has two separate jobs with wheels:
 
 | Brand | FFB driver | Pitwall controls | Rev lights |
 |---|---|---|---|
-| **MOZA** (R3, R5, R9, R12, R16, R21 and others Boxflat supports) | `hid-universal-pidff` (mainline Linux since 6.15) | Rotation, game FFB strength, torque output, road sensitivity, damper, friction, natural inertia, spring, max wheel speed, speed-dependent damping, FFB on/off, set centre | ✅ from telemetry |
-| **Logitech** (G29, G920, G923, older) | `hid-logitech` (mainline) | Rotation; with [new-lg4ff](https://github.com/berarma/new-lg4ff) also gain, autocenter, spring, damper, friction | – |
+| **MOZA** (R3, R5, R9, R12, R16, R21 and others Boxflat supports) | `hid-universal-pidff` (Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+) | Rotation, game FFB strength, torque output, road sensitivity, damper, friction, natural inertia, spring, max wheel speed, speed-dependent damping, FFB on/off, set centre | Yes, from telemetry |
+| **Logitech** (G29, G920, G923, older) | `hid-logitech` / `hid-logitech-hidpp` (mainline; G920 and G923 Xbox since 6.3) | Rotation; with [new-lg4ff](https://github.com/berarma/new-lg4ff) also gain, autocenter, spring, damper, friction | G27/G29/G923 where the driver exposes the LEDs |
 | **Fanatec** | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community) | Rotation and the base's tuning menu: FF, FOR, SPR, DPR, NDP, NFR, INT | – |
 | **Thrustmaster** | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community) | Rotation, gain, spring, damper, friction | – |
 | Simagic, Cammus, Simucube | varies | Detected in checks only | – |
+
+Pre-race checks identify your wheel model from its USB ID and show its tested support level and the driver it needs (full list: [wheel support table](wheel-support.md)).
 
 Pitwall only offers settings whose driver files actually exist, so the same plugin works with mainline and community drivers.
 

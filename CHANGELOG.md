@@ -21,6 +21,11 @@ First public preview. Not yet tested on real hardware.
 - New wordmark logo
 - F1 2021/22/23 telemetry (UDP formats 2021–2023), Euro Truck Simulator 2 / American Truck Simulator (scs-sdk-plugin), DiRT Rally and DiRT 4 entries, AC Rally entry
 - iRacing re-checked: runs offline (Test Drive) under Proton; online still blocked by anti-cheat
+- GitHub Pages website: game checker, wheel support, MOZA settings finder, fuel calculator, toolbox, day-one checklist
+- Wheel identification from USB IDs with tested support levels (linux-steering-wheels); kernel check including backports
+- Logitech rev lights (G27/G29/G923 via the driver's LEDs)
+- winecarte bridge for AC Rally; Datalink noted for RaceRoom; toolbox of community tools
+- Emoji-free README, docs and interface
 - Auto setup: detects device and wheel (MOZA base model) and applies MOZA's per-base recommendation; first-run prompt
 - Day-one guide for new Steam Machine owners
 - One UDP thread for all sims; strategy summary cached for the dashboard

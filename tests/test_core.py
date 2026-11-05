@@ -508,3 +508,30 @@ class TestCarChange(unittest.TestCase):
             hub._on_frame(Frame(sim="ac", t=t + i * 0.1, car=car))
         hub._on_frame(Frame(sim="ac", t=t + 1, car="ks_audi", active=False))
         self.assertEqual(seen, [("ac", "ks_bmw"), ("ac", "ks_audi")])
+
+
+class TestLogitechLeds(unittest.TestCase):
+    def test_mask_maps_to_five_leds(self):
+        from pitwall.wheels import LogitechDriver
+        d = tempfile.mkdtemp()
+        for n in range(1, 6):
+            os.makedirs(os.path.join(d, f"0003:046D:C24F.0001::RPM{n}"))
+            open(os.path.join(d, f"0003:046D:C24F.0001::RPM{n}", "brightness"), "w").close()
+        drv = LogitechDriver()
+        drv.LED_GLOB = os.path.join(d, "*::RPM{n}", "brightness")
+        self.assertTrue(drv.leds_supported and drv.leds_begin())
+        drv.leds(0b0000011111)              # 5 of 10 -> 3 of 5
+        vals = [open(os.path.join(d, f"0003:046D:C24F.0001::RPM{n}", "brightness")).read() for n in range(1, 6)]
+        self.assertEqual(vals, ["1", "1", "1", "0", "0"])
+        drv.leds_end()
+        vals = [open(os.path.join(d, f"0003:046D:C24F.0001::RPM{n}", "brightness")).read() for n in range(1, 6)]
+        self.assertEqual(vals, ["0"] * 5)
+
+
+class TestWheelDb(unittest.TestCase):
+    def test_identify_and_kernel(self):
+        self.assertEqual(health.identify("346e", "0005")["model"], "R3")
+        self.assertIsNone(health.identify("dead", "beef"))
+        for rel, ok in [("6.15.0", True), ("6.16.2-valve1", True), ("6.12.24", True), ("6.12.23", False),
+                        ("6.13.12", True), ("6.14.2", False), ("6.11.9", False), ("7.0", True)]:
+            self.assertEqual(health.kernel_has_universal_pidff(rel), ok, rel)

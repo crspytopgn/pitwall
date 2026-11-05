@@ -3,11 +3,40 @@
 from __future__ import annotations
 
 import glob
+import json
 import os
+import platform
+import re
 import shutil
 
-WHEEL_VENDORS = {"346e": "MOZA", "046d": "Logitech", "0eb7": "Fanatec", "044f": "Thrustmaster",
-                 "0483": "Simagic (or other STM32 device)", "3416": "Cammus", "16d0": "Simucube"}
+_WHEELS = os.path.join(os.path.dirname(__file__), "data", "wheels.json")
+try:
+    with open(_WHEELS) as _f:
+        WHEEL_DB = json.load(_f)
+except (OSError, ValueError):
+    WHEEL_DB = {"wheels": []}
+
+WHEEL_VENDORS = {w["vid"]: w["brand"] for w in WHEEL_DB["wheels"] if w.get("vid")}
+WHEEL_VENDORS["0483"] = "Simagic / VRS"        # shared STM32 vendor id
+
+
+def identify(vid: str, pid: str) -> dict | None:
+    """Look a wheel up in the community-tested support table."""
+    for w in WHEEL_DB["wheels"]:
+        if w.get("vid") == vid and w.get("pid") == pid:
+            return w
+    return None
+
+
+def kernel_has_universal_pidff(release: str | None = None) -> bool:
+    """hid-universal-pidff: Linux 6.15+, backported to 6.12.24+, 6.13.12+, 6.14.3+."""
+    m = re.match(r"(\d+)\.(\d+)(?:\.(\d+))?", release or platform.release())
+    if not m:
+        return False
+    a, b, c = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)
+    if (a, b) >= (6, 15):
+        return True
+    return (a, b) == (6, 12) and c >= 24 or (a, b) == (6, 13) and c >= 12 or (a, b) == (6, 14) and c >= 3
 
 
 def _read(p):
@@ -28,7 +57,9 @@ def input_wheels() -> list[dict]:
             continue
         ff = _read(os.path.join(dev, "capabilities/ff")) or "0"
         name = _read(os.path.join(dev, "name")) or "?"
+        product = (_read(os.path.join(dev, "id/product")) or "").lower()
         out.append({"event": os.path.basename(ev), "name": name, "brand": WHEEL_VENDORS[vendor],
+                    "vid": vendor, "pid": product, "known": identify(vendor, product),
                     "ffb": any(c not in "0 " for c in ff)})
     return out
 
@@ -53,14 +84,27 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     if ffb:
         add("ffb", True, "Force feedback available", ", ".join(sorted({d["name"] for d in ffb})))
     elif devs:
-        add("ffb", False, "Wheel found but no force feedback",
-            "The kernel driver isn't providing FFB. MOZA needs hid-universal-pidff "
-            "(in mainline Linux since 6.15). Check SteamOS is up to date.")
+        known = next((d["known"] for d in devs if d.get("known")), None)
+        if known:
+            need = known["driver"]
+            extra = ""
+            if "universal-pidff" in need and not kernel_has_universal_pidff():
+                extra = f" Your kernel ({platform.release()}) is older than that: update SteamOS."
+            add("ffb", False, f"{known['brand']} {known['model']} found but no force feedback",
+                f"It needs {need}.{extra}")
+        else:
+            add("ffb", False, "Wheel found but no force feedback",
+                "The kernel driver isn't providing FFB. Check SteamOS is up to date.")
     else:
         add("ffb", None, "No wheel input device seen", "Plug in the wheel, or it may use an unsupported brand.")
 
     if os.path.isdir("/sys/module/hid_universal_pidff"):
         add("pidff", True, "hid-universal-pidff driver loaded")
+    for d in devs:
+        k = d.get("known")
+        if k:
+            add(f"model:{d['event']}", None, f"{k['brand']} {k['model']}: {k.get('rank') or 'untested'} support on Linux",
+                (k.get("notes") or "") + f" Source: {WHEEL_DB.get('source', '')}")
 
     # Telemetry
     if hub:

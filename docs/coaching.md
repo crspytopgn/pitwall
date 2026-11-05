@@ -3,7 +3,8 @@
 ## Laps
 
 - Sims that count laps are trusted directly (with their official lap time).
-- For BeamNG and Live for Speed you set a start line; a lap ends at the closest point to it each time you pass, so the start doesn't drift.
+- For BeamNG you set a start line; a lap ends at the closest point to it each time you pass, so the start doesn't drift.
+- Live for Speed's OutGauge feed has no car position or lap data, so it gets the live dashboard but no lap timing or coaching.
 - Laps shorter than 15 seconds or with too little data are ignored. If the game pauses (no data for over a second), the paused time isn't counted.
 - Laps are stored per sim, track and car, so your best lap is always a like-for-like reference.
 

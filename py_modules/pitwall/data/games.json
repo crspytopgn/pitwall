@@ -341,17 +341,26 @@
       },
       "install": [
         "Install from Steam; runs under Proton.",
-        "Telemetry: Pitwall reads RaceRoom's $R3E shared memory, but it needs a bridge that mirrors it into /dev/shm. winecarte doesn't list RaceRoom yet, so this is for advanced users for now."
+        "Telemetry needs a bridge that mirrors $R3E into /dev/shm. Datalink supports RaceRoom (launch option `Datalink %command%`) but has to be built from source or installed from the AUR, so this is for advanced users."
       ],
       "known_issues": [
         {
           "text": "Community report: force feedback didn't work with a Logitech G29 even though the wheel worked in other games.",
           "source": "https://www.protondb.com/app/211500"
+        },
+        {
+          "text": "Datalink ships a RaceRoom memory-map config.",
+          "source": "https://github.com/LukasLichten/Datalink"
         }
       ],
       "shm_files": [
         "$R3E"
-      ]
+      ],
+      "bridge": {
+        "tools": [
+          "https://github.com/LukasLichten/Datalink"
+        ]
+      }
     },
     {
       "id": "dr2",
@@ -463,7 +472,7 @@
       "runtime": "proton",
       "telemetry": {
         "adapter": "outgauge",
-        "laps": "sim",
+        "laps": "none",
         "quality": "basic"
       },
       "install": [
@@ -473,6 +482,10 @@
       "known_issues": [
         {
           "text": "BeamNG's OutGauge uses the Live for Speed format, so the same Pitwall adapter reads both.",
+          "source": "https://docs.beamng.com/modding/protocols/"
+        },
+        {
+          "text": "OutGauge carries no position or lap data, so Pitwall shows the live dashboard for LFS but can't time laps or coach.",
           "source": "https://docs.beamng.com/modding/protocols/"
         }
       ]
@@ -595,7 +608,12 @@
         "Install from Steam; it has a native Linux version.",
         "Telemetry: download the Linux build of scs-sdk-plugin (RenCloud) and copy the .so into the game's bin/linux_x64/plugins folder (create it if missing). Accept the SDK prompt when the game starts."
       ],
-      "known_issues": [],
+      "known_issues": [
+        {
+          "text": "winecarte's companion installer and Datalink both list ETS2/ATS; on SteamOS the native Linux plugin is simpler.",
+          "source": "https://github.com/srounce/linux-simracing-utils"
+        }
+      ],
       "bridge": {
         "tools": [
           "https://github.com/RenCloud/scs-sdk-plugin"
@@ -620,7 +638,12 @@
         "Install from Steam; it has a native Linux version.",
         "Telemetry: same as Euro Truck Simulator 2 (scs-sdk-plugin .so in bin/linux_x64/plugins)."
       ],
-      "known_issues": [],
+      "known_issues": [
+        {
+          "text": "winecarte's companion installer and Datalink both list ETS2/ATS; on SteamOS the native Linux plugin is simpler.",
+          "source": "https://github.com/srounce/linux-simracing-utils"
+        }
+      ],
       "bridge": {
         "tools": [
           "https://github.com/RenCloud/scs-sdk-plugin"
@@ -644,19 +667,20 @@
       ],
       "install": [
         "Install from Steam; runs under Proton.",
-        "Telemetry uses the Assetto Corsa maps through a bridge; winecarte doesn't list AC Rally yet, so use simshmbridge or linux-sim-launcher's AC bridge."
+        "For telemetry: Game guide → this game → Set up telemetry bridge (winecarte), then restart the game."
       ],
       "known_issues": [
         {
-          "text": "Community launcher configs enable the AC shared-memory bridge for AC Rally.",
-          "source": "https://gh.r-mj.com/giantorth/linux-sim-launcher"
+          "text": "winecarte's companion installer lists Assetto Corsa Rally among supported games.",
+          "source": "https://github.com/srounce/linux-simracing-utils"
         }
       ],
       "bridge": {
         "tools": [
-          "https://github.com/Spacefreak18/simshmbridge"
+          "https://github.com/srounce/winecarte"
         ]
-      }
+      },
+      "bridge_auto": "winecarte"
     },
     {
       "id": "iracing",

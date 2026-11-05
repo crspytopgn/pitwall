@@ -8,7 +8,7 @@
 
 ## Wheel works but no force feedback in games
 
-**Pre-race checks** shows "Wheel found but no force feedback". MOZA needs the `hid-universal-pidff` kernel driver (mainline since Linux 6.15). Make sure SteamOS is up to date.
+**Pre-race checks** shows "Wheel found but no force feedback". MOZA, Cammus, PXN, Asetek, VRS and several other bases need the `hid-universal-pidff` kernel driver, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pre-race checks name your wheel and the driver it needs; update SteamOS if your kernel is older. See the [wheel support table](wheel-support.md).
 
 ## No telemetry
 

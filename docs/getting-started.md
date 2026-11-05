@@ -19,7 +19,7 @@ Options → Other → Protocols:
 - **OutGauge**: on, IP `127.0.0.1`, port `4444`
 - **MotionSim**: on, IP `127.0.0.1`, port `4445`
 
-Pitwall's **Session** panel shows `📡 Telemetry: beamng` as soon as data arrives.
+Pitwall's **Session** panel shows `Telemetry: beamng` as soon as data arrives.
 
 ## 3. Set a start line
 

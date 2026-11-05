@@ -1,0 +1,60 @@
+:root {
+  --bg: #0b0d10; --panel: #13181e; --line: #232b34; --text: #e8edf2; --dim: #8c97a3;
+  --works: #3ddc84; --setup: #4da3ff; --community: #ffb020; --broken: #ff6b6b; --accent: #e8343a;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: #8cc4ff; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+.top { position: sticky; top: 0; z-index: 5; background: rgba(11,13,16,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+.brand img { display: block; }
+nav { display: flex; gap: 18px; flex-wrap: wrap; font-size: 14px; }
+nav a { color: var(--dim); text-decoration: none; }
+nav a:hover { color: var(--text); }
+nav .gh { color: var(--text); }
+section { padding: 44px 20px 8px; }
+h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.1; letter-spacing: -0.02em; margin: 24px 0 14px; max-width: 760px; }
+h2 { font-size: 26px; letter-spacing: -0.01em; margin: 0 0 16px; }
+h3 { font-size: 18px; margin: 28px 0 10px; }
+.hero p { color: #b9c3cd; font-size: 18px; max-width: 680px; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 11px 18px; border-radius: 10px; background: var(--text); color: var(--bg); text-decoration: none; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.note, .small { color: var(--dim); font-size: 14px; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+input, select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font: inherit; }
+input[type=search] { flex: 1 1 280px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { background: var(--panel); color: var(--dim); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.chips button.on { color: var(--text); border-color: #4a5664; }
+.list { display: grid; gap: 8px; }
+.list.cols { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+details.card summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+details.card summary::-webkit-details-marker { display: none; }
+.name { font-weight: 600; }
+.meta { color: var(--dim); font-size: 14px; }
+.status { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.status.works { color: var(--works); } .status.setup { color: var(--setup); }
+.status.community { color: var(--community); } .status.broken { color: var(--broken); }
+.card ol, .card ul { margin: 8px 0; padding-left: 20px; }
+.card li { margin: 4px 0; }
+.src { color: var(--dim); font-size: 13px; }
+.rank { font-weight: 600; }
+.rank.Platinum { color: #c9d6e3; } .rank.Gold { color: #f2c14e; } .rank.Silver { color: #a8b3bd; } .rank.Bronze { color: #c98a52; }
+table { border-collapse: collapse; width: 100%; max-width: 560px; }
+td, th { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--dim); font-weight: 500; }
+.grid.fuel { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.grid label { display: grid; gap: 6px; color: var(--dim); font-size: 14px; }
+.inline { display: flex; gap: 6px; } .inline input { width: 100%; }
+.result { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 18px; }
+.result b { font-size: 26px; }
+.checklist { padding-left: 0; list-style: none; counter-reset: c; }
+.checklist li { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; display: flex; gap: 12px; align-items: flex-start; }
+.checklist input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--works); }
+.checklist li.done span { color: var(--dim); text-decoration: line-through; }
+footer { padding: 40px 20px 60px; color: var(--dim); font-size: 14px; border-top: 1px solid var(--line); margin-top: 40px; }
+@media (max-width: 640px) { nav { display: none; } }

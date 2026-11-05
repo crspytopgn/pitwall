@@ -1,0 +1,293 @@
+{
+  "_about": "Wheel force feedback support on Linux. Ranks (Platinum best) and drivers summarised from the community-tested table at linux-steering-wheels; Pitwall control support from Pitwall's own drivers.",
+  "source": "https://github.com/JacKeTUs/linux-steering-wheels",
+  "source_date": "2026-09-22",
+  "pitwall_control": {
+    "MOZA": "Full settings, rev lights, auto setup",
+    "Logitech": "Rotation; gain/spring/damper/friction with new-lg4ff; rev lights on G27/G29",
+    "Fanatec": "Rotation and tuning menu (hid-fanatecff)",
+    "Thrustmaster": "Rotation, gain, spring/damper/friction (hid-tmff2)"
+  },
+  "wheels": [
+    {
+      "brand": "MOZA",
+      "model": "R3",
+      "vid": "346e",
+      "pid": "0005",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "MOZA",
+      "model": "R5",
+      "vid": "346e",
+      "pid": "0004",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "MOZA",
+      "model": "R9 (v1/v2/v3)",
+      "vid": "346e",
+      "pid": "0002",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "MOZA",
+      "model": "R12 (v1/v2)",
+      "vid": "346e",
+      "pid": "0006",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "MOZA",
+      "model": "R16 / R21 (v1/v2)",
+      "vid": "346e",
+      "pid": "0000",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "Logitech",
+      "model": "G29",
+      "vid": "046d",
+      "pid": "c24f",
+      "rank": "Platinum",
+      "driver": "hid-logitech; new-lg4ff recommended for full effects",
+      "in_kernel": true,
+      "notes": "The default driver lacks most effects; new-lg4ff adds them."
+    },
+    {
+      "brand": "Logitech",
+      "model": "G923 (PlayStation)",
+      "vid": "046d",
+      "pid": "c267",
+      "rank": "Platinum",
+      "driver": "new-lg4ff",
+      "in_kernel": false,
+      "notes": "Not supported by the default driver."
+    },
+    {
+      "brand": "Logitech",
+      "model": "G923 (Xbox)",
+      "vid": "046d",
+      "pid": "c26d",
+      "rank": "Silver",
+      "driver": "hid-logitech-hidpp",
+      "in_kernel": true,
+      "notes": "USB command queue errors reported; ffbwrap can help."
+    },
+    {
+      "brand": "Logitech",
+      "model": "G920",
+      "vid": "046d",
+      "pid": "c262",
+      "rank": null,
+      "driver": "hid-logitech-hidpp",
+      "in_kernel": true,
+      "notes": "Supported in mainline since Linux 6.3."
+    },
+    {
+      "brand": "Logitech",
+      "model": "G25 / G27 / DFGT",
+      "vid": "046d",
+      "pid": "c29b",
+      "rank": "Platinum",
+      "driver": "hid-logitech; new-lg4ff recommended",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "Fanatec",
+      "model": "CSL DD / DD Pro / ClubSport DD",
+      "vid": "0eb7",
+      "pid": "0020",
+      "rank": "Gold",
+      "driver": "hid-fanatecff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Fanatec",
+      "model": "CSL Elite",
+      "vid": "0eb7",
+      "pid": "0e03",
+      "rank": "Gold",
+      "driver": "hid-fanatecff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Fanatec",
+      "model": "ClubSport V2 / V2.5",
+      "vid": "0eb7",
+      "pid": "0001",
+      "rank": "Silver",
+      "driver": "hid-fanatecff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Fanatec",
+      "model": "Podium DD1 / DD2",
+      "vid": "0eb7",
+      "pid": "0006",
+      "rank": "Silver",
+      "driver": "hid-fanatecff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T300RS",
+      "vid": "044f",
+      "pid": "b66e",
+      "rank": "Gold",
+      "driver": "hid-tmff2 (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T248",
+      "vid": "044f",
+      "pid": "b696",
+      "rank": "Gold",
+      "driver": "hid-tmff2 (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "TX",
+      "vid": "044f",
+      "pid": "b669",
+      "rank": "Gold",
+      "driver": "hid-tmff2 (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T150 / TMX",
+      "vid": "044f",
+      "pid": null,
+      "rank": null,
+      "driver": "t150_driver / hid-tminit (community modules)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Cammus",
+      "model": "C5 / C12",
+      "vid": "3416",
+      "pid": "0301",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "Asetek",
+      "model": "Invicta / Forte / La Prima",
+      "vid": "2433",
+      "pid": "f300",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": "Enable 'high torque mode' after power-on."
+    },
+    {
+      "brand": "Simagic",
+      "model": "Alpha / Alpha Mini / Alpha Ultimate",
+      "vid": "0483",
+      "pid": "0522",
+      "rank": "Silver",
+      "driver": "simagic-ff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Simagic",
+      "model": "EVO / EVO Sport / EVO Pro",
+      "vid": "3670",
+      "pid": "0500",
+      "rank": "Silver",
+      "driver": "simagic-ff (community module)",
+      "in_kernel": false,
+      "notes": null
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 2 Sport / Pro / Ultimate",
+      "vid": "16d0",
+      "pid": "0d61",
+      "rank": "Silver",
+      "driver": "hid-pidff (mainline)",
+      "in_kernel": true,
+      "notes": "See Granite Devices' Linux setup page."
+    },
+    {
+      "brand": "VRS",
+      "model": "DirectForce Pro",
+      "vid": "0483",
+      "pid": "a355",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": "Some units' power saving disables FFB until the wheel is moved."
+    },
+    {
+      "brand": "PXN",
+      "model": "V10 / V12 / V12 Lite",
+      "vid": "11ff",
+      "pid": "3245",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "Turtle Beach",
+      "model": "VelocityOne Race",
+      "vid": "10f5",
+      "pid": "7077",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "FFBeast",
+      "model": "Wheel",
+      "vid": "045b",
+      "pid": "59d7",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, also 6.12.24+, 6.13.12+, 6.14.3+)",
+      "in_kernel": true,
+      "notes": null
+    },
+    {
+      "brand": "OpenFFBoard",
+      "model": "(DIY)",
+      "vid": "1209",
+      "pid": "ffb0",
+      "rank": "Platinum",
+      "driver": "hid-pidff (mainline)",
+      "in_kernel": true,
+      "notes": null
+    }
+  ]
+}
