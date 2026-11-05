@@ -395,6 +395,21 @@ class TestFfb(unittest.TestCase):
         self.assertIsNone(self.ffb.nudge("nope", {}, self.ranges))
 
 
+class TestDevice(unittest.TestCase):
+    def test_detect_and_plan(self):
+        from pitwall import device, ffb
+        dev = device.detect()
+        self.assertIn(dev["kind"], ("pc", "steam_deck", "steam_machine"))
+
+        class W:
+            brand, model = "MOZA", "R5"
+        plan = device.plan(dev, W(), [{"id": "dr2", "name": "DiRT Rally 2.0", "status": "works", "installed": True,
+                                       "auto_setup": "dr2_udp"}], ffb.preset_for_base)
+        self.assertEqual(plan["preset"], "moza_r3_r5")
+        self.assertTrue(any(s["id"] == "game:dr2" for s in plan["steps"]))
+        self.assertEqual(device.plan(dev, None, [], ffb.preset_for_base)["preset"], None)
+
+
 class TestHealth(unittest.TestCase):
     def test_runs_without_hardware(self):
         res = health.check(None, None, {"name": "EA SPORTS WRC", "status": "broken", "install": ["x"], "telemetry": {}})

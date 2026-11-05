@@ -20,6 +20,7 @@
 |---|---|
 | 📖 **Game guide** | Does it run on SteamOS, how to install it, in-game FFB settings and known issues for 27 sims, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
 | 🔌 **One-tap setup** | Installs the telemetry bridge for shared-memory sims and switches on DiRT Rally 2.0's telemetry, keeping your launch options |
+| ✨ **Auto setup** | Recognises your device and wheel (down to the MOZA base model) and applies the best starting settings in one tap |
 | ✅ **Pre-race checks** | Wheel, force feedback driver, telemetry, bridge and game compatibility at a glance |
 
 ### 🛞 Drive
@@ -56,9 +57,9 @@
 1. Install [Decky Loader](https://decky.xyz).
 2. Download `Pitwall-x.y.z.zip` from [Releases](../../releases) (or the latest build under **Actions**).
 3. Decky → cog → **Developer mode** on → **Install Plugin from ZIP File**.
-4. Open Pitwall from the Quick Access Menu and run **Pre-race checks**.
+4. Open Pitwall and press **Run auto setup**: it recognises your device and wheel and applies the best starting settings.
 
-Then follow [Getting started](docs/getting-started.md).
+New Steam Machine? Follow the **[day-one guide](docs/day-one.md)** from unboxing to first lap.
 
 ## Which sims work?
 

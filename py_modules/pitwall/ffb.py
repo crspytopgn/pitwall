@@ -21,14 +21,40 @@ PRESETS = [
         "source": "https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa",
         "source_note": "MOZA keeps spring at 0% because the sim handles centring; Pitwall extends the same idea to the other base effects.",
     },
+    # MOZA's own per-base recommendations (written for Assetto Corsa). Speed-dependent
+    # damping 20% from 90 km/h is the guide's general setting for every base.
     {
         "id": "moza_r3_r5",
         "name": "MOZA's R3/R5 recommendation",
-        "summary": "MOZA's own published starting point for R3/R5 bases (written for Assetto Corsa).",
+        "summary": "MOZA's published starting point for R3/R5 bases.",
         "values": {"rotation": 900, "road_sensitivity": 8, "ffb_strength": 100, "speed": 120, "spring": 0,
-                   "damper": 60, "torque": 100, "inertia": 140, "friction": 25},
+                   "damper": 60, "torque": 100, "inertia": 140, "friction": 25,
+                   "speed_damping": 20, "speed_damping_point": 90},
+        "bases": ["R3", "R5"],
         "source": "https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa",
-        "source_note": "Official MOZA guide, R3/R5 section.",
+        "source_note": "Official MOZA guide, R3/R5 column.",
+    },
+    {
+        "id": "moza_r9_r12",
+        "name": "MOZA's R9/R12 recommendation",
+        "summary": "MOZA's published starting point for R9/R12 bases.",
+        "values": {"rotation": 900, "road_sensitivity": 9, "ffb_strength": 92, "speed": 120, "spring": 0,
+                   "damper": 50, "torque": 90, "inertia": 150, "friction": 20,
+                   "speed_damping": 20, "speed_damping_point": 90},
+        "bases": ["R9", "R12"],
+        "source": "https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa",
+        "source_note": "Official MOZA guide, R9/R12 column (FFB intensity given as 90-95%; Pitwall uses 92%).",
+    },
+    {
+        "id": "moza_r16_r21",
+        "name": "MOZA's R16/R21 recommendation",
+        "summary": "MOZA's published starting point for R16/R21 bases.",
+        "values": {"rotation": 900, "road_sensitivity": 10, "ffb_strength": 75, "speed": 120, "spring": 0,
+                   "damper": 40, "torque": 80, "inertia": 160, "friction": 15,
+                   "speed_damping": 20, "speed_damping_point": 90},
+        "bases": ["R16", "R21", "R25"],
+        "source": "https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa",
+        "source_note": "Official MOZA guide, R16/R21 column (FFB intensity given as 70-80%; Pitwall uses 75%). Pitwall also uses it for the R25 until MOZA publishes figures for it.",
     },
     {
         "id": "weighted",
@@ -115,6 +141,15 @@ def nudge(symptom: str, current: dict, ranges: dict, sim: str | None = None) -> 
     tips = n.get("game_tip") or {}
     tip = tips.get(sim or "") or tips.get("_")
     return {"values": new, "changes": changes, "tip": tip, "source": n.get("source")}
+
+
+def preset_for_base(model: str | None) -> str:
+    """Best starting preset for a MOZA base model like 'R3'; 'pure' otherwise."""
+    if model:
+        for p in PRESETS:
+            if model.upper() in p.get("bases", []):
+                return p["id"]
+    return "pure"
 
 
 def catalogue() -> dict:

@@ -11,7 +11,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, diagnostics, engineer, ffb, health, perf  # noqa: E402
+from pitwall import bridge, device, diagnostics, engineer, ffb, health, perf  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -34,6 +34,7 @@ DEFAULTS = {
     "ports": {},                    # overrides for telemetry ports
     "anthropic_api_key": "",
     "rev_lights": False,            # drive MOZA wheel rev lights from telemetry
+    "setup_done": False,            # first-run auto setup has been run or dismissed
 }
 
 PROFILE_EXCLUDE = {"ffb_enabled"}
@@ -263,6 +264,41 @@ class Plugin:
         self.hub.strategy.set_target(laps or None, minutes or None)
         return self.hub.strategy.report()
 
+    # ======================================================== auto setup
+    def _games_installed(self) -> list[dict]:
+        inst = compat_mod.installed_appids(HOME)
+        return [{**g, "installed": bool(g.get("steam_appid") and g["steam_appid"] in inst)}
+                for g in self.compat.data["games"]]
+
+    async def auto_setup_plan(self) -> dict:
+        w = await self._run(self._wheel)
+        dev = await self._run(device.detect)
+        games = await self._run(self._games_installed)
+        out = device.plan(dev, w, games, ffb.preset_for_base)
+        out["first_run"] = not self.settings.get("setup_done")
+        return out
+
+    async def auto_setup_apply(self) -> dict:
+        p = await self.auto_setup_plan()
+        results = []
+        if p["preset"]:
+            r = await self.ffb_apply_preset(p["preset"])
+            results.append({"step": "wheel", "ok": r.get("ok", False), "detail": r.get("message") or f"Applied {p['preset']}"})
+        self.settings["target_fps"] = p["target_fps"]
+        results.append({"step": "fps", "ok": True, "detail": f"Target {p['target_fps']} FPS"})
+        for g in await self._run(self._games_installed):
+            if g.get("installed") and g.get("auto_setup"):
+                r = await self.compat_auto_setup(g["id"])
+                results.append({"step": f"game:{g['id']}", "ok": r["ok"], "detail": f"{g['name']}: {r['message']}"})
+        self.settings["setup_done"] = True
+        _save(self.settings)
+        return {"results": results, "bridge_games": [g["id"] for g in await self._run(self._games_installed)
+                                                     if g.get("installed") and g.get("bridge_auto")]}
+
+    async def dismiss_first_run(self):
+        self.settings["setup_done"] = True
+        _save(self.settings)
+
     # ======================================================= diagnostics
     async def diagnostics_create(self) -> dict:
         checks = await self.health_check()
@@ -367,7 +403,7 @@ class Plugin:
     async def get_settings(self) -> dict:
         s = dict(self.settings)
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
-        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights")}
+        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done")}
 
     async def set_setting(self, key: str, value):
         if key not in ("target_fps", "units", "anthropic_api_key", "rev_lights"):

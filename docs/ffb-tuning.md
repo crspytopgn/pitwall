@@ -10,10 +10,14 @@ Sims with full tyre physics (BeamNG, Assetto Corsa, ACC, AMS2, rFactor 2) alread
 
 ## Presets (MOZA)
 
+**Auto setup** picks the right MOZA preset for your base automatically. All MOZA presets also set speed-dependent damping to 20% from 90 km/h, MOZA's general recommendation.
+
 | Preset | What it does | Source |
 |---|---|---|
 | Pure (game physics only) | No added spring, damper or friction. Most detail, lightest feel | Built on MOZA's spring-at-0 reasoning |
-| MOZA's R3/R5 recommendation | MOZA's published starting point for R3/R5 (written for Assetto Corsa): 900°, road 8, FFB 100%, max speed 120%, damper 60%, natural inertia 140%, friction 25% | [MOZA](https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa) |
+| MOZA's R3/R5 recommendation | 900°, road 8, FFB 100%, max speed 120%, damper 60%, torque 100%, natural inertia 140%, friction 25% | [MOZA](https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa) |
+| MOZA's R9/R12 recommendation | 900°, road 9, FFB 92% (MOZA: 90–95%), max speed 120%, damper 50%, torque 90%, natural inertia 150%, friction 20% | [MOZA](https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa) |
+| MOZA's R16/R21 recommendation | 900°, road 10, FFB 75% (MOZA: 70–80%), max speed 120%, damper 40%, torque 80%, natural inertia 160%, friction 15% | [MOZA](https://eu.mozaracing.com/blogs/blog/moza-settings-guide-for-assetto-corsa) |
 | Weighted, no damping | Natural inertia and friction at maximum, damper 0, road 4 | Settings a MOZA Creator Program driver shared for an R5, [summarised here](https://simracingcockpit.gg/moza-ffb-settings-for-iracing-r5-r9-r12-r16-and-r21/) |
 
 ## The feel tuner

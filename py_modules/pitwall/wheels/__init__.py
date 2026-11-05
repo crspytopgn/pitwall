@@ -30,7 +30,7 @@ from __future__ import annotations
 import glob
 import os
 
-from .moza import MozaBase, SETTINGS as MOZA_SETTINGS
+from .moza import MozaBase, SETTINGS as MOZA_SETTINGS, base_model
 
 _LABELS = {
     "rotation": ("Rotation", 10, "°"), "ffb_strength": ("Game FFB strength", 1, "%"),
@@ -55,8 +55,12 @@ class MozaDriver:
         self.dev = MozaBase(logger=logger, path_override=path_override)
 
     @property
+    def model(self):
+        return base_model(self.dev.path)
+
+    @property
     def name(self):
-        return f"MOZA ({os.path.basename(self.dev.path)})" if self.dev.path else "MOZA"
+        return f"MOZA {self.model}" if self.model else "MOZA"
 
     def detect(self) -> bool:
         return self.dev.connected()
@@ -93,6 +97,7 @@ class MozaDriver:
 class SysfsDriver:
     """A wheel controlled through files its kernel driver exposes."""
     leds_supported = False
+    model = None
     brand = "?"
     # key -> (glob, lo, hi, ui_to_file, file_to_ui, extra def kwargs)
     ATTRS: dict = {}

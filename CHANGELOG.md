@@ -21,5 +21,7 @@ First public preview. Not yet tested on real hardware.
 - New wordmark logo
 - F1 2021/22/23 telemetry (UDP formats 2021–2023), Euro Truck Simulator 2 / American Truck Simulator (scs-sdk-plugin), DiRT Rally and DiRT 4 entries, AC Rally entry
 - iRacing re-checked: runs offline (Test Drive) under Proton; online still blocked by anti-cheat
+- Auto setup: detects device and wheel (MOZA base model) and applies MOZA's per-base recommendation; first-run prompt
+- Day-one guide for new Steam Machine owners
 - One UDP thread for all sims; strategy summary cached for the dashboard
 - Fixes: launch options are fetched from Steam when not cached; car profiles re-apply after relaunch; a frozen shared-memory map no longer blocks another sim

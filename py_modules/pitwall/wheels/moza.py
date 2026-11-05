@@ -156,6 +156,28 @@ def find_base() -> str | None:
     return None
 
 
+def base_model(path: str | None) -> str | None:
+    """'R3' etc. from the serial node name (e.g. usb-Gudsen_MOZA_R3_Base_...)."""
+    if not path:
+        return None
+    name = os.path.basename(os.path.realpath(path)) if path.startswith("/dev/ttyACM") else os.path.basename(path)
+    if name.startswith("ttyACM"):
+        # Found through the vendor-id fallback: read the USB product string instead.
+        dev = os.path.realpath(os.path.join("/sys/class/tty", name, "device"))
+        for _ in range(4):
+            prod = os.path.join(dev, "product")
+            if os.path.exists(prod):
+                try:
+                    with open(prod) as f:
+                        name = f.read().strip()
+                except OSError:
+                    pass
+                break
+            dev = os.path.dirname(dev)
+    m = re.search(r"(?<![a-z0-9])(r[0-9]{1,2})(?![0-9])", name, re.I)
+    return m.group(1).upper() if m else None
+
+
 class MozaBase:
     def __init__(self, logger=None, path_override: str | None = None):
         self._fd: int | None = None

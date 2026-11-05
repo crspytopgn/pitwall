@@ -57,7 +57,7 @@ class TestPluginBackend(unittest.TestCase):
             self.assertIs((await p.get_settings())["anthropic_api_key"], True)   # key never returned
             self.assertFalse(await p.set_setting("ports", {}))
             cat = await p.ffb_catalogue()
-            self.assertEqual(len(cat["presets"]), 3)
+            self.assertEqual(len(cat["presets"]), 5)
             self.assertFalse((await p.ffb_nudge("too_light"))["ok"])       # no wheel connected
             self.assertFalse((await p.ffb_undo())["ok"])
             bs = await p.bridge_status("805550")
@@ -90,6 +90,12 @@ class TestPluginBackend(unittest.TestCase):
             self.assertEqual(data[:2], b"PK")
             with self.assertRaises(Exception):          # one-time link
                 urllib.request.urlopen(dg["download_url"].replace(dg["download_url"].split("/")[2], "127.0.0.1:48191"), timeout=3)
+            plan = await p.auto_setup_plan()
+            self.assertTrue(plan["first_run"])
+            self.assertEqual(plan["target_fps"], 60)
+            done = await p.auto_setup_apply()
+            self.assertTrue(any(r["step"] == "fps" for r in done["results"]))
+            self.assertFalse((await p.auto_setup_plan())["first_run"])
             await p._unload()
         asyncio.run(go())
 

@@ -65,7 +65,7 @@ const healthCheck = callable<[], Check[]>("health_check");
 const benchmarkOptions = callable<[seconds: number], string>("benchmark_options");
 const perfAnalyse = callable<[appid: string, name: string], Perf>("perf_analyse");
 const debrief = callable<[], Debrief>("debrief");
-const getSettings = callable<[], { target_fps: number; anthropic_api_key: boolean }>("get_settings");
+const getSettings = callable<[], { target_fps: number; anthropic_api_key: boolean; setup_done: boolean }>("get_settings");
 const setSetting = callable<[key: string, value: any], boolean>("set_setting");
 
 type FfbCat = {
@@ -84,6 +84,12 @@ const recentLaps = callable<[], LapRow[]>("recent_laps");
 const strategyReport = callable<[], Strat>("strategy_report");
 const strategySetTarget = callable<[laps: number, minutes: number], Strat>("strategy_set_target");
 const diagnosticsCreate = callable<[], Diag>("diagnostics_create");
+type PlanStep = { id: string; title: string; detail: string };
+type Plan = { device: { kind: string; product: string | null; os: string | null; cpus: number; ram_gb: number | null; vram_gb: number | null };
+  preset: string | null; target_fps: number; steps: PlanStep[]; first_run: boolean };
+const autoSetupPlan = callable<[], Plan>("auto_setup_plan");
+const autoSetupApply = callable<[], { results: { step: string; ok: boolean; detail: string }[]; bridge_games: string[] }>("auto_setup_apply");
+const dismissFirstRun = callable<[], void>("dismiss_first_run");
 const bridgeStatus = callable<[appid: string], { supported: boolean; installed: boolean; prefix: string }>("bridge_status");
 const bridgeInstall = callable<[], { ok: boolean; message: string }>("bridge_install");
 const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>("bridge_launch_options");
@@ -232,11 +238,51 @@ function Diagnostics({ go }: { go?: Go }) {
   );
 }
 
+const DEVICE: Record<string, string> = { steam_machine: "Steam Machine", steam_deck: "Steam Deck", pc: "PC" };
+
+function AutoSetup({ go }: { go?: Go }) {
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [res, setRes] = useState<{ step: string; ok: boolean; detail: string }[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { autoSetupPlan().then(setPlan); }, []);
+  if (!plan) return <PanelSection><Back go={go} /><Row>Checking your setup…</Row></PanelSection>;
+  const d = plan.device;
+  return (
+    <PanelSection title="Auto setup">
+      <Back go={go} />
+      <Row><div style={small}>
+        <b>{DEVICE[d.kind] ?? "PC"}</b>{d.product ? ` (${d.product})` : ""} · {d.cpus} CPU threads{d.ram_gb ? ` · ${d.ram_gb} GB RAM` : ""}{d.vram_gb ? ` · ${d.vram_gb} GB VRAM` : ""}
+        <div style={dim}>{d.os}</div>
+      </div></Row>
+      <Row><div style={small}><b>Pitwall will:</b></div></Row>
+      {plan.steps.map((s) => <Row key={s.id}><div style={small}>• <b>{s.title}</b><div style={dim}>{s.detail}</div></div></Row>)}
+      {!res && (
+        <Row><ButtonItem layout="below" disabled={busy} onClick={async () => {
+          setBusy(true);
+          try { const r = await autoSetupApply(); setRes(r.results); toast("Auto setup done"); } finally { setBusy(false); }
+        }}>{busy ? "Setting up…" : "Do it"}</ButtonItem></Row>
+      )}
+      {res && res.map((r) => <Row key={r.step}><div style={small}>{r.ok ? "✅" : "⚠️"} {r.detail}</div></Row>)}
+      {res && <Row><div style={dim}>Next: open the Game guide for each sim you play, then run Pre-race checks with the game running.</div></Row>}
+      <Row><div style={dim}>Graphics settings aren't changed automatically: use Performance to measure, and Pitwall will say what to change.</div></Row>
+    </PanelSection>
+  );
+}
+
 function Home({ go }: { go?: Go }) {
   const s = usePoll(sessionStatus, 1000);
   const game = runningApp();
+  const [firstRun, setFirstRun] = useState(false);
+  useEffect(() => { getSettings().then((x: any) => setFirstRun(!x.setup_done)); }, []);
   return (
     <>
+      {firstRun && go && (
+        <PanelSection title="Welcome to Pitwall">
+          <Row><div style={small}>Let Pitwall check your device and wheel and apply the best starting settings. Takes a few seconds.</div></Row>
+          <Row><ButtonItem layout="below" onClick={() => go("auto")}>✨ Run auto setup</ButtonItem></Row>
+          <Row><ButtonItem layout="below" onClick={async () => { await dismissFirstRun(); setFirstRun(false); }}>Not now</ButtonItem></Row>
+        </PanelSection>
+      )}
       <PanelSection title="Session">
         {!s ? <Row>Starting…</Row> : (
           <>
@@ -271,6 +317,7 @@ function Home({ go }: { go?: Go }) {
         )}
       </PanelSection>
       {go && <PanelSection title="Tools">
+        <Row><ButtonItem layout="below" onClick={() => go("auto")}>✨ Auto setup</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => { Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>🖥️ Open Pitwall full screen</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("wheel")}>🛞 Wheel settings &amp; profiles</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("feel")}>🎚️ Force feedback feel</ButtonItem></Row>
@@ -650,6 +697,7 @@ function FullScreen() {
         showTitle
         pages={[
           { title: "Session", icon: <GiStopwatch />, content: <Home />, route: `${ROUTE}/session` },
+          { title: "Auto setup", icon: <GiCheckMark />, content: <AutoSetup />, route: `${ROUTE}/auto` },
           { title: "Laps", icon: <GiSpeedometer />, content: <Laps />, route: `${ROUTE}/laps` },
           { title: "Game guide", icon: <GiBookCover />, content: <GuideBrowser />, route: `${ROUTE}/guide` },
           "separator",
@@ -676,6 +724,7 @@ function Content() {
     case "game": return gameId ? <GamePage id={gameId} go={go} back={() => setPage("games")} /> : <Home go={go} />;
     case "feel": return <Feel go={go} />;
     case "strategy": return <Strategy go={go} />;
+    case "auto": return <AutoSetup go={go} />;
     case "diag": return <Diagnostics go={go} />;
     case "checks": return <Checks go={go} />;
     case "perf": return <PerfPage go={go} />;

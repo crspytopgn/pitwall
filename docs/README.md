@@ -2,6 +2,7 @@
 
 | Guide | What's in it |
 |---|---|
+| **[Day one](day-one.md)** | **New Steam Machine? Start here: unboxing to first lap** |
 | [Install](install.md) | Installing Decky Loader and Pitwall, updating, removing |
 | [Getting started](getting-started.md) | Your first session: telemetry, laps, phone dashboard |
 | [Compatibility guide](compatibility.md) | Every sim: does it run on SteamOS, setup steps, known issues, sources |
