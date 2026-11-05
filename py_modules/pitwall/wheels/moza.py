@@ -63,11 +63,15 @@ SETTINGS: dict[str, Setting] = {s.key: s for s in [
             mirror_ids=((23,),)),
     Setting("ffb_strength", (2,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
     Setting("torque", (18,), 2, lambda v: round(v), lambda d: d, 50, 100),
-    Setting("speed", (10,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
+    Setting("speed", (10,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 200),
     Setting("damper", (7,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
     Setting("friction", (8,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
-    Setting("inertia", (4,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
+    # Pit House "Natural Inertia", 100-500 %
+    Setting("inertia", (4,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 100, 500),
     Setting("spring", (9,), 2, lambda v: round(v * 10), lambda d: round(d / 10), 0, 100),
+    # Pit House "Speed-dependent Damping" (%) and the speed it starts at (km/h); raw values
+    Setting("speed_damping", (25,), 2, lambda v: round(v), lambda d: d, 0, 100),
+    Setting("speed_damping_point", (26,), 2, lambda v: round(v), lambda d: d, 0, 400),
     # Boxflat: device = ui * 4 + 10
     Setting("road_sensitivity", (12,), 2, lambda v: round(v * 4 + 10),
             lambda d: _clamp(round((d - 10) / 4), 0, 10), 0, 10),

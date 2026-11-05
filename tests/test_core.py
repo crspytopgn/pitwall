@@ -306,6 +306,38 @@ class TestCompat(unittest.TestCase):
         self.assertIn("already", compat.dr2_enable_udp(home)["message"])
 
 
+class TestFfb(unittest.TestCase):
+    def setUp(self):
+        from pitwall.wheels import MozaDriver
+        self.ranges = MozaDriver.__new__(MozaDriver).settings()
+        from pitwall import ffb
+        self.ffb = ffb
+
+    def test_presets_fit_moza_ranges(self):
+        for p in self.ffb.PRESETS:
+            self.assertTrue(p["source"].startswith("https://"))
+            for k, v in p["values"].items():
+                self.assertIn(k, self.ranges, (p["id"], k))
+                r = self.ranges[k]
+                self.assertTrue(r["min"] <= v <= r["max"], (p["id"], k, v, r))
+
+    def test_nudges_reference_real_settings(self):
+        for sid, n in self.ffb.NUDGES.items():
+            for key, _d, _why in n["changes"]:
+                self.assertIn(key, self.ranges, (sid, key))
+
+    def test_nudge_clamps_and_reports(self):
+        cur = {"inertia": 480, "friction": 0, "damper": 0}
+        r = self.ffb.nudge("too_light", cur, self.ranges)
+        self.assertEqual(r["values"], {"inertia": 500, "friction": 5})
+        self.assertEqual(len(r["changes"]), 2)
+        r = self.ffb.nudge("too_light", {"inertia": 500, "friction": 100}, self.ranges)
+        self.assertEqual(r["values"], {})
+        r = self.ffb.nudge("rattly", {"road_sensitivity": 5}, self.ranges, "beamng")
+        self.assertIn("Smoothing", r["tip"])
+        self.assertIsNone(self.ffb.nudge("nope", {}, self.ranges))
+
+
 class TestHealth(unittest.TestCase):
     def test_runs_without_hardware(self):
         res = health.check(None, None, {"name": "iRacing", "status": "broken", "install": ["x"], "telemetry": {}})

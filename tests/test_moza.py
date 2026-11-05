@@ -15,11 +15,13 @@ from boxflat.moza_command import MozaCommand, MOZA_COMMAND_READ, MOZA_COMMAND_WR
 
 data = yaml.safe_load(open(_o.path.join(_o.environ.get("BOXFLAT_DIR", "/home/claude/ext/boxflat"), "data/serial.yml")))
 names = {"rotation":"limit","ffb_strength":"ffb-strength","torque":"torque","speed":"speed","damper":"damper",
- "friction":"friction","inertia":"inertia","spring":"spring","road_sensitivity":"road-sensitivity","ffb_enabled":"ffb-disable"}
+ "friction":"friction","inertia":"inertia","spring":"spring","road_sensitivity":"road-sensitivity","ffb_enabled":"ffb-disable",
+ "speed_damping":"speed-damping","speed_damping_point":"speed-damping-point"}
 
 # 1. Byte-for-byte frame comparison with Boxflat's encoder
-ui = {"rotation":900,"ffb_strength":75,"torque":80,"speed":40,"damper":10,"friction":5,"inertia":20,"spring":0,"road_sensitivity":6,"ffb_enabled":1}
-bx_expr = {"rotation":lambda v:v/2,"road_sensitivity":lambda v:v*4+10,"torque":lambda v:v,"ffb_enabled":lambda v:0 if v else 1}
+ui = {"rotation":900,"ffb_strength":75,"torque":80,"speed":40,"damper":10,"friction":5,"inertia":150,"spring":0,"road_sensitivity":6,"ffb_enabled":1,"speed_damping":30,"speed_damping_point":120}
+bx_expr = {"rotation":lambda v:v/2,"road_sensitivity":lambda v:v*4+10,"torque":lambda v:v,"ffb_enabled":lambda v:0 if v else 1,
+           "speed_damping":lambda v:v,"speed_damping_point":lambda v:v}
 for key, bname in names.items():
     s = moza.SETTINGS[key]
     for rw in (MOZA_COMMAND_READ, MOZA_COMMAND_WRITE):

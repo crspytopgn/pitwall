@@ -22,7 +22,7 @@ import urllib.request
 
 DATA = os.path.join(os.path.dirname(__file__), "data", "games.json")
 CACHE_TTL = 24 * 3600
-UA = "Pitwall/0.2 (+https://github.com/crspytopgn/pitwall)"
+UA = "Pitwall/0.1 (+https://github.com/crspytopgn/pitwall)"
 
 PROTONDB = "https://www.protondb.com/api/v1/reports/summaries/{appid}.json"
 DECK = "https://store.steampowered.com/saleaction/ajaxgetdeckappcompatibilityreport?nAppID={appid}"

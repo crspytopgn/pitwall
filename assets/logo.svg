@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <clipPath id="tile"><rect width="256" height="256" rx="56"/></clipPath>
+    <pattern id="check" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#0b0d10"/>
+      <rect width="10" height="10" fill="#f4f6f8"/>
+      <rect x="10" y="10" width="10" height="10" fill="#f4f6f8"/>
+    </pattern>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="256" height="256" fill="#0b0d10"/>
+    <!-- kerb -->
+    <g transform="translate(0 196) skewX(-30)">
+      <rect x="-40" y="0" width="40" height="60" fill="#e8343a"/>
+      <rect x="0" y="0" width="40" height="60" fill="#f4f6f8"/>
+      <rect x="40" y="0" width="40" height="60" fill="#e8343a"/>
+      <rect x="80" y="0" width="40" height="60" fill="#f4f6f8"/>
+      <rect x="120" y="0" width="40" height="60" fill="#e8343a"/>
+      <rect x="160" y="0" width="40" height="60" fill="#f4f6f8"/>
+      <rect x="200" y="0" width="40" height="60" fill="#e8343a"/>
+      <rect x="240" y="0" width="40" height="60" fill="#f4f6f8"/>
+      <rect x="280" y="0" width="40" height="60" fill="#e8343a"/>
+      <rect x="320" y="0" width="40" height="60" fill="#f4f6f8"/>
+    </g>
+    <!-- P: stem + bowl with chequered counter -->
+    <rect x="64" y="40" width="36" height="140" rx="6" fill="#f4f6f8"/>
+    <path d="M82 40 H146 A50 50 0 0 1 146 140 H82 Z" fill="#f4f6f8"/>
+    <path d="M100 66 H142 A24 24 0 0 1 142 114 H100 Z" fill="url(#check)"/>
+  </g>
+</svg>

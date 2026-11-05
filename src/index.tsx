@@ -1,5 +1,7 @@
 import {
   ButtonItem,
+  Navigation,
+  SidebarNavigation,
   PanelSection,
   PanelSectionRow,
   SliderField,
@@ -8,9 +10,9 @@ import {
   Router,
   staticClasses,
 } from "@decky/ui";
-import { callable, definePlugin, toaster } from "@decky/api";
+import { callable, definePlugin, routerHook, toaster } from "@decky/api";
 import { useEffect, useRef, useState, ReactNode } from "react";
-import { GiCheckeredFlag } from "react-icons/gi";
+import { GiCheckeredFlag, GiSteeringWheel, GiBookCover, GiStopwatch, GiLightningArc, GiCheckMark, GiHeadphones, GiSpeedometer } from "react-icons/gi";
 
 // ---------------------------------------------------------------- backend
 type SettingDef = { min: number; max: number; step: number; label: string; suffix: string; toggle: boolean };
@@ -56,7 +58,22 @@ const debrief = callable<[], Debrief>("debrief");
 const getSettings = callable<[], { target_fps: number; anthropic_api_key: boolean }>("get_settings");
 const setSetting = callable<[key: string, value: any], boolean>("set_setting");
 
+type FfbCat = {
+  presets: { id: string; name: string; summary: string; source: string; source_note: string }[];
+  symptoms: { id: string; label: string }[];
+  ingame: { steps: string[]; starting_points: string; sources: string[] } | null;
+  game: string | null; can_undo: boolean;
+};
+type FfbResult = { ok: boolean; message?: string; changes?: { label: string; from: number; to: number; why: string }[]; tip?: string | null; source?: string | null };
+const ffbCatalogue = callable<[], FfbCat>("ffb_catalogue");
+const ffbApplyPreset = callable<[id: string], FfbResult>("ffb_apply_preset");
+const ffbNudge = callable<[symptom: string], FfbResult>("ffb_nudge");
+const ffbUndo = callable<[], FfbResult>("ffb_undo");
+type LapRow = { id: number; created: number; sim: string; track_key: string; car: string | null; track: string | null; time: number; length: number };
+const recentLaps = callable<[], LapRow[]>("recent_laps");
+
 declare const SteamClient: any;
+const ROUTE = "/pitwall";
 
 const toast = (body: string) => toaster.toast({ title: "Pitwall", body });
 const fmt = (s: number | null | undefined) => {
@@ -89,12 +106,14 @@ function Row({ children }: { children: ReactNode }) {
   return <PanelSectionRow>{children}</PanelSectionRow>;
 }
 
-function Back({ go }: { go: (p: string) => void }) {
-  return <Row><ButtonItem layout="below" onClick={() => go("home")}>‹ Back</ButtonItem></Row>;
+type Go = ((p: string) => void) | undefined;
+function Back({ go }: { go: Go }) {
+  return go ? <Row><ButtonItem layout="below" onClick={() => go("home")}>‹ Back</ButtonItem></Row> : null;
 }
+const src = (u: string) => u.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
 
 // ------------------------------------------------------------------ pages
-function Home({ go }: { go: (p: string) => void }) {
+function Home({ go }: { go?: Go }) {
   const s = usePoll(sessionStatus, 1000);
   const game = runningApp();
   return (
@@ -131,13 +150,15 @@ function Home({ go }: { go: (p: string) => void }) {
           </>
         )}
       </PanelSection>
-      <PanelSection title="Tools">
+      {go && <PanelSection title="Tools">
+        <Row><ButtonItem layout="below" onClick={() => { Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>🖥️ Open Pitwall full screen</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("wheel")}>🛞 Wheel settings &amp; profiles</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() => go("feel")}>🎚️ Force feedback feel</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("games")}>📖 Game guide &amp; compatibility</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("checks")}>✅ Pre-race checks</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("perf")}>⚡ Performance</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("debrief")}>🎧 Engineer debrief</ButtonItem></Row>
-      </PanelSection>
+      </PanelSection>}
     </>
   );
 }
@@ -153,7 +174,7 @@ function useDebounced(delay = 200) {
 
 const CORE_KEYS = ["rotation", "ffb_strength", "torque", "road_sensitivity", "ffb_enabled"];
 
-function Wheel({ go }: { go: (p: string) => void }) {
+function Wheel({ go }: { go?: Go }) {
   const [st, setSt] = useState<WheelStatus | null>(null);
   const [vals, setVals] = useState<Record<string, number>>({});
   const [prof, setProf] = useState<Profiles | null>(null);
@@ -213,7 +234,7 @@ function Wheel({ go }: { go: (p: string) => void }) {
   );
 }
 
-function Games({ go, open }: { go: (p: string) => void; open: (id: string) => void }) {
+function Games({ go, open }: { go?: Go; open: (id: string) => void }) {
   const list = usePoll(compatList, 30000);
   return (
     <PanelSection title="Game guide">
@@ -232,14 +253,15 @@ function Games({ go, open }: { go: (p: string) => void; open: (id: string) => vo
   );
 }
 
-function GamePage({ id, go }: { id: string; go: (p: string) => void }) {
+function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
   const [g, setG] = useState<GameDetail | null>(null);
   useEffect(() => { compatDetail(id).then(setG); }, [id]);
   if (!g) return <PanelSection><Back go={go} /><Row>Fetching live ratings…</Row></PanelSection>;
+  const ing = (g as any).ffb_ingame as FfbCat["ingame"];
   return (
     <>
       <PanelSection title={g.name}>
-        <Row><ButtonItem layout="below" onClick={() => go("games")}>‹ All games</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={back}>‹ All games</ButtonItem></Row>
         <Row>
           <div style={small}>
             <b>{STATUS[g.status]}</b> ({g.runtime === "native" ? "native Linux" : g.runtime === "proton" ? "Proton" : "not runnable"})<br />
@@ -256,16 +278,22 @@ function GamePage({ id, go }: { id: string; go: (p: string) => void }) {
         )}
         {g.wheel && <Row><div style={small}>🛞 Suggested rotation {g.wheel.rotation}°. {g.wheel.note}</div></Row>}
       </PanelSection>
+      {ing && (
+        <PanelSection title="In-game force feedback">
+          {ing.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
+          <Row><div style={small}>{ing.starting_points}<div style={dim}>{ing.sources.map(src).join(" · ")}</div></div></Row>
+        </PanelSection>
+      )}
       {g.known_issues.length > 0 && (
         <PanelSection title="Known issues">
-          {g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{k.source.replace(/^https:\/\/(www\.)?/, "")}</div></div></Row>)}
+          {g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{src(k.source)}</div></div></Row>)}
         </PanelSection>
       )}
     </>
   );
 }
 
-function Checks({ go }: { go: (p: string) => void }) {
+function Checks({ go }: { go?: Go }) {
   const [res, setRes] = useState<Check[] | null>(null);
   const run = async () => { setRes(null); setRes(await healthCheck()); };
   useEffect(() => { run(); }, []);
@@ -290,7 +318,7 @@ function currentLaunchOptions(appid: string): string | null {
   } catch { return null; }
 }
 
-function PerfPage({ go }: { go: (p: string) => void }) {
+function PerfPage({ go }: { go?: Go }) {
   const [target, setTarget] = useState(60);
   const [res, setRes] = useState<Perf | null>(null);
   const [lastApp, setLastApp] = useState<{ appid: string; name: string } | null>(null);
@@ -338,7 +366,7 @@ function PerfPage({ go }: { go: (p: string) => void }) {
   );
 }
 
-function DebriefPage({ go }: { go: (p: string) => void }) {
+function DebriefPage({ go }: { go?: Go }) {
   const [d, setD] = useState<Debrief | null>(null);
   const [hasKey, setHasKey] = useState(false);
   const [key, setKey] = useState("");
@@ -362,6 +390,96 @@ function DebriefPage({ go }: { go: (p: string) => void }) {
   );
 }
 
+function Feel({ go }: { go?: Go }) {
+  const [cat, setCat] = useState<FfbCat | null>(null);
+  const [last, setLast] = useState<FfbResult | null>(null);
+  const load = async () => setCat(await ffbCatalogue());
+  useEffect(() => { load(); }, []);
+  const show = async (r: FfbResult, label: string) => {
+    setLast(r);
+    toast(r.ok ? (r.changes && r.changes.length === 0 ? "Already at the limit for this" : `${label} applied`) : r.message ?? "Failed");
+    load();
+  };
+  if (!cat) return <PanelSection><Back go={go} /><Row>Loading…</Row></PanelSection>;
+  return (
+    <>
+      <PanelSection title="Force feedback feel">
+        <Back go={go} />
+        <Row><div style={dim}>Change one thing at a time and drive a few corners before changing the next. Every change can be undone.</div></Row>
+        <Row><div style={small}><b>What feels wrong?</b></div></Row>
+        {cat.symptoms.map((x) => (
+          <Row key={x.id}><ButtonItem layout="below" onClick={async () => show(await ffbNudge(x.id), "Adjustment")}>{x.label}</ButtonItem></Row>
+        ))}
+        {last?.changes && last.changes.length > 0 && (
+          <Row><div style={small}>{last.changes.map((c) => <div key={c.label}>• {c.label}: {c.from} → {c.to} ({c.why})</div>)}</div></Row>
+        )}
+        {last?.tip && <Row><div style={small}>🎮 {last.tip}</div></Row>}
+        {cat.can_undo && <Row><ButtonItem layout="below" onClick={async () => show(await ffbUndo(), "Undo")}>↩ Undo last change</ButtonItem></Row>}
+      </PanelSection>
+      <PanelSection title="Starting presets">
+        {cat.presets.map((p) => (
+          <Row key={p.id}>
+            <ButtonItem layout="below" onClick={async () => show(await ffbApplyPreset(p.id), p.name)}>
+              <div style={{ textAlign: "left" }}>
+                <div>{p.name}</div>
+                <div style={dim}>{p.summary}</div>
+                <div style={{ ...dim, fontSize: "10px" }}>Source: {src(p.source)}</div>
+              </div>
+            </ButtonItem>
+          </Row>
+        ))}
+      </PanelSection>
+      {cat.ingame && (
+        <PanelSection title={`In ${cat.game}`}>
+          {cat.ingame.steps.map((t, i) => <Row key={i}><div style={small}>{i + 1}. {t}</div></Row>)}
+          <Row><div style={small}>{cat.ingame.starting_points}</div></Row>
+        </PanelSection>
+      )}
+    </>
+  );
+}
+
+function Laps() {
+  const laps = usePoll(recentLaps, 5000);
+  return (
+    <PanelSection title="Recent laps">
+      {!laps ? <Row>Loading…</Row> : laps.length === 0 ? <Row><div style={small}>No laps yet.</div></Row> : laps.map((l) => (
+        <Row key={l.id}>
+          <div style={small}><b>{fmt(l.time)}</b> · {l.sim}{l.track ? ` · ${l.track}` : ""}{l.car ? ` · ${l.car}` : ""}
+            <div style={dim}>{new Date(l.created * 1000).toLocaleString()} · {Math.round(l.length)} m</div></div>
+        </Row>
+      ))}
+    </PanelSection>
+  );
+}
+
+function GuideBrowser({ go }: { go?: Go }) {
+  const [id, setId] = useState<string | null>(null);
+  return id ? <GamePage id={id} go={go} back={() => setId(null)} /> : <Games go={go} open={setId} />;
+}
+
+function FullScreen() {
+  return (
+    <div style={{ marginTop: "40px", height: "calc(100% - 40px)" }}>
+      <SidebarNavigation
+        title="Pitwall"
+        showTitle
+        pages={[
+          { title: "Session", icon: <GiStopwatch />, content: <Home />, route: `${ROUTE}/session` },
+          { title: "Laps", icon: <GiSpeedometer />, content: <Laps />, route: `${ROUTE}/laps` },
+          { title: "Game guide", icon: <GiBookCover />, content: <GuideBrowser />, route: `${ROUTE}/guide` },
+          "separator",
+          { title: "Wheel", icon: <GiSteeringWheel />, content: <Wheel />, route: `${ROUTE}/wheel` },
+          { title: "FFB feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
+          { title: "Performance", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
+          { title: "Pre-race checks", icon: <GiCheckMark />, content: <Checks />, route: `${ROUTE}/checks` },
+          { title: "Engineer", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
+        ]}
+      />
+    </div>
+  );
+}
+
 function Content() {
   const [page, setPage] = useState("home");
   const [gameId, setGameId] = useState<string | null>(null);
@@ -369,7 +487,8 @@ function Content() {
   switch (page) {
     case "wheel": return <Wheel go={go} />;
     case "games": return <Games go={go} open={(id) => { setGameId(id); setPage("game"); }} />;
-    case "game": return gameId ? <GamePage id={gameId} go={go} /> : <Home go={go} />;
+    case "game": return gameId ? <GamePage id={gameId} go={go} back={() => setPage("games")} /> : <Home go={go} />;
+    case "feel": return <Feel go={go} />;
     case "checks": return <Checks go={go} />;
     case "perf": return <PerfPage go={go} />;
     case "debrief": return <DebriefPage go={go} />;
@@ -392,11 +511,12 @@ export default definePlugin(() => {
   } catch (err) {
     console.error("Pitwall: game notifications unavailable", err);
   }
+  routerHook.addRoute(ROUTE, FullScreen);
   return {
     name: "Pitwall",
     titleView: <div className={staticClasses.Title}>Pitwall</div>,
     content: <Content />,
     icon: <GiCheckeredFlag />,
-    onDismount() { reg?.unregister(); },
+    onDismount() { reg?.unregister(); routerHook.removeRoute(ROUTE); },
   };
 });

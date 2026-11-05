@@ -10,7 +10,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import engineer, health, perf  # noqa: E402
+from pitwall import engineer, ffb, health, perf  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.wheels import detect_wheel  # noqa: E402
@@ -152,6 +152,65 @@ class Plugin:
                     result["applied"] = "Default"
         return result
 
+    # ============================================================ FFB feel
+    async def ffb_catalogue(self) -> dict:
+        cat = ffb.catalogue()
+        g = self.compat.find(self.current_app["appid"], self.current_app["name"]) if self.current_app else None
+        cat["ingame"] = (g or {}).get("ffb_ingame")
+        cat["game"] = g["name"] if g else None
+        cat["can_undo"] = bool(self.ffb_undo_stack)
+        return cat
+
+    async def _ffb_write(self, values: dict) -> dict:
+        w = await self._run(self._wheel)
+        if not w:
+            return {"ok": False, "message": "No wheel connected"}
+        before = await self._run(w.read_all)
+        if not before:
+            return {"ok": False, "message": "Couldn't read the wheel's current settings"}
+        values = {k: v for k, v in values.items() if k in before}
+        if not values:
+            return {"ok": False, "message": "Nothing to change on this wheel"}
+        self.ffb_undo_stack.append({k: before[k] for k in values})
+        del self.ffb_undo_stack[:-10]
+        ok = await self._run(w.write, values)
+        return {"ok": ok, "applied": values}
+
+    async def ffb_apply_preset(self, preset_id: str) -> dict:
+        w = await self._run(self._wheel)
+        if not w:
+            return {"ok": False, "message": "No wheel connected"}
+        vals = ffb.preset_values(preset_id, w.settings())
+        if vals is None:
+            return {"ok": False, "message": "Unknown preset"}
+        return await self._ffb_write(vals)
+
+    async def ffb_nudge(self, symptom: str) -> dict:
+        w = await self._run(self._wheel)
+        if not w:
+            return {"ok": False, "message": "No wheel connected"}
+        cur = await self._run(w.read_all)
+        if not cur:
+            return {"ok": False, "message": "Couldn't read the wheel's current settings"}
+        sim = (self.hub.status() or {}).get("sim")
+        n = ffb.nudge(symptom, cur, w.settings(), sim)
+        if n is None:
+            return {"ok": False, "message": "Unknown symptom"}
+        res = {"ok": True, "changes": n["changes"], "tip": n["tip"], "source": n["source"]}
+        if n["values"]:
+            res.update(await self._ffb_write(n["values"]))
+            res["changes"] = n["changes"]
+        return res
+
+    async def ffb_undo(self) -> dict:
+        if not self.ffb_undo_stack:
+            return {"ok": False, "message": "Nothing to undo"}
+        w = await self._run(self._wheel)
+        if not w:
+            return {"ok": False, "message": "No wheel connected"}
+        prev = self.ffb_undo_stack.pop()
+        return {"ok": await self._run(w.write, prev), "applied": prev}
+
     # ============================================================ telemetry
     async def session_status(self) -> dict:
         st = self.hub.status()
@@ -230,6 +289,7 @@ class Plugin:
         self.settings = _load()
         self.current_app = None
         self.wheel = None
+        self.ffb_undo_stack = []
         self.hub = Hub(os.path.join(DATA_DIR, "laps.sqlite"), ports=self.settings.get("ports"), logger=decky.logger)
         self.hub.start()
         self.dashboard = Dashboard(self.hub, int(self.settings["dashboard_port"]))

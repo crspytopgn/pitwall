@@ -26,7 +26,8 @@ from .moza import MozaBase, SETTINGS as MOZA_SETTINGS
 _LABELS = {
     "rotation": ("Rotation", 10, "°"), "ffb_strength": ("Game FFB strength", 1, "%"),
     "torque": ("Base torque output", 5, "%"), "road_sensitivity": ("Road sensitivity", 1, ""),
-    "damper": ("Damper", 1, "%"), "friction": ("Friction", 1, "%"), "inertia": ("Inertia", 1, "%"),
+    "damper": ("Damper", 1, "%"), "friction": ("Friction", 1, "%"), "inertia": ("Natural inertia", 10, "%"),
+    "speed_damping": ("Speed-dependent damping", 1, "%"), "speed_damping_point": ("Speed damping starts at", 10, " km/h"),
     "spring": ("Spring", 1, "%"), "speed": ("Max wheel speed", 1, "%"), "ffb_enabled": ("Force feedback", 1, ""),
 }
 

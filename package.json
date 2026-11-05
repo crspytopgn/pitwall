@@ -1,6 +1,6 @@
 {
   "name": "pitwall",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Sim racing companion for SteamOS / Steam Machine: telemetry, coaching, phone dashboard, wheel control, game guide",
   "type": "module",
   "scripts": {
