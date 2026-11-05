@@ -26,4 +26,4 @@ The three biggest losses become tips, such as *"Corner 3 (1240 m): lost 0.31s; b
 
 The debrief summarises the session: lap count, best and average, consistency, and the corners that cost most on average.
 
-If you add an Anthropic API key, the same summary (lap times and corner numbers, nothing else) is sent to Claude, which writes a short spoken-style debrief. Without a key, everything works offline.
+If you add an Anthropic API key, the same summary (the sim, track and car names, lap times and corner numbers, nothing else) is sent to Claude, which writes a short spoken-style debrief. Without a key, everything works offline.

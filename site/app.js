@@ -59,11 +59,11 @@ function wheels() {
     $("wlist").innerHTML = (ctl ? `<div class="card"><span class="name">Pitwall controls</span><br><span class="meta">${esc(ctl)}</span></div>` : "")
       + W.wheels.filter((w) => w.brand === b).map((w) => `<div class="card"><span class="name">${esc(w.model)}</span>
         <span class="rank ${esc(w.rank || "")}" style="float:right">${esc(w.rank || "Not ranked")}</span><br>
-        <span class="meta">Driver: ${esc(w.driver)}${w.in_kernel ? " (included in Linux)" : ""}</span>
+        <span class="meta">Driver: ${esc(w.driver)}${w.in_kernel && !/Linux/.test(w.driver) ? " (included in Linux)" : ""}</span>
         ${w.notes ? `<br><span class="meta">${esc(w.notes)}</span>` : ""}</div>`).join("");
   };
   $("wbrand").addEventListener("change", render);
-  $("wsource").innerHTML = `Support ranks summarised from <a href="${esc(W.source)}">linux-steering-wheels</a> (as of ${esc(W.source_date)}). Platinum is best.`;
+  $("wsource").innerHTML = `Support ranks summarised from <a href="${esc(W.source)}">linux-steering-wheels</a> by JacKeTUs and contributors (as of ${esc(W.source_date)}). Platinum is best.`;
   render();
 }
 
@@ -115,7 +115,7 @@ function tools() {
   $("tlist").innerHTML = [...T.community.map((c) => ({ ...c, category: "Community" })), ...T.tools].map((t) =>
     `<div class="card"><span class="meta">${esc(t.category)}</span><br><a class="name" href="${esc(t.url)}">${esc(t.name)}</a>
      <br><span>${esc(t.what)}</span>${t.steamos ? `<br><span class="meta">SteamOS: ${esc(t.steamos)}</span>` : ""}</div>`).join("");
-  $("tsource").innerHTML = `Curated from <a href="${esc(T.source)}">awesome-linux-simracing</a> and the projects themselves.`;
+  $("tsource").innerHTML = `Adapted from <a href="${esc(T.source)}">awesome-linux-simracing</a> by Lukas Lichten and contributors (CC BY-SA 4.0) and the projects themselves.`;
 }
 
 // ----------------------------------------------------------- day one
@@ -123,7 +123,7 @@ function dayOne() {
   const steps = [
     "Check your sims in the game list above.",
     "If your MOZA base needs a firmware update, do it on Windows with Pit House first.",
-    "Update SteamOS (Settings, System). Recent versions include the MOZA force feedback driver.",
+    "Update SteamOS (Settings, System). MOZA force feedback needs the hid-universal-pidff driver; Pitwall's pre-race checks tell you if it's missing.",
     "Install Decky Loader from decky.xyz (Desktop Mode).",
     "Install the Pitwall zip: Decky, cog, Developer mode, Install Plugin from ZIP File.",
     "Plug in the wheel and pedals, open Pitwall and run auto setup.",

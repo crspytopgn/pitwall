@@ -545,3 +545,10 @@ class TestWheelDb(unittest.TestCase):
         for rel, ok in [("6.15.0", True), ("6.16.2-valve1", True), ("6.12.24", True), ("6.12.23", False),
                         ("6.13.12", True), ("6.14.2", False), ("6.11.9", False), ("7.0", True)]:
             self.assertEqual(health.kernel_has_universal_pidff(rel), ok, rel)
+        # a hand-installed module (e.g. universal-pidff's SteamOS script) counts on an old kernel
+        import tempfile
+        with tempfile.TemporaryDirectory() as root:
+            self.assertFalse(health.kernel_has_universal_pidff("6.11.11-valve", root=root))
+            d = os.path.join(root, "lib/modules/6.11.11-valve/updates/dkms")
+            os.makedirs(d); open(os.path.join(d, "hid-universal-pidff.ko.zst"), "w").close()
+            self.assertTrue(health.kernel_has_universal_pidff("6.11.11-valve", root=root))

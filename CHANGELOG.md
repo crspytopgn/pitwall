@@ -6,7 +6,7 @@ First public preview. Not yet tested on real hardware.
 
 - Telemetry: BeamNG (OutGauge + MotionSim), Live for Speed, Forza Horizon 4/5/6 and Forza Motorsport, DiRT Rally 2.0 (Codemasters UDP), Assetto Corsa / ACC / AC EVO, Automobilista 2, Project CARS 2, rFactor 2, Le Mans Ultimate and RaceRoom (shared memory)
 - Lap timing from the sim or a start line, live delta, braking-zone coaching
-- Phone dashboard with shift lights, track map and voice callouts
+- Phone dashboard with shift lights, track map and voice callouts; five layouts (All, Drive, Laps, Track, Race) that scale to any phone in portrait or landscape; installable on Android and iPhone
 - Wheel control: MOZA (serial), Logitech, Fanatec, Thrustmaster (kernel sysfs); per-game profiles
 - MOZA rev lights from telemetry
 - FFB presets and feel tuner with undo
@@ -25,8 +25,9 @@ First public preview. Not yet tested on real hardware.
 - Wheel identification from USB IDs with tested support levels (linux-steering-wheels); kernel check including backports
 - Logitech rev lights (G27/G29/G923 via the driver's LEDs)
 - winecarte bridge for AC Rally; Datalink noted for RaceRoom; toolbox of community tools
-- Emoji-free README, docs and interface
 - Auto setup: detects device and wheel (MOZA base model) and applies MOZA's per-base recommendation; first-run prompt
 - Day-one guide for new Steam Machine owners
 - One UDP thread for all sims; strategy summary cached for the dashboard
 - Fixes: launch options are fetched from Steam when not cached; car profiles re-apply after relaunch; a frozen shared-memory map no longer blocks another sim
+- Track position for Assetto Corsa, AC EVO and ACC, so the track map works there
+- Credits for every project, data source, library, icon set and font (CREDITS.md)

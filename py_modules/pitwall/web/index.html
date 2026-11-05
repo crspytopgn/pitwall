@@ -247,7 +247,7 @@
 
     <section class="map glass">
       <svg id="map" preserveAspectRatio="xMidYMid meet"><g id="mapG"><path id="trackPath" d=""/><circle id="car" r="7" cx="-9999" cy="-9999"/></g></svg>
-      <div class="empty" id="mapEmpty">Track map appears after your first lap</div>
+      <div class="empty" id="mapEmpty">The track map draws as you drive</div>
     </section>
   </div>
   <nav id="nav" aria-label="Layout">
@@ -398,7 +398,7 @@ function render(d) {
     for (const l of lines) { const p = document.createElement("p"); p.textContent = l; box.appendChild(p); }
   });
 
-  prop("nopos", !d.pos, np => text("mapEmpty", np ? "This game doesn't share car position, so there's no map" : "Track map appears after your first lap"));
+  prop("nopos", !d.pos, np => text("mapEmpty", np ? "This game doesn't share car position, so there's no map" : "The track map draws as you drive"));
   if (d.pos && tf) {
     const c = $("car"); c.setAttribute("cx", (d.pos[0] - tf.x0).toFixed(1)); c.setAttribute("cy", (tf.y1 - d.pos[1]).toFixed(1));
   }

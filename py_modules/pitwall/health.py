@@ -28,9 +28,25 @@ def identify(vid: str, pid: str) -> dict | None:
     return None
 
 
-def kernel_has_universal_pidff(release: str | None = None) -> bool:
-    """hid-universal-pidff: Linux 6.15+, backported to 6.12.24+, 6.13.12+, 6.14.3+."""
-    m = re.match(r"(\d+)\.(\d+)(?:\.(\d+))?", release or platform.release())
+def kernel_has_universal_pidff(release: str | None = None, root: str = "/") -> bool:
+    """Whether the hid-universal-pidff driver is available. Looks for the module
+    itself first (loaded, built in, shipped with the kernel, or installed by
+    hand, as the universal-pidff project does on SteamOS), then falls back to the
+    kernel version: mainline 6.15+, backported to 6.12.24+, 6.13.12+, 6.14.3+."""
+    rel = release or platform.release()
+    if release is None or root != "/":
+        if any(os.path.exists(os.path.join(root, p)) for p in
+               ("sys/module/hid_universal_pidff", "sys/bus/hid/drivers/hid-universal-pidff")):
+            return True
+        mod_dir = os.path.join(root, "lib/modules", rel)
+        builtin = _read(os.path.join(mod_dir, "modules.builtin")) or ""
+        if "hid-universal-pidff.ko" in builtin:
+            return True
+        for pat in ("kernel/drivers/hid/hid-universal-pidff.ko*", "updates/**/hid-universal-pidff.ko*",
+                    "extra/**/hid-universal-pidff.ko*"):
+            if glob.glob(os.path.join(mod_dir, pat), recursive=True):
+                return True
+    m = re.match(r"(\d+)\.(\d+)(?:\.(\d+))?", rel)
     if not m:
         return False
     a, b, c = int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)

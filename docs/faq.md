@@ -4,11 +4,11 @@
 
 **Does it work on Steam Deck / desktop Linux?** Yes, anywhere Decky Loader runs. It's designed for the Steam Machine on a TV, hence the phone dashboard.
 
-**Is it a SimHub replacement?** It covers the parts most people use on SteamOS: dashboard, rev lights, lap analysis. It doesn't do bass shakers or custom dash designs. If you need SimHub or CrewChief themselves, [linux-simracing-utils](https://github.com/srounce/linux-simracing-utils) installs both on Linux; see the [toolbox](toolbox.md).
+**Is it a SimHub replacement?** It covers the parts most people use on SteamOS: a phone dashboard with several layouts, rev lights and lap analysis. It doesn't do bass shakers or custom dash designs. If you need SimHub or CrewChief themselves, [linux-simracing-utils](https://github.com/srounce/linux-simracing-utils) installs both on Linux; see the [toolbox](toolbox.md).
 
 **Can it update MOZA firmware?** No. The update process isn't reverse engineered and a bad write can brick a base. Use Pit House on Windows.
 
-**Why doesn't iRacing / F1 25 / EA WRC work?** Their anti-cheat blocks Linux. No tool can change that; only the developers can.
+**Why doesn't iRacing / F1 25 / EA WRC work?** Their anti-cheat isn't enabled for Linux. F1 24, F1 25 and EA WRC won't start; iRacing runs offline in Test Drive only, and Pitwall doesn't read iRacing telemetry. No tool can change that; only the developers can.
 
 **Does it slow my games down?** It's designed not to: idle polling is every two seconds, and telemetry parsing reads only the bytes it needs.
 

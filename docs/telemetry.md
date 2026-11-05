@@ -19,7 +19,7 @@ Pitwall listens on these UDP ports: 4444 (OutGauge), 4445 (MotionSim), 5300 (For
 
 | Format | Speed/RPM/gear/pedals | Position (track map, start line) | Laps | Tyres |
 |---|---|---|---|---|
-| OutGauge (BeamNG, LFS) | Yes | BeamNG only, via MotionSim | BeamNG via a start line; LFS: no | No |
+| OutGauge (BeamNG, LFS) | Yes | BeamNG only, via MotionSim | BeamNG via a start line; LFS: no lap timing | No |
 | Forza Data Out | Yes | Yes | Yes | Temperatures (wear in Forza Motorsport) |
 | Codemasters (DiRT Rally 1/2, DiRT 4) | Yes | Yes | Yes | No |
 | F1 2021–23 | Yes | Yes | Yes | Surface temperatures |
@@ -28,7 +28,7 @@ Sources: [BeamNG protocols](https://documentation.beamng.com/modding/protocols),
 
 ## Shared-memory sims (need a bridge)
 
-Assetto Corsa, ACC, AC EVO, Automobilista 2, Project CARS 2, rFactor 2, Le Mans Ultimate and RaceRoom publish telemetry as Windows shared memory. Under Proton it stays inside the game's Wine prefix unless a bridge copies it to `/dev/shm`.
+Assetto Corsa, ACC, AC EVO, AC Rally, Automobilista 2, Project CARS 2, rFactor 2, Le Mans Ultimate and RaceRoom publish telemetry as Windows shared memory. Under Proton it stays inside the game's Wine prefix unless a bridge copies it to `/dev/shm`.
 
 **One-tap setup:** Game guide → the game → **Set up telemetry bridge**. Pitwall:
 
@@ -54,7 +54,7 @@ Sims disagree on which axis points up. Pitwall reorders every sim's coordinates 
 
 ## Track map
 
-Pitwall doesn't need track files. It records your car's position from the telemetry as you drive, and the dashboard draws your best lap's path (or the lap in progress before you have one). The map appears once you've completed a lap and works on any circuit, including mods.
+Pitwall doesn't need track files. It records your car's position from the telemetry as you drive, and the dashboard draws your best lap's path. On your first lap it draws as you go, so the map is complete once you've done a full lap. It works on any circuit, including mods.
 
 It needs a game that sends position: everything in the tables above except LFS over OutGauge, and BeamNG only with MotionSim switched on. Assetto Corsa and EVO give position in one field; ACC keeps a slot per car, and Pitwall picks yours using ACC's documented layout (that part is checked with a hand-built test buffer, not a C fixture). ETS2/ATS send position but have no laps, so there's no map. If a game sends no position, the dashboard says so instead of waiting for a map.
 

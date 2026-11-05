@@ -30,7 +30,7 @@ For the MOZA protocol cross-check, clone [Boxflat](https://github.com/Lawstorant
 ## Adding a UDP sim
 
 1. Add a parser to `py_modules/pitwall/telemetry/parsers.py` returning a `Frame` (positions as horizontal x, horizontal y, height).
-2. Route it in `UdpSource.handle` and add a default port in `DEFAULT_PORTS`.
+2. Route it in `UdpListener.handle` and add a default port in `DEFAULT_PORTS`.
 3. Add a packet-level test in `tests/test_core.py`.
 4. Add the game to `games.json` and regenerate docs.
 

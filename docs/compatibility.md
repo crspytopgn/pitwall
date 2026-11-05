@@ -286,7 +286,8 @@ Bridges: [Datalink](https://github.com/LukasLichten/Datalink)
 ## Forza Horizon 6
 
 **Status:** Works  
-**Runs via:** Proton
+**Runs via:** Proton  
+**Steam:** [2483190](https://store.steampowered.com/app/2483190) · [ProtonDB](https://www.protondb.com/app/2483190)
 
 ### Setup
 
@@ -295,7 +296,7 @@ Bridges: [Datalink](https://github.com/LukasLichten/Datalink)
 
 ### Known issues
 
-- Steam Deck Verified at launch (May 2026). ([source](https://www.gamingonlinux.com/2026/03/forza-horizon-6-confirmed-to-be-playable-on-steam-deck-steamos/))
+- Steam Deck Verified at launch (19 May 2026). ([source](https://forza.net/news/forza-horizon-6-steam-deck))
 
 ## Forza Motorsport
 

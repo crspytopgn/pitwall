@@ -8,7 +8,7 @@
 
 ## Wheel works but no force feedback in games
 
-**Pre-race checks** shows "Wheel found but no force feedback". MOZA, Cammus, PXN, Asetek, VRS and several other bases need the `hid-universal-pidff` kernel driver, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pre-race checks name your wheel and the driver it needs; update SteamOS if your kernel is older. See the [wheel support table](wheel-support.md).
+**Pre-race checks** shows "Wheel found but no force feedback". MOZA, Cammus, PXN, Asetek, VRS and several other bases need the `hid-universal-pidff` kernel driver, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pre-race checks name your wheel and the driver it needs, and look for the driver itself, so a hand-installed one counts. Update SteamOS first; if it still isn't there, the [universal-pidff](https://github.com/JacKeTUs/universal-pidff) project has a SteamOS install script (redo it after SteamOS updates). See the [wheel support table](wheel-support.md).
 
 ## No telemetry
 
@@ -26,6 +26,10 @@ Set a start line (Session → **Set start line here**) and make sure MotionSim i
 - Phone and Steam Machine must be on the same network.
 - Use the exact address shown in the Session panel.
 - Some guest or mesh networks isolate devices; try your main network.
+
+## Phone screen turns off
+
+Tap the dashboard once. Phones only allow a web page to keep the screen on after you've touched it, and the dashboard runs over your home network rather than HTTPS, so the first tap starts it. Adding the dashboard to your home screen also helps.
 
 ## Benchmark says "No MangoHud log found"
 

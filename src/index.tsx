@@ -265,7 +265,7 @@ function AutoSetup({ go }: { go?: Go }) {
       )}
       {res && res.map((r) => <Row key={r.step}><div style={small}><span style={{ color: r.ok ? "#3ddc84" : "#ffb020", fontWeight: 700 }}>{r.ok ? "Done" : "Check"}</span> {r.detail}</div></Row>)}
       {res && <Row><div style={dim}>Next: open the Game guide for each sim you play, then run Pre-race checks with the game running.</div></Row>}
-      <Row><div style={dim}>Graphics settings aren't changed automatically: use Performance to measure, and Pitwall will say what to change.</div></Row>
+      <Row><div style={dim}>Graphics settings aren't changed automatically: use Performance check to measure, and Pitwall will say what to change.</div></Row>
     </PanelSection>
   );
 }
@@ -706,17 +706,19 @@ function FullScreen() {
         showTitle
         pages={[
           { title: "Session", icon: <GiStopwatch />, content: <Home />, route: `${ROUTE}/session` },
-          { title: "Auto setup", icon: <GiCheckMark />, content: <AutoSetup />, route: `${ROUTE}/auto` },
           { title: "Laps", icon: <GiSpeedometer />, content: <Laps />, route: `${ROUTE}/laps` },
+          "separator",
+          { title: "Auto setup", icon: <GiCheckMark />, content: <AutoSetup />, route: `${ROUTE}/auto` },
           { title: "Game guide", icon: <GiBookCover />, content: <GuideBrowser />, route: `${ROUTE}/guide` },
+          { title: "Pre-race checks", icon: <GiCheckMark />, content: <Checks />, route: `${ROUTE}/checks` },
           "separator",
           { title: "Wheel", icon: <GiSteeringWheel />, content: <Wheel />, route: `${ROUTE}/wheel` },
-          { title: "FFB feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
-          { title: "Performance check", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
-          { title: "Pre-race checks", icon: <GiCheckMark />, content: <Checks />, route: `${ROUTE}/checks` },
+          { title: "Force feedback feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
           { title: "Fuel and tyres", icon: <GiFuelTank />, content: <Strategy />, route: `${ROUTE}/strategy` },
-          { title: "Engineer", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
-          { title: "Diagnostics", icon: <GiFirstAidKit />, content: <Diagnostics />, route: `${ROUTE}/diagnostics` },
+          "separator",
+          { title: "Performance check", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
+          { title: "Engineer debrief", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
+          { title: "Send diagnostics", icon: <GiFirstAidKit />, content: <Diagnostics />, route: `${ROUTE}/diagnostics` },
         ]}
       />
     </div>

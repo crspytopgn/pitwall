@@ -37,4 +37,6 @@ Wheel settings can be saved per game and per car. With **Apply profiles automati
 
 - the game's profile is applied when it launches
 - a **car profile** is applied whenever that car appears in telemetry, overriding the game profile (car names come from the sim, so this works in AC, ACC, AMS2, rFactor 2, LMU, RaceRoom, LFS and Forza, but not BeamNG)
-- your **default** profile is applied when you quit FFB on/off is never stored in a profile, so a profile can't silently switch force feedback off.
+- your **default** profile is applied when you quit
+
+FFB on/off is never stored in a profile, so a profile can't silently switch force feedback off.

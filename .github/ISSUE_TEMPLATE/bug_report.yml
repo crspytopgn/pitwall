@@ -35,5 +35,5 @@ body:
     id: log
     attributes:
       label: Log
-      description: Paste the end of the newest file in ~/homebrew/logs/Pitwall/
+      description: Paste the end of the newest file in ~/homebrew/logs/Pitwall/, or attach the zip from Pitwall → Send diagnostics.
       render: text

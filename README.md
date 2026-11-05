@@ -72,11 +72,17 @@ The **[Pitwall website](https://crspytopgn.github.io/pitwall/)** works in any br
 | BeamNG.drive | Yes, native | Yes |
 | Euro Truck Simulator 2, American Truck Simulator | Yes, native | Experimental (SDK plugin) |
 | DiRT Rally 2.0, DiRT Rally | Yes | Yes |
+| DiRT 4 | With setup | Yes |
 | Forza Horizon 4 / 5 | Yes | Yes |
-| F1 23 (F1 22, F1 2021: check the live rating) | Yes | Experimental |
-| Live for Speed | Yes | Yes |
+| Forza Horizon 6 | Yes | Untested (Data Out not yet confirmed) |
+| Forza Motorsport | Community fixes only | Yes |
+| F1 23 | Yes | Experimental |
+| F1 22, F1 2021 | With setup | Experimental |
+| Live for Speed | Yes | Basic (no lap timing) |
 | Assetto Corsa, ACC | With setup | Yes, via one-tap bridge |
-| AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, AC EVO, AC Rally | With setup | Experimental, via one-tap bridge |
+| AC EVO | With setup | Partial, via one-tap bridge |
+| AMS2, Project CARS 2, rFactor 2, AC Rally | With setup | Experimental, via one-tap bridge |
+| Le Mans Ultimate | Community fixes only | Experimental, via one-tap bridge |
 | RaceRoom | With setup | Experimental (manual bridge) |
 | iRacing | Offline Test Drive only | No |
 | EA SPORTS WRC, F1 24, F1 25 | No (anti-cheat) | No |

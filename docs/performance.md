@@ -4,7 +4,7 @@ For sim racing, frame **consistency** matters more than average FPS: a stutter m
 
 ## Benchmark a game
 
-1. Pitwall → **Performance**. Set **Target FPS** to your TV's refresh rate (usually 60 or 120).
+1. Pitwall → **Performance check**. Set **Target FPS** to your TV's refresh rate (usually 60 or 120).
 2. Launch the game (or open its page) and press **Arm 90 s benchmark**. Pitwall adds MangoHud logging to the game's launch options, keeping your existing options.
 3. Restart the game and drive normally for 90 seconds.
 4. Press **Analyse latest benchmark**.

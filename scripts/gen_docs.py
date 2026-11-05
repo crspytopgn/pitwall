@@ -82,14 +82,14 @@ def render() -> str:
 def render_wheels() -> str:
     d = json.load(open(WHEELS_SRC, encoding="utf-8"))
     out = [HEADER, "# Wheel support on Linux", "",
-           f"Force feedback support by wheel, summarised from the community-tested [linux-steering-wheels]({d['source']}) by JacKeTUs and contributors "
-           f"table (as of {d['source_date']}). Platinum is best. Pitwall's **Pre-race checks** identify your wheel and tell you "
+           f"Force feedback support by wheel, summarised from the community-tested [linux-steering-wheels]({d['source']}) "
+           f"table by JacKeTUs and contributors (as of {d['source_date']}). Platinum is best. Pitwall's **Pre-race checks** identify your wheel and tell you "
            "which driver it needs.", "", "## What Pitwall controls", ""]
     out += [f"- **{b}**: {c}" for b, c in d["pitwall_control"].items()]
     out += ["", "## Support table", "", "| Brand | Model | Support | Driver | Notes |", "|---|---|---|---|---|"]
     for w in d["wheels"]:
         out.append(f"| {w['brand']} | {w['model']} | {w.get('rank') or 'Not ranked'} | {w['driver']}"
-                   f"{' (included in Linux)' if w.get('in_kernel') else ''} | {w.get('notes') or ''} |")
+                   f"{' (included in Linux)' if w.get('in_kernel') and 'Linux' not in w['driver'] else ''} | {w.get('notes') or ''} |")
     return "\n".join(out) + "\n"
 
 
