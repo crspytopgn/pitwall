@@ -1,6 +1,6 @@
 # Fuel and tyre strategy
 
-Open **Fuel & tyre strategy** in Pitwall, or glance at the fuel and tyre strip on the phone dashboard.
+Open **Fuel and tyres** in Pitwall, or glance at the fuel and tyre strip on the phone dashboard.
 
 ## Fuel
 

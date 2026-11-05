@@ -41,9 +41,9 @@ From your second lap, Pitwall compares every braking zone with your best lap and
 
 ## 6. Wheel and force feedback
 
-- **Wheel settings & profiles**: change rotation, FFB strength and effects, and save a profile for the game you're running. It's applied automatically the next time that game starts.
+- **Wheel**: change rotation, FFB strength and effects, and save a profile for the game you're running. It's applied automatically the next time that game starts.
 - **Force feedback feel**: pick a starting preset, then tell Pitwall what feels wrong ("too light", "oscillates", "can't feel the road") and it makes a small, explained change you can undo. See [FFB tuning](ffb-tuning.md).
 
 ## 7. Full screen
 
-**Open Pitwall full screen** gives the same tools with more room, plus your lap history.
+**Open full screen** (under More) gives the same tools with more room, plus your lap history.

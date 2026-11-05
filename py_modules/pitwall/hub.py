@@ -18,6 +18,11 @@ from .telemetry.sources import UdpListener, DEFAULT_PORTS
 
 STALE_S = 2.0
 
+SIM_NAMES = {"beamng": "BeamNG.drive", "lfs": "Live for Speed", "forza": "Forza", "codemasters": "Codemasters",
+             "f1": "F1", "ac": "Assetto Corsa", "ams2": "AMS2 / Project CARS 2", "rf2": "rFactor 2",
+             "lmu": "Le Mans Ultimate", "r3e": "RaceRoom", "ets2": "Euro Truck Simulator 2",
+             "ats": "American Truck Simulator", "scs": "SCS truck sim"}
+
 
 class Hub:
     def __init__(self, db_path: str, ports: dict | None = None, logger=None, enable_shm=True):
@@ -121,6 +126,7 @@ class Hub:
             return {
                 "receiving": fresh,
                 "sim": f.sim if f else None,
+                "sim_name": SIM_NAMES.get(f.sim, f.sim) if f else None,
                 "car": f.car if f else None,
                 "track": f.track if f else None,
                 "needs_start_line": bool(fresh and f.lap is None and self.tracker.gate is None),
@@ -153,7 +159,7 @@ class Hub:
             ref = self.tracker.reference
             return {
                 "receiving": time.monotonic() - f.t < STALE_S,
-                "sim": f.sim, "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
+                "sim": f.sim, "sim_name": SIM_NAMES.get(f.sim, f.sim), "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
                 "gear": f.gear, "throttle": f.throttle, "brake": f.brake, "clutch": f.clutch,
                 "steer": f.steer, "tyre_temp": f.tyre_temp,
                 "fuel": f.fuel if f.fuel is not None else ((f.fuel_l / f.fuel_cap_l) if (f.fuel_l is not None and f.fuel_cap_l) else None),

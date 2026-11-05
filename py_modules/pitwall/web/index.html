@@ -159,6 +159,7 @@ function render(d) {
   $("brk").style.width = (d.brake * 100) + "%";
   $("fuel").style.width = ((d.fuel ?? 0) * 100) + "%";
   $("abs").className = d.abs ? "on" : ""; $("tc").className = d.tc ? "on" : "";
+  $("abs").hidden = d.abs == null; $("tc").hidden = d.tc == null;
   const st = d.strategy || {};
   if (st.fuel_now != null || st.temps) {
     $("strat").style.display = "grid";

@@ -33,7 +33,7 @@ Pitwall talks to MOZA bases with the serial protocol reverse engineered by [Boxf
 
 ## Profiles
 
-Wheel settings can be saved per game and per car. With **Auto-apply per game** on:
+Wheel settings can be saved per game and per car. With **Apply profiles automatically** on:
 
 - the game's profile is applied when it launches
 - a **car profile** is applied whenever that car appears in telemetry, overriding the game profile (car names come from the sim, so this works in AC, ACC, AMS2, rFactor 2, LMU, RaceRoom, LFS and Forza, but not BeamNG)
