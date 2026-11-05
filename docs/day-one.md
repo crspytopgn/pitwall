@@ -30,17 +30,17 @@ Connect the wheel base and pedals, then open Pitwall. The first time, it offers 
 - recognises your device and wheel (for MOZA, the exact base: R3, R5, R9…)
 - applies MOZA's own recommended settings for that base
 - sets a 60 FPS performance target (raise it on the Performance page if your TV is 120 Hz)
-- switches on telemetry for installed games that support automatic setup
+- switches on telemetry for installed sims where it can do so automatically
 
 ## 5. Install your sims
 
-- **BeamNG.drive** runs natively. Options → Other → Protocols: enable OutGauge (`127.0.0.1:4444`) and MotionSim (`127.0.0.1:4445`).
-- **DiRT Rally 2.0**: launch once, then Game guide → DiRT Rally 2.0 → **Do this for me**.
-- **Forza Horizon**: Settings → HUD and Gameplay → Data Out on, `127.0.0.1`, port `5300`.
-- **F1 23**: Telemetry Settings → UDP on, `127.0.0.1`, port `20777`, format 2023.
-- **Assetto Corsa / ACC / AMS2 / rFactor 2 / LMU**: Game guide → the game → **Set up telemetry bridge**, then restart the game.
+Install each sim from Steam, launch it once, then open its page in Pitwall's **Game guide** and follow the setup steps. Where possible Pitwall does the work for you:
 
-Each game's page in Pitwall has the full steps and known issues.
+- **Do this for me** switches on telemetry in sims that use a config file.
+- **Set up telemetry bridge** installs the bridge Proton sims need for shared memory, keeping your launch options.
+- Sims with an in-game telemetry menu show the exact settings to enter.
+
+Each game's page also lists in-game force feedback settings and known issues.
 
 ## 6. Pre-race checks
 
@@ -52,7 +52,7 @@ Session → **Show QR code**, scan it with your phone (same Wi-Fi), and add it t
 
 ## 8. First laps
 
-Drive a few laps. In BeamNG, set a start line first. From the second lap, Pitwall shows where you lose time. If the force feedback doesn't feel right, use **Force feedback feel** and change one thing at a time.
+Drive a few laps. If the Session panel asks for a start line, set one first. From the second lap, Pitwall shows where you lose time. If the force feedback doesn't feel right, use **Force feedback feel** and change one thing at a time.
 
 ## If something doesn't work
 

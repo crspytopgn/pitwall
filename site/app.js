@@ -130,7 +130,7 @@ function dayOne() {
     "Install your sims and follow each game's setup steps.",
     "Run pre-race checks with a game running.",
     "Scan the dashboard QR code with your phone.",
-    "Drive. Set a start line in BeamNG; coaching starts from lap two.",
+    "Drive. If Pitwall asks for a start line, set one; coaching starts from lap two.",
   ];
   let done = {};
   try { done = JSON.parse(localStorage.getItem("pitwall-dayone") || "{}"); } catch (e) {}

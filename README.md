@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/licence-GPL--3.0-blue" alt="GPL-3.0">
 </p>
 
-**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and any SteamOS PC: a sourced guide to which sims run on SteamOS and how to set them up, wheel and force feedback control, live telemetry with lap coaching, and a phone dashboard. Everything happens in Gaming Mode, from the Quick Access Menu.
+**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and other SteamOS PCs. It helps you set up your sims and wheel, then helps you drive faster, all from the Quick Access Menu in Gaming Mode.
 
 > **0.1.0 preview.** Pitwall is feature-complete for its first release but **hasn't been tested on real hardware yet**. Reports are very welcome: [open an issue](../../issues/new/choose).
 
@@ -18,37 +18,37 @@
 ### Get set up
 | Feature | What it does |
 |---|---|
-| **Game guide** | Does it run on SteamOS, how to install it, in-game FFB settings and known issues for 27 sims, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
-| **One-tap setup** | Installs the telemetry bridge for shared-memory sims and switches on DiRT Rally 2.0's telemetry, keeping your launch options |
-| **Auto setup** | Recognises your device and wheel (down to the MOZA base model) and applies the best starting settings in one tap |
-| **Pre-race checks** | Wheel, force feedback driver, telemetry, bridge and game compatibility at a glance |
+| **Auto setup** | Recognises your device and wheel and applies the best starting settings in one tap |
+| **Game guide** | For each sim: whether it runs on SteamOS, how to install it, in-game force feedback settings and known issues, with live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
+| **One-tap telemetry** | Switches on each sim's data output for you where possible, and installs the bridge that Proton games need, without touching your other launch options |
+| **Pre-race checks** | Confirms the wheel, force feedback driver, telemetry and game compatibility before you drive |
 
 ### Drive
 | Feature | What it does |
 |---|---|
-| **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; profiles per game and per car, applied automatically |
-| **FFB feel tuner** | Sourced presets, then "what feels wrong?" → a small, explained, undoable change |
-| **Rev lights** | Drives MOZA wheel RPM LEDs from live telemetry, and Logitech G27/G29/G923 LEDs where the driver exposes them |
+| **Wheel control** | Rotation, force feedback strength and effects for MOZA, Logitech, Fanatec and Thrustmaster, saved per game and per car and applied automatically |
+| **Force feedback tuning** | Sourced starting presets, then describe what feels wrong and get a small, explained change you can undo |
+| **Rev lights** | Lights the RPM LEDs on supported MOZA and Logitech wheels from the game's live data |
 
-### ⏱ Go faster
+### Go faster
 | Feature | What it does |
 |---|---|
-| **Live telemetry** | 20+ sims: BeamNG, Forza, F1 2021–23, DiRT Rally 1/2, DiRT 4, Assetto Corsa family, AMS2, rFactor 2, Le Mans Ultimate, Euro Truck Simulator 2 and more |
-| **Phone dashboard** | Scan a QR code: shift lights, gear, live delta, laps, fuel, tyres, track map and voice callouts on any phone on your Wi-Fi |
-| **Coaching** | Compares every braking zone with your best lap: *"Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex"* |
-| **Strategy** | Fuel per lap, laps left, what to add at your stop; tyre temperatures, balance and wear per lap |
+| **Live telemetry** | Reads speed, inputs, laps, fuel and tyres from more than 20 sims |
+| **Phone dashboard** | Scan a QR code to turn any phone on your Wi-Fi into a dash: shift lights, gear, live delta, lap times, fuel, tyres, track map and voice callouts |
+| **Coaching** | Compares each lap with your best, corner by corner: where you braked, how fast you went through, and how much time it cost |
+| **Strategy** | Fuel per lap, laps remaining and how much to add at a stop; tyre temperatures, balance and wear |
 
 ### Keep it smooth
 | Feature | What it does |
 |---|---|
-| **Performance check** | 90-second MangoHud benchmark judged on 1% lows and stutters against your TV's refresh rate |
-| **Lightweight** | One thread listens for every UDP sim; idle checks every two seconds; shared memory read in place |
+| **Performance check** | Measures frame-rate consistency during real driving and tells you what to change for your screen's refresh rate |
+| **Lightweight** | Sleeps when no game is sending data, and reads game data in place rather than copying it |
 
 ### Get help
 | Feature | What it does |
 |---|---|
-| **Engineer debrief** | Session summary and problem corners; optionally written up by Claude with your own API key |
-| **Send diagnostics** | One tap bundles everything for a bug report; scan to download it and open a pre-filled GitHub issue |
+| **Engineer debrief** | A summary of your session and the corners that cost the most time, optionally written up by Claude with your own API key |
+| **Send diagnostics** | Bundles everything needed for a bug report, ready to download to your phone and attach to a pre-filled GitHub issue |
 
 <p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard" width="300"></p>
 
@@ -57,13 +57,13 @@
 1. Install [Decky Loader](https://decky.xyz).
 2. Download the latest build: **Actions → build → newest run → Artifacts → Pitwall** (signed in to GitHub), and extract GitHub's outer zip to get `Pitwall-0.1.0.zip`. A Releases page will follow once 0.1 has been tested.
 3. Decky → cog → **Developer mode** on → **Install Plugin from ZIP File**.
-4. Open Pitwall and press **Run auto setup**: it recognises your device and wheel and applies the best starting settings.
+4. Open Pitwall and press **Run auto setup**.
 
 New Steam Machine? Follow the **[day-one guide](docs/day-one.md)** from unboxing to first lap.
 
 ## No plugin? Use the website
 
-The **[Pitwall website](https://crspytopgn.github.io/pitwall/)** works in any browser: check whether a sim runs on SteamOS, whether your wheel works on Linux, find MOZA's recommended settings for your base, calculate fuel, and tick off the day-one checklist.
+The **[Pitwall website](https://crspytopgn.github.io/pitwall/)** works in any browser: check whether a sim runs on SteamOS and whether your wheel works on Linux, look up recommended wheel settings, calculate fuel, and follow the day-one checklist.
 
 ## Which sims work?
 
@@ -71,7 +71,7 @@ The **[Pitwall website](https://crspytopgn.github.io/pitwall/)** works in any br
 |---|---|---|
 | BeamNG.drive | Yes, native | Yes |
 | Euro Truck Simulator 2, American Truck Simulator | Yes, native | Experimental (SDK plugin) |
-| DiRT Rally 2.0, DiRT Rally | Yes | Yes (DR2 sets up automatically) |
+| DiRT Rally 2.0, DiRT Rally | Yes | Yes |
 | Forza Horizon 4 / 5 | Yes | Yes |
 | F1 23 (F1 22, F1 2021: check the live rating) | Yes | Experimental |
 | Live for Speed | Yes | Yes |
@@ -117,6 +117,10 @@ tools/                      C programs that generate shared-memory offsets and t
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to build, test or add a sim or wheel.
+
+## Support the project
+
+Pitwall is free and open source. If it saved you an evening of setup, you can [sponsor its development](https://github.com/sponsors/crspytopgn). The most valuable help right now is testing on real hardware and [reporting what works](../../issues/new/choose).
 
 ## Credits
 

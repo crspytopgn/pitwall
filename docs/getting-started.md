@@ -1,31 +1,24 @@
 # Getting started
 
-This walks through a first session in BeamNG.drive. Other sims work the same way once their telemetry is switched on (see [Telemetry setup](telemetry.md)).
+This walks through a first session with any supported sim. The examples use BeamNG.drive because it runs natively and needs no extra software.
 
-## 1. Check everything is ready
+## 1. Run auto setup
 
-Open Pitwall from the Quick Access Menu and choose **Pre-race checks**. It tells you whether:
+The first time you open Pitwall it offers **Run auto setup**. It recognises your device and wheel and applies the best starting settings.
 
-- your wheel is connected and controllable
-- force feedback is available to games
-- telemetry is arriving from the game
-- a shared-memory bridge is running (for sims that need one)
-- the game you're running is known to work on SteamOS
+## 2. Switch on the sim's telemetry
 
-## 2. Switch on telemetry in BeamNG
+Open **Game guide**, pick your sim and follow its setup steps. Where Pitwall can do it for you, there's a button: **Do this for me** for sims with a config file, or **Set up telemetry bridge** for Proton sims that publish shared memory. The [telemetry guide](telemetry.md) lists every sim's settings.
 
-Options → Other → Protocols:
+For example, in BeamNG: Options → Other → Protocols, then enable OutGauge (`127.0.0.1`, port `4444`) and MotionSim (`127.0.0.1`, port `4445`).
 
-- **OutGauge**: on, IP `127.0.0.1`, port `4444`
-- **MotionSim**: on, IP `127.0.0.1`, port `4445`
+The **Session** panel shows `Telemetry: <sim>` as soon as data arrives.
 
-Pitwall's **Session** panel shows `Telemetry: beamng` as soon as data arrives.
+## 3. Check everything and set a start line if needed
 
-## 3. Set a start line
+Launch the sim and open **Pre-race checks**: wheel, force feedback, telemetry and (if needed) the bridge should all be OK.
 
-BeamNG doesn't report laps, so Pitwall needs to know where your lap starts. Drive to the start/finish point and press **Set start line here**. Each time you pass back through that point, a lap is recorded.
-
-Sims that count laps themselves (Forza, DiRT Rally 2.0, Assetto Corsa, ACC, AMS2, rFactor 2, Le Mans Ultimate, RaceRoom) don't need this.
+Most sims report laps themselves. If the Session panel says a start line is needed (BeamNG, for example), drive to your start/finish point and press **Set start line here**.
 
 ## 4. Open the phone dashboard
 
