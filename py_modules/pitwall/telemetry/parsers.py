@@ -94,6 +94,7 @@ def parse_forza(data: bytes) -> Frame | None:
         lap=lap_no, lap_time=cur or None,
         last_lap=last or None, best_lap=best or None,
         fuel=fuel, tyre_temp=[round(f_to_c(t), 1) for t in (tfl, tfr, trl, trr)],
+        tyre_wear=list(struct.unpack_from("<4f", data, 311)) if n == 331 else None,  # FM 2023 TireWear
         car=str(s[-5]),  # CarOrdinal
         extra={"distance_traveled": dist,
                "track": str(struct.unpack_from("<i", data, 327)[0]) if n == 331 else None},
@@ -120,5 +121,6 @@ def parse_codemasters(data: bytes) -> Frame | None:
         lap_dist=max(0.0, v[2]),
         lap_frac=(v[2] / lap_len) if lap_len else None,
         fuel=(v[45] / v[46]) if v[46] > 0 else None,
+        fuel_l=v[45] if v[46] > 0 else None, fuel_cap_l=v[46] or None,
         extra={"track_length": lap_len},
     )

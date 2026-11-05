@@ -14,3 +14,8 @@ First public preview. Not yet tested on real hardware.
 - One-tap winecarte telemetry bridge setup; DiRT Rally 2.0 telemetry auto setup
 - Pre-race checks, MangoHud benchmark analysis, engineer debrief (optional Claude)
 - Full-screen view
+- Fuel and tyre strategy (fuel per lap, fuel to add, tyre temperatures with window, balance and wear)
+- Wheel profiles per car, applied when the car appears in telemetry
+- QR codes for the phone dashboard and diagnostics
+- Send diagnostics: redacted zip, one-time phone download link and a pre-filled GitHub issue
+- New wordmark logo

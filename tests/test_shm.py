@@ -34,6 +34,8 @@ class TestShmParsers(unittest.TestCase):
         self.assertEqual(f.car, "Formula Vintage")
         self.assertEqual(f.track, "Interlagos GP")
         self.assertEqual(f.tyre_temp[0], 80.0)
+        self.assertAlmostEqual(f.fuel_l, 40.0, places=3)
+        self.assertAlmostEqual(f.tyre_wear[1], 0.2, places=5)
 
     def test_pcars2_mid_write_rejected(self):
         b = bytearray(load("pcars2"))
@@ -48,6 +50,9 @@ class TestShmParsers(unittest.TestCase):
         self.assertAlmostEqual(f.best_lap, 125.5)
         self.assertAlmostEqual(f.lap_frac, 0.5)
         self.assertAlmostEqual(f.fuel, 0.4)
+        self.assertEqual((f.fuel_l, f.fuel_cap_l), (30.0, 75.0))
+        self.assertAlmostEqual(f.tyre_wear[2], 0.9)
+        self.assertAlmostEqual(f.tyre_temp[2], 90.0)
         self.assertTrue(f.active)
 
     def test_lmu(self):
@@ -65,6 +70,9 @@ class TestShmParsers(unittest.TestCase):
         self.assertAlmostEqual(f.max_rpm, 8000, delta=1)
         self.assertAlmostEqual(f.last_lap, 421.0)
         self.assertEqual(f.pos, (5.0, 7.0, 6.0))
+        self.assertAlmostEqual(f.tyre_wear[3], 0.8, places=5)
+        self.assertEqual(f.tyre_temp[0], 85.0)
+        self.assertEqual(f.tyre_window, (70.0, 90.0, 110.0))
         self.assertTrue(f.active)
 
     def test_source_picks_up_bridge_files(self):

@@ -10,5 +10,6 @@
 | [Force feedback tuning](ffb-tuning.md) | Presets, the feel tuner, and how to get realistic FFB |
 | [Performance](performance.md) | Benchmarking, frame-rate targets and Steam Machine tips |
 | [Coaching and the engineer](coaching.md) | How lap comparison, tips and debriefs work |
+| [Fuel and tyre strategy](strategy.md) | Fuel per lap, what to add, tyre temperatures and wear |
 | [Troubleshooting](troubleshooting.md) | Fixes for the common problems |
 | [FAQ](faq.md) | Short answers, privacy, what Pitwall doesn't do |

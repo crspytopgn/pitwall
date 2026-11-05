@@ -17,5 +17,6 @@
 - The telemetry bridge is downloaded from GitHub when you ask for it.
 - Lap summaries go to Anthropic only if you add an API key and open the debrief.
 - The phone dashboard is served on your local network only. Don't expose port 8090 to the internet.
+- Diagnostics are only saved locally; you choose whether to download and attach them to an issue.
 
 **Where's my data?** `~/homebrew/settings/Pitwall` (settings), `~/homebrew/data/Pitwall` (laps, caches), `~/.local/share/pitwall` (benchmark logs, bridge).

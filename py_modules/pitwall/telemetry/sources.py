@@ -94,7 +94,7 @@ def _wstr(buf: bytes, off: int, chars: int) -> str:
 
 
 def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
-    if len(phys) < 32 or len(graph) < 252:
+    if len(phys) < 32 or len(graph) < 252:   # offsets verified against simapi's acdata.h
         return None
     gas, brake, fuel = struct.unpack_from("<3f", phys, 4)
     gear, rpm = struct.unpack_from("<2i", phys, 16)
@@ -104,11 +104,14 @@ def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
     cur, last, best = struct.unpack_from("<3i", graph, 140)
     frac = struct.unpack_from("<f", graph, 248)[0]
     car = track = None
-    max_rpm = None
-    if static and len(static) >= 416:
+    max_rpm = max_fuel = None
+    if static and len(static) >= 420:
         car = _wstr(static, 68, 33) or None
         track = _wstr(static, 134, 33) or None
         max_rpm = struct.unpack_from("<i", static, 412)[0] or None
+        max_fuel = struct.unpack_from("<f", static, 416)[0] or None
+    wear = list(struct.unpack_from("<4f", phys, 120)) if len(phys) >= 168 else None
+    core = [round(t, 1) for t in struct.unpack_from("<4f", phys, 152)] if len(phys) >= 168 else None
     ms = lambda v: v / 1000 if 0 < v < 2_000_000_000 else None
     return Frame(
         sim="ac", active=(status == 2),
@@ -117,5 +120,6 @@ def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
         lap=laps, lap_time=ms(cur), last_lap=ms(last), best_lap=ms(best),
         lap_frac=frac if 0 <= frac <= 1 else None,
         car=car, track=track,
-        extra={"fuel_litres": fuel},
+        fuel_l=fuel, fuel_cap_l=max_fuel, fuel=(fuel / max_fuel) if max_fuel else None,
+        tyre_temp=core, tyre_wear=wear,
     )

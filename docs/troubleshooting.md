@@ -31,6 +31,11 @@ Set a start line (Session → **Set start line here**) and make sure MotionSim i
 
 Restart the game after arming the benchmark and drive for at least a minute. Logs go to `~/.local/share/pitwall/mangohud`.
 
-## Something else
+## Something else: send diagnostics
 
-[Open an issue](../../../issues/new/choose) with the Decky log from `~/homebrew/logs/Pitwall/`.
+Pitwall → **Send diagnostics** → **Create diagnostics**. It collects your OS and kernel, wheel and force feedback status, telemetry sources, check results, settings (API key removed) and recent logs into a zip in your home folder. Then:
+
+1. Scan the first QR code with your phone to download the zip (the link works once, for 10 minutes, on your local network).
+2. Scan the second QR code to open a pre-filled bug report on GitHub, and attach the zip.
+
+Nothing is sent anywhere automatically.

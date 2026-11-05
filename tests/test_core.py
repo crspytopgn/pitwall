@@ -383,3 +383,56 @@ class TestBridge(unittest.TestCase):
         from pitwall import bridge
         r = bridge.install(tempfile.mkdtemp(), fetch=lambda u: json.dumps({"assets": []}).encode())
         self.assertFalse(r["ok"])
+
+
+class TestStrategy(unittest.TestCase):
+    def test_fuel_and_tyres(self):
+        from pitwall.strategy import Strategy
+        st = Strategy()
+        fuel, wear = 50.0, [1.0, 1.0, 1.0, 1.0]
+        t = 0.0
+        for lap in range(4):
+            for i in range(10):
+                fuel -= 0.25           # 2.5 L per lap
+                wear = [w - 0.002 for w in wear]
+                wear[1] -= 0.001       # FR wears faster
+                st.on_frame(Frame(sim="ac", t=t, fuel_l=fuel, fuel_cap_l=60, tyre_wear=list(wear),
+                                  tyre_temp=[95, 96, 80, 81]))
+                t += 1
+            st.on_lap(90.0)
+        st.set_target(laps=20)
+        r = st.report()
+        self.assertAlmostEqual(r["fuel"]["per_lap"], 2.5, places=2)
+        self.assertAlmostEqual(r["fuel"]["laps_left"], 40 / 2.5, places=1)
+        self.assertAlmostEqual(r["fuel"]["to_add"], 21 * 2.5 - 40, places=1)
+        self.assertEqual(r["tyres"]["worst"], "FR")
+        self.assertTrue(any("Fronts" in n for n in r["tyres"]["notes"]))
+        st.set_target(minutes=30)       # 30 min at 90 s/lap = 20 laps
+        self.assertAlmostEqual(st.report()["fuel"]["to_add"], 21 * 2.5 - 40, places=1)
+
+    def test_refuel_lap_ignored(self):
+        from pitwall.strategy import Strategy
+        st = Strategy()
+        st.on_frame(Frame(sim="ams2", t=0, fuel_l=11, fuel_cap_l=100))
+        st.on_lap(80)                                       # joined mid-lap: ignored
+        st.on_frame(Frame(sim="ams2", t=1, fuel_l=10))
+        st.on_frame(Frame(sim="ams2", t=1.5, fuel_l=8))
+        st.on_lap(80)
+        st.on_frame(Frame(sim="ams2", t=2, fuel_l=6))
+        st.on_frame(Frame(sim="ams2", t=3, fuel_l=60))     # pit stop
+        st.on_frame(Frame(sim="ams2", t=4, fuel_l=59))
+        st.on_lap(95)
+        self.assertEqual(st.fuel_per_lap, [3])
+
+
+class TestCarChange(unittest.TestCase):
+    def test_car_listener_fires_once_per_car(self):
+        hub = Hub(os.path.join(tempfile.mkdtemp(), "l.db"), ports={}, enable_shm=False)
+        hub.sources = []
+        seen = []
+        hub.car_listeners.append(lambda sim, car: seen.append((sim, car)))
+        t = time.monotonic()
+        for i, car in enumerate(["ks_bmw", "ks_bmw", "ks_bmw", "ks_audi"]):
+            hub._on_frame(Frame(sim="ac", t=t + i * 0.1, car=car))
+        hub._on_frame(Frame(sim="ac", t=t + 1, car="ks_audi", active=False))
+        self.assertEqual(seen, [("ac", "ks_bmw"), ("ac", "ks_audi")])

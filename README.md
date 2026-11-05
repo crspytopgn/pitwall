@@ -20,8 +20,9 @@
 | 📡 **Telemetry from 15 sims** | BeamNG, Forza, DiRT Rally 2.0, Live for Speed, Assetto Corsa, ACC, AC EVO, AMS2, Project CARS 2, rFactor 2, Le Mans Ultimate, RaceRoom |
 | ⏱️ **Lap timing and live delta** | Uses the sim's own laps, or a start line you set (BeamNG, LFS) |
 | 💡 **Coaching** | Compares every braking zone with your best lap: *"Corner 3: lost 0.31s; braked 18 m earlier, 6 km/h slower at the apex"* |
-| 📱 **Phone dashboard** | Shift lights, gear, delta, laps, pedals, track map and voice callouts on any phone on your Wi-Fi |
-| 🛞 **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; per-game profiles applied at launch |
+| 📱 **Phone dashboard** | Scan a QR code: shift lights, gear, delta, laps, pedals, fuel, tyres, track map and voice callouts on any phone on your Wi-Fi |
+| ⛽ **Fuel and tyre strategy** | Fuel per lap, laps left, what to add at your stop; tyre temperatures, balance and wear per lap |
+| 🛞 **Wheel control** | MOZA (full Pit House-style settings), Logitech, Fanatec, Thrustmaster; profiles per game and per car, applied automatically |
 | 🚥 **Rev lights** | Drives MOZA wheel RPM LEDs from live telemetry |
 | 🎚️ **FFB feel tuner** | Sourced presets, then "what feels wrong?" → a small, explained, undoable change |
 | 📖 **Game guide** | Status, install steps, in-game FFB settings and known issues per sim, plus live ratings from Valve, ProtonDB and Are We Anti-Cheat Yet |
@@ -29,6 +30,7 @@
 | ✅ **Pre-race checks** | Wheel, force feedback driver, telemetry, bridge and game compatibility at a glance |
 | ⚡ **Performance** | 90-second MangoHud benchmark judged on 1% lows and stutters against your TV's refresh rate |
 | 🎧 **Engineer debrief** | Session summary and problem corners; optionally written up by Claude with your own API key |
+| 🩺 **Send diagnostics** | One tap bundles everything needed for a bug report; scan to download it and open a pre-filled GitHub issue |
 
 <p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard" width="300"></p>
 
@@ -57,7 +59,7 @@ The full, sourced guide is in **[docs/compatibility.md](docs/compatibility.md)**
 
 ## Documentation
 
-[Install](docs/install.md) · [Getting started](docs/getting-started.md) · [Compatibility](docs/compatibility.md) · [Telemetry](docs/telemetry.md) · [Wheels](docs/wheels.md) · [FFB tuning](docs/ffb-tuning.md) · [Performance](docs/performance.md) · [Coaching](docs/coaching.md) · [Troubleshooting](docs/troubleshooting.md) · [FAQ](docs/faq.md)
+[Install](docs/install.md) · [Getting started](docs/getting-started.md) · [Compatibility](docs/compatibility.md) · [Telemetry](docs/telemetry.md) · [Wheels](docs/wheels.md) · [FFB tuning](docs/ffb-tuning.md) · [Strategy](docs/strategy.md) · [Performance](docs/performance.md) · [Coaching](docs/coaching.md) · [Troubleshooting](docs/troubleshooting.md) · [FAQ](docs/faq.md)
 
 ## How it's built
 
@@ -76,6 +78,8 @@ py_modules/pitwall/
   dashboard.py, web/        phone dashboard (HTTP + Server-Sent Events)
   wheels/                   MOZA serial driver; Logitech, Fanatec, Thrustmaster sysfs drivers
   leds.py, ffb.py           rev lights, FFB presets and feel tuner
+  strategy.py               fuel and tyre strategy
+  diagnostics.py            bug-report bundle and pre-filled issue
   compat.py, data/          game guide, live ratings, auto setup
   bridge.py                 winecarte download and launch options
   health.py, perf.py        pre-race checks, MangoHud analysis

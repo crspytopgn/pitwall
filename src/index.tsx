@@ -10,14 +10,24 @@ import {
   Router,
   staticClasses,
 } from "@decky/ui";
-import { callable, definePlugin, routerHook, toaster } from "@decky/api";
+import { addEventListener, callable, definePlugin, removeEventListener, routerHook, toaster } from "@decky/api";
+import qrcode from "qrcode-generator";
 import { useEffect, useRef, useState, ReactNode } from "react";
-import { GiCheckeredFlag, GiSteeringWheel, GiBookCover, GiStopwatch, GiLightningArc, GiCheckMark, GiHeadphones, GiSpeedometer } from "react-icons/gi";
+import { GiCheckeredFlag, GiSteeringWheel, GiBookCover, GiStopwatch, GiLightningArc, GiCheckMark, GiHeadphones, GiSpeedometer, GiFuelTank, GiFirstAidKit } from "react-icons/gi";
 
 // ---------------------------------------------------------------- backend
 type SettingDef = { min: number; max: number; step: number; label: string; suffix: string; toggle: boolean };
 type WheelStatus = { connected: boolean; name?: string; brand?: string; error?: string; settings?: Record<string, SettingDef>; can_center?: boolean; leds?: boolean; rev_lights?: boolean };
-type Profiles = { auto_apply: boolean; has_default: boolean; games: Record<string, string> };
+type Profiles = { auto_apply: boolean; has_default: boolean; games: Record<string, string>; cars: Record<string, string>;
+  current_car: { key: string; name: string; sim: string } | null };
+type Strat = {
+  sim: string | null; target_laps: number | null; target_minutes: number | null;
+  fuel: { unit: string; now: number | null; per_lap: number | null; laps_measured: number; laps_left: number | null;
+    to_finish?: number; to_add?: number; stops?: number; advice?: string } | null;
+  tyres: { temps: Record<string, number | null> | null; window?: [number, number, number] | null; front_rear?: number; left_right?: number;
+    notes?: string[]; wear_per_lap_pct?: Record<string, number>; worst?: string; laps_per_10pct?: number } | null;
+};
+type Diag = { path: string; summary: string; download_url: string | null; issue_url: string };
 type Session = {
   receiving: boolean; sim: string | null; car: string | null; track: string | null; needs_start_line: boolean;
   has_position: boolean; live: { lap_time: number | null; delta: number | null }; best: number | null;
@@ -71,6 +81,9 @@ const ffbNudge = callable<[symptom: string], FfbResult>("ffb_nudge");
 const ffbUndo = callable<[], FfbResult>("ffb_undo");
 type LapRow = { id: number; created: number; sim: string; track_key: string; car: string | null; track: string | null; time: number; length: number };
 const recentLaps = callable<[], LapRow[]>("recent_laps");
+const strategyReport = callable<[], Strat>("strategy_report");
+const strategySetTarget = callable<[laps: number, minutes: number], Strat>("strategy_set_target");
+const diagnosticsCreate = callable<[], Diag>("diagnostics_create");
 const bridgeStatus = callable<[appid: string], { supported: boolean; installed: boolean; prefix: string }>("bridge_status");
 const bridgeInstall = callable<[], { ok: boolean; message: string }>("bridge_install");
 const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>("bridge_launch_options");
@@ -116,6 +129,109 @@ function Back({ go }: { go: Go }) {
 const src = (u: string) => u.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
 
 // ------------------------------------------------------------------ pages
+function QR({ value, size = 168 }: { value: string; size?: number }) {
+  const qr = qrcode(0, "M");
+  qr.addData(value);
+  qr.make();
+  const n = qr.getModuleCount(), q = 4, total = n + q * 2;
+  const cells: string[] = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) cells.push(`M${c + q} ${r + q}h1v1h-1z`);
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${total} ${total}`} shapeRendering="crispEdges" style={{ display: "block", margin: "6px auto", borderRadius: 8 }}>
+      <rect width={total} height={total} fill="#fff" />
+      <path d={cells.join("")} fill="#000" />
+    </svg>
+  );
+}
+
+function DashQR({ url }: { url: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <>
+      <Row><ToggleField label="Show QR code" checked={show} onChange={setShow} /></Row>
+      {show && <Row><QR value={url} /></Row>}
+    </>
+  );
+}
+
+function Strategy({ go }: { go?: Go }) {
+  const r = usePoll(strategyReport, 2000);
+  const [laps, setLaps] = useState(0);
+  const [mins, setMins] = useState(0);
+  useEffect(() => { if (r && laps === 0 && mins === 0) { setLaps(r.target_laps ?? 0); setMins(r.target_minutes ?? 0); } }, [r]);
+  const push = (l: number, m: number) => strategySetTarget(l, m);
+  const f = r?.fuel, t = r?.tyres;
+  const temp = (k: string) => {
+    const v = t?.temps?.[k];
+    if (v == null) return "–";
+    const w = t?.window;
+    const col = w ? (v < w[0] ? "#4da3ff" : v > w[2] ? "#ff6b6b" : "#3ddc84") : undefined;
+    return <span style={{ color: col }}>{Math.round(v)}°</span>;
+  };
+  return (
+    <>
+      <PanelSection title="Fuel">
+        <Back go={go} />
+        {!f ? <Row><div style={small}>Waiting for fuel data from the sim.</div></Row> : (
+          <Row><div style={small}>
+            In tank: <b>{f.now ?? "–"} {f.unit}</b><br />
+            Per lap: <b>{f.per_lap != null ? `${f.per_lap} ${f.unit}` : `measuring (${f.laps_measured} laps)`}</b><br />
+            Laps of fuel left: <b>{f.laps_left ?? "–"}</b>
+            {f.to_add != null && <><br />To finish: {f.to_finish} {f.unit} · <b>add {f.to_add} {f.unit}</b>{f.stops ? ` · ${f.stops} stop(s)` : ""}</>}
+            {f.advice && <div style={{ marginTop: 4 }}>⛽ {f.advice}</div>}
+          </div></Row>
+        )}
+        <Row><SliderField label="Race laps remaining" value={laps} min={0} max={200} step={1} showValue
+          onChange={(v: number) => { setLaps(v); setMins(0); push(v, 0); }} /></Row>
+        <Row><SliderField label="…or minutes remaining" value={mins} min={0} max={360} step={5} showValue
+          onChange={(v: number) => { setMins(v); setLaps(0); push(0, v); }} /></Row>
+        <Row><div style={dim}>Fuel per lap uses the median of your last 5 clean laps; refuelling laps are ignored. Advice includes one lap of margin.</div></Row>
+      </PanelSection>
+      <PanelSection title="Tyres">
+        {!t ? <Row><div style={small}>This sim doesn't report tyre data, or no data yet.</div></Row> : (
+          <>
+            {t.temps && (
+              <Row><div style={{ ...small, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, textAlign: "center" }}>
+                <div>FL {temp("FL")}</div><div>FR {temp("FR")}</div><div>RL {temp("RL")}</div><div>RR {temp("RR")}</div>
+              </div></Row>
+            )}
+            {t.window && <Row><div style={dim}>Window: {t.window[0]}°C to {t.window[2]}°C (ideal {t.window[1]}°C)</div></Row>}
+            {t.notes?.map((n) => <Row key={n}><div style={small}>• {n}</div></Row>)}
+            {t.wear_per_lap_pct && (
+              <Row><div style={small}>Wear per lap: {Object.entries(t.wear_per_lap_pct).map(([k, v]) => `${k} ${v}%`).join(" · ")}
+                {t.laps_per_10pct && <><br />Worst ({t.worst}): about {t.laps_per_10pct} laps per 10% wear</>}</div></Row>
+            )}
+          </>
+        )}
+      </PanelSection>
+    </>
+  );
+}
+
+function Diagnostics({ go }: { go?: Go }) {
+  const [d, setD] = useState<Diag | null>(null);
+  const [busy, setBusy] = useState(false);
+  return (
+    <PanelSection title="Send diagnostics">
+      <Back go={go} />
+      <Row><div style={small}>Creates a zip with your setup, wheel and telemetry status, check results and Pitwall's recent logs (your API key is removed). Nothing is sent automatically.</div></Row>
+      <Row><ButtonItem layout="below" disabled={busy} onClick={async () => { setBusy(true); try { setD(await diagnosticsCreate()); } finally { setBusy(false); } }}>
+        {busy ? "Collecting…" : d ? "Create again" : "Create diagnostics"}
+      </ButtonItem></Row>
+      {d && (
+        <>
+          <Row><div style={{ ...small, whiteSpace: "pre-wrap" }}>{d.summary}</div></Row>
+          <Row><div style={dim}>Saved to {d.path}</div></Row>
+          {d.download_url && (
+            <Row><div style={small}><b>1. Scan to download the zip on your phone</b> (link works once, for 10 minutes)<QR value={d.download_url} /></div></Row>
+          )}
+          <Row><div style={small}><b>2. Scan to open a pre-filled bug report</b>, then attach the zip<QR value={d.issue_url} size={200} /></div></Row>
+        </>
+      )}
+    </PanelSection>
+  );
+}
+
 function Home({ go }: { go?: Go }) {
   const s = usePoll(sessionStatus, 1000);
   const game = runningApp();
@@ -147,9 +263,10 @@ function Home({ go }: { go?: Go }) {
             {s.tips.length > 0 && <Row><div style={small}>{s.tips.map((t) => <div key={t}>💡 {t}</div>)}</div></Row>}
             <Row>
               <div style={dim}>
-                {s.dashboard_url ? <>📱 Dashboard: <b>{s.dashboard_url}</b> (open on a phone on the same Wi-Fi)</> : s.dashboard_error}
+                {s.dashboard_url ? <>📱 Dashboard: <b>{s.dashboard_url}</b> (scan with a phone on the same Wi-Fi)</> : s.dashboard_error}
               </div>
             </Row>
+            {s.dashboard_url && (go ? <DashQR url={s.dashboard_url} /> : <Row><QR value={s.dashboard_url} size={200} /></Row>)}
           </>
         )}
       </PanelSection>
@@ -160,7 +277,9 @@ function Home({ go }: { go?: Go }) {
         <Row><ButtonItem layout="below" onClick={() => go("games")}>📖 Game guide &amp; compatibility</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("checks")}>✅ Pre-race checks</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("perf")}>⚡ Performance</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() => go("strategy")}>⛽ Fuel &amp; tyre strategy</ButtonItem></Row>
         <Row><ButtonItem layout="below" onClick={() => go("debrief")}>🎧 Engineer debrief</ButtonItem></Row>
+        <Row><ButtonItem layout="below" onClick={() => go("diag")}>🩺 Send diagnostics</ButtonItem></Row>
       </PanelSection>}
     </>
   );
@@ -234,8 +353,18 @@ function Wheel({ go }: { go?: Go }) {
         <Row><ToggleField label="Auto-apply per game" checked={prof?.auto_apply ?? true} onChange={async (c: boolean) => { await setAutoApply(c); setProf(await getProfiles()); }} /></Row>
         {game && <Row><ButtonItem layout="below" onClick={() => save(game.appid, game.name)}>{hasProfile ? "Update" : "Save"} profile for {game.name}</ButtonItem></Row>}
         {game && hasProfile && <Row><ButtonItem layout="below" onClick={async () => { await deleteProfile(game.appid); setProf(await getProfiles()); }}>Delete profile for {game.name}</ButtonItem></Row>}
+        {prof?.current_car && (
+          <Row><ButtonItem layout="below" onClick={() => save(`car:${prof.current_car!.key}`, prof.current_car!.name)}>
+            {prof.cars[prof.current_car.key] !== undefined ? "Update" : "Save"} profile for this car ({prof.current_car.name})
+          </ButtonItem></Row>
+        )}
+        {prof?.current_car && prof.cars[prof.current_car.key] !== undefined && (
+          <Row><ButtonItem layout="below" onClick={async () => { await deleteProfile(`car:${prof.current_car!.key}`); setProf(await getProfiles()); }}>Delete profile for {prof.current_car.name}</ButtonItem></Row>
+        )}
         <Row><ButtonItem layout="below" onClick={() => save("default", "Default")}>{prof?.has_default ? "Update" : "Save"} default (outside games)</ButtonItem></Row>
-        {prof && Object.keys(prof.games).length > 0 && <Row><div style={dim}>Saved: {Object.values(prof.games).join(", ")}</div></Row>}
+        <Row><div style={dim}>A car profile overrides the game profile when that car is on track. Car names come from telemetry (not available in BeamNG).</div></Row>
+        {prof && Object.keys(prof.games).length > 0 && <Row><div style={dim}>Games: {Object.values(prof.games).join(", ")}</div></Row>}
+        {prof && Object.keys(prof.cars).length > 0 && <Row><div style={dim}>Cars: {Object.values(prof.cars).join(", ")}</div></Row>}
       </PanelSection>
     </>
   );
@@ -514,7 +643,9 @@ function FullScreen() {
           { title: "FFB feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
           { title: "Performance", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
           { title: "Pre-race checks", icon: <GiCheckMark />, content: <Checks />, route: `${ROUTE}/checks` },
+          { title: "Strategy", icon: <GiFuelTank />, content: <Strategy />, route: `${ROUTE}/strategy` },
           { title: "Engineer", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
+          { title: "Diagnostics", icon: <GiFirstAidKit />, content: <Diagnostics />, route: `${ROUTE}/diagnostics` },
         ]}
       />
     </div>
@@ -530,6 +661,8 @@ function Content() {
     case "games": return <Games go={go} open={(id) => { setGameId(id); setPage("game"); }} />;
     case "game": return gameId ? <GamePage id={gameId} go={go} back={() => setPage("games")} /> : <Home go={go} />;
     case "feel": return <Feel go={go} />;
+    case "strategy": return <Strategy go={go} />;
+    case "diag": return <Diagnostics go={go} />;
     case "checks": return <Checks go={go} />;
     case "perf": return <PerfPage go={go} />;
     case "debrief": return <DebriefPage go={go} />;
@@ -553,11 +686,12 @@ export default definePlugin(() => {
     console.error("Pitwall: game notifications unavailable", err);
   }
   routerHook.addRoute(ROUTE, FullScreen);
+  const toastListener = addEventListener<[msg: string]>("pitwall_toast", (msg) => toast(msg));
   return {
     name: "Pitwall",
     titleView: <div className={staticClasses.Title}>Pitwall</div>,
     content: <Content />,
     icon: <GiCheckeredFlag />,
-    onDismount() { reg?.unregister(); routerHook.removeRoute(ROUTE); },
+    onDismount() { reg?.unregister(); routerHook.removeRoute(ROUTE); removeEventListener("pitwall_toast", toastListener); },
   };
 });

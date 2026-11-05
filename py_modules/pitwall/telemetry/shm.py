@@ -60,7 +60,7 @@ def _pos(v):
 PC2 = dict(game_state=8, viewed=20, participants=28, p_size=100, p_active=0, p_pos=68, p_lapdist=80,
            p_laps=88, thr=6428, brk=6432, steer=6436, clutch=6440, car=6444, track=6576, variation=6640,
            track_len=6704, invalid=6712, best=6716, last=6720, cur=6724, fuel=6840, speed=6848, rpm=6852,
-           max_rpm=6856, gear=6876, tyre_temp=7072, seq=7320, size=7324)
+           max_rpm=6856, gear=6876, tyre_temp=7072, tyre_wear=7136, fuel_cap=6844, seq=7320, size=7324)
 PC2_PLAYING = 2
 
 
@@ -91,6 +91,9 @@ def parse_pcars2(buf: bytes) -> Frame | None:
         lap_dist=lap_dist if lap_dist is not None and lap_dist >= 0 else None,
         lap_frac=(lap_dist / track_len) if (lap_dist and track_len > 0) else None,
         fuel=_f(buf, o["fuel"]), tyre_temp=[round(t, 1) for t in struct.unpack_from("<4f", buf, o["tyre_temp"])],
+        fuel_cap_l=_pos(_f(buf, o["fuel_cap"])),
+        fuel_l=(_f(buf, o["fuel"]) * _f(buf, o["fuel_cap"])) if _f(buf, o["fuel_cap"]) > 0 else None,
+        tyre_wear=list(struct.unpack_from("<4f", buf, o["tyre_wear"])),
         car=_cstr(buf, o["car"], 64) or None,
         track=(f"{track} {var}".strip() or None),
         extra={"lap_invalid": bool(buf[o["invalid"]]), "track_length": track_len or None},
@@ -100,7 +103,9 @@ def parse_pcars2(buf: bytes) -> Frame | None:
 # ------------------------------------------- rFactor 2 / Le Mans Ultimate
 # Telemetry vehicle (rF2VehicleTelemetry / LMUVehicleTelemetry share layout)
 VT = dict(size=1888, id=0, elapsed=12, lap=20, lap_start=24, vehicle=32, track=96, pos=160, vel=184,
-          gear=352, rpm=356, max_rpm=532, thr=388, brk=396, steer=404, clutch=412, fuel=524, fuel_cap=608)
+          gear=352, rpm=356, max_rpm=532, thr=388, brk=396, steer=404, clutch=412, fuel=524, fuel_cap=608,
+          wheels=848, wheel_size=260, w_wear=152, w_carcass=204)
+KELVIN = 273.15
 # Scoring info / vehicle
 SI = dict(track=0, lap_dist=88, num=104, phase=108, realtime=115)
 VS = dict(size=584, id=0, vehicle=36, laps=100, lap_dist=104, best=144, last=168, is_player=196)
@@ -130,7 +135,10 @@ def _vehicle_frame(sim, t: bytes, toff: int, sinfo: bytes, soff_info: int, sveh:
         last_lap=_pos(last), best_lap=_pos(best),
         lap_dist=lap_dist if lap_dist is not None and lap_dist >= 0 else None,
         lap_frac=(lap_dist / track_len) if (lap_dist is not None and track_len > 0) else None,
-        fuel=(fuel / cap) if cap > 0 else None,
+        fuel=(fuel / cap) if cap > 0 else None, fuel_l=fuel if cap > 0 else None, fuel_cap_l=cap or None,
+        tyre_wear=[_d(t, toff + v["wheels"] + i * v["wheel_size"] + v["w_wear"]) for i in range(4)],
+        tyre_temp=[round(_d(t, toff + v["wheels"] + i * v["wheel_size"] + v["w_carcass"]) - KELVIN, 1)
+                   if _d(t, toff + v["wheels"] + i * v["wheel_size"] + v["w_carcass"]) > 0 else None for i in range(4)],
         car=_cstr(t, toff + v["vehicle"], 64) or None,
         track=_cstr(t, toff + v["track"], 64) or _cstr(sinfo, soff_info + SI["track"], 64) or None,
         extra={"track_length": track_len or None},
@@ -200,13 +208,14 @@ def parse_lmu(buf: bytes) -> Frame | None:
 # ---------------------------------------------------------------- RaceRoom
 R3E = dict(paused=20, menus=24, replay=28, track=600, layout=664, layout_len=736, laps=1028, lap_dist=1040,
            lap_frac=1044, best=1068, prev=1084, cur=1100, speed=1392, rps=1396, max_rps=1400, gear=1408,
-           pos=1416, fuel=1456, fuel_cap=1460, thr=1504, brk=1512, clutch=1520, steer=1524)
+           pos=1416, fuel=1456, fuel_cap=1460, thr=1504, brk=1512, clutch=1520, steer=1524,
+           tire_wear=1680, tire_temp=1744, tire_temp_size=24)   # tire_temp: current[L,C,R], optimal, cold, hot
 RPS_TO_RPM = 60 / (2 * math.pi)
 
 
 def parse_r3e(buf: bytes) -> Frame | None:
     o = R3E
-    if len(buf) < o["steer"] + 4:
+    if len(buf) < o["tire_temp"] + 4 * o["tire_temp_size"]:
         return None
     active = not (_i(buf, o["paused"]) or _i(buf, o["menus"]) or _i(buf, o["replay"]))
     cap = _f(buf, o["fuel_cap"])
@@ -224,9 +233,19 @@ def parse_r3e(buf: bytes) -> Frame | None:
         last_lap=_pos(_f(buf, o["prev"])), best_lap=_pos(_f(buf, o["best"])),
         lap_dist=_pos(_f(buf, o["lap_dist"])), lap_frac=frac if 0 <= frac <= 1 else None,
         fuel=(_f(buf, o["fuel"]) / cap) if cap > 0 else None,
+        fuel_l=_f(buf, o["fuel"]) if cap > 0 else None, fuel_cap_l=_pos(cap),
+        tyre_wear=[w if w >= 0 else None for w in struct.unpack_from("<4f", buf, o["tire_wear"])],
+        tyre_temp=[round(_f(buf, o["tire_temp"] + i * o["tire_temp_size"] + 4), 1) for i in range(4)],  # centre
+        tyre_window=_r3e_window(buf, o),
         track=(f"{track} {layout}".strip() or None),
         extra={"track_length": _pos(_f(buf, o["layout_len"]))},
     )
+
+
+def _r3e_window(buf, o):
+    base = o["tire_temp"]
+    cold, opt, hot = _f(buf, base + 16), _f(buf, base + 12), _f(buf, base + 20)
+    return (round(cold, 1), round(opt, 1), round(hot, 1)) if 0 < cold < opt < hot else None
 
 
 # --------------------------------------------------------------- the source

@@ -29,8 +29,9 @@ def local_ip() -> str:
 
 
 class Dashboard:
-    def __init__(self, hub, port: int = 8090):
+    def __init__(self, hub, port: int = 8090, downloads=None):
         self.hub, self.port = hub, port
+        self.downloads = downloads          # diagnostics.DownloadTokens
         self.server: ThreadingHTTPServer | None = None
         self.error: str | None = None
 
@@ -40,6 +41,7 @@ class Dashboard:
 
     def start(self):
         hub = self.hub
+        downloads = self.downloads
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *a):
@@ -72,6 +74,19 @@ class Dashboard:
                         return
                 elif self.path == "/api/laps":
                     self._send(200, json.dumps(hub.store.recent(30)).encode(), "application/json")
+                elif self.path.startswith("/diag/") and downloads is not None:
+                    path = downloads.take(self.path[len("/diag/"):])
+                    if not path or not os.path.exists(path):
+                        self._send(404, b"This link has expired. Create a new diagnostics bundle in Pitwall.", "text/plain")
+                        return
+                    with open(path, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/zip")
+                    self.send_header("Content-Disposition", f'attachment; filename="{os.path.basename(path)}"')
+                    self.send_header("Content-Length", str(len(data)))
+                    self.end_headers()
+                    self.wfile.write(data)
                 elif self.path == "/api/track":
                     self._send(200, json.dumps(hub.track_map()).encode(), "application/json")
                 elif self.path == "/api/session":

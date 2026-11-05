@@ -29,13 +29,14 @@ Sims that count laps themselves (Forza, DiRT Rally 2.0, Assetto Corsa, ACC, AMS2
 
 ## 4. Open the phone dashboard
 
-The Session panel shows an address like `http://192.168.1.20:8090`. Open it on a phone or tablet connected to the same Wi-Fi. You get:
+The Session panel shows an address like `http://192.168.1.20:8090` and a QR code (switch on **Show QR code**). Scan it with a phone or tablet on the same Wi-Fi. You get:
 
 - shift lights, gear, speed and RPM
 - a live delta against your best lap (green: ahead, red: behind)
 - current, last and best lap times
 - throttle, brake and fuel bars
 - coaching tips after each lap
+- fuel in the tank, laps left and tyre temperatures
 - a track map with your position
 - optional voice callouts (tap **Voice**) for lap times and the top tip
 

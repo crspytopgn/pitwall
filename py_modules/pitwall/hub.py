@@ -11,6 +11,7 @@ import time
 from .coach import compare
 from .laps import Lap, LapTracker
 from .store import LapStore, track_key
+from .strategy import Strategy
 from .telemetry.frame import Frame
 from .telemetry.shm import ShmSource
 from .telemetry.sources import UdpSource, DEFAULT_PORTS
@@ -30,6 +31,9 @@ class Hub:
         self.last_coaching: dict | None = None
         self.session_laps: list[dict] = []
         self.listeners: list = []
+        self.car_listeners: list = []        # called with (sim, car) when the car changes
+        self.strategy = Strategy()
+        self._car_key = None
         shared: dict = {}
         self.sources = [UdpSource(k, p, self._on_frame, shared=shared) for k, p in self.ports.items()]
         if enable_shm:
@@ -58,15 +62,25 @@ class Hub:
                 self._ref_key = key
                 best = self.store.best(*key)
                 self.tracker.reference = best[1] if best else None
+        self.strategy.on_frame(f)
         for cb in list(self.listeners):
             try:
                 cb(f)
             except Exception:
                 pass
+        car_key = (f.sim, f.car) if f.car and f.active else None
+        if car_key and car_key != self._car_key:
+            self._car_key = car_key
+            for cb in list(self.car_listeners):
+                try:
+                    cb(f.sim, f.car)
+                except Exception:
+                    pass
         if prev is None or prev.sim != f.sim:
             self._info(f"Telemetry from {f.sim}")
 
     def _on_lap(self, lap: Lap):
+        self.strategy.on_lap(lap.time)
         key = self._key(lap)
         ref = self.tracker.reference
         lap_id = self.store.add(lap, key)
@@ -128,7 +142,8 @@ class Hub:
                 "receiving": time.monotonic() - f.t < STALE_S,
                 "sim": f.sim, "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
                 "gear": f.gear, "throttle": f.throttle, "brake": f.brake, "clutch": f.clutch,
-                "steer": f.steer, "fuel": f.fuel, "tyre_temp": f.tyre_temp,
+                "steer": f.steer, "tyre_temp": f.tyre_temp,
+                "fuel": f.fuel if f.fuel is not None else ((f.fuel_l / f.fuel_cap_l) if (f.fuel_l is not None and f.fuel_cap_l) else None),
                 "shift": f.shift_light, "abs": f.extra.get("abs"), "tc": f.extra.get("tc"),
                 "lap_time": live["lap_time"] if live["lap_time"] is not None else f.lap_time,
                 "delta": live["delta"], "best": ref.time if ref else f.best_lap,
@@ -139,7 +154,14 @@ class Hub:
                 "pos": [round(f.pos[0], 1), round(f.pos[1], 1)] if f.pos else None,
                 "lap_id": self.last_lap["id"] if self.last_lap else None,
                 "lap_best": bool(self.last_lap and self.last_lap["best"]),
+                "strategy": self._strategy_brief(),
             }
+
+    def _strategy_brief(self):
+        r = self.strategy.report()
+        fu, ty = r.get("fuel") or {}, r.get("tyres") or {}
+        return {"fuel_now": fu.get("now"), "fuel_unit": fu.get("unit"), "laps_left": fu.get("laps_left"),
+                "to_add": fu.get("to_add"), "temps": ty.get("temps"), "window": ty.get("window")}
 
     def track_map(self, max_points: int = 400) -> dict:
         """Outline of the reference lap (or the lap in progress) for the

@@ -11,7 +11,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, engineer, ffb, health, perf  # noqa: E402
+from pitwall import bridge, diagnostics, engineer, ffb, health, perf  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -27,6 +27,7 @@ DEFAULTS = {
     "auto_apply": True,
     "wheel_default": None,          # {"settings": {...}}
     "wheel_games": {},              # appid -> {"name", "settings"}
+    "wheel_cars": {},               # "sim:car" -> {"name", "sim", "settings"}; overrides the game profile
     "target_fps": 60,
     "units": "kmh",
     "dashboard_port": 8090,
@@ -35,7 +36,8 @@ DEFAULTS = {
     "rev_lights": False,            # drive MOZA wheel rev lights from telemetry
 }
 
-PROFILE_EXCLUDE = {"ffb_enabled"}   # never let a profile silently switch FFB off
+PROFILE_EXCLUDE = {"ffb_enabled"}
+VERSION = getattr(decky, "DECKY_PLUGIN_VERSION", "0.1.0")   # never let a profile silently switch FFB off
 
 
 def _load() -> dict:
@@ -44,7 +46,8 @@ def _load() -> dict:
             data = json.load(f)
     except (OSError, ValueError):
         data = {}
-    return {**DEFAULTS, **data}
+    import copy
+    return {**copy.deepcopy(DEFAULTS), **data}
 
 
 def _chown_to_user(*paths):
@@ -103,8 +106,12 @@ class Plugin:
 
     async def get_profiles(self) -> dict:
         s = self.settings
+        st = self.hub.status()
+        car_key = f"{st['sim']}:{st['car']}" if st.get("sim") and st.get("car") else None
         return {"auto_apply": s["auto_apply"], "has_default": s["wheel_default"] is not None,
-                "games": {k: v.get("name", k) for k, v in s["wheel_games"].items()}}
+                "games": {k: v.get("name", k) for k, v in s["wheel_games"].items()},
+                "cars": {k: v.get("name", k) for k, v in s["wheel_cars"].items()},
+                "current_car": {"key": car_key, "name": st.get("car"), "sim": st.get("sim")} if car_key else None}
 
     async def set_auto_apply(self, enabled: bool):
         self.settings["auto_apply"] = bool(enabled)
@@ -117,6 +124,9 @@ class Plugin:
         values = {k: v for k, v in values.items() if k not in PROFILE_EXCLUDE}
         if appid == "default":
             self.settings["wheel_default"] = {"settings": values}
+        elif str(appid).startswith("car:"):
+            key = str(appid)[4:]
+            self.settings["wheel_cars"][key] = {"name": name, "sim": key.split(":", 1)[0], "settings": values}
         else:
             self.settings["wheel_games"][str(appid)] = {"name": name, "settings": values}
         _save(self.settings)
@@ -125,13 +135,20 @@ class Plugin:
     async def delete_profile(self, appid: str):
         if appid == "default":
             self.settings["wheel_default"] = None
+        elif str(appid).startswith("car:"):
+            self.settings["wheel_cars"].pop(str(appid)[4:], None)
         else:
             self.settings["wheel_games"].pop(str(appid), None)
         _save(self.settings)
 
     async def apply_profile(self, appid: str) -> bool:
         s = self.settings
-        prof = s["wheel_default"] if appid == "default" else s["wheel_games"].get(str(appid))
+        if appid == "default":
+            prof = s["wheel_default"]
+        elif str(appid).startswith("car:"):
+            prof = s["wheel_cars"].get(str(appid)[4:])
+        else:
+            prof = s["wheel_games"].get(str(appid))
         w = await self._run(self._wheel)
         if not prof or not w:
             return False
@@ -217,6 +234,52 @@ class Plugin:
             return {"ok": False, "message": "No wheel connected"}
         prev = self.ffb_undo_stack.pop()
         return {"ok": await self._run(w.write, prev), "applied": prev}
+
+    def _on_car_change(self, sim: str, car: str):
+        """Telemetry thread: a new car appeared. Apply its profile if saved."""
+        key = f"{sim}:{car}"
+        prof = self.settings["wheel_cars"].get(key)
+        if not (self.settings["auto_apply"] and prof):
+            return
+
+        def apply():
+            w = self._wheel()
+            if w and w.write(prof["settings"]):
+                self._emit("pitwall_toast", f"Applied wheel profile for {prof.get('name', car)}")
+        threading.Thread(target=apply, daemon=True).start()
+
+    def _emit(self, event: str, *args):
+        try:
+            asyncio.run_coroutine_threadsafe(decky.emit(event, *args), self.loop)
+        except Exception:
+            pass
+
+    # ========================================================== strategy
+    async def strategy_report(self) -> dict:
+        return self.hub.strategy.report()
+
+    async def strategy_set_target(self, laps: float, minutes: float) -> dict:
+        self.hub.strategy.set_target(laps or None, minutes or None)
+        return self.hub.strategy.report()
+
+    # ======================================================= diagnostics
+    async def diagnostics_create(self) -> dict:
+        checks = await self.health_check()
+        w = self.wheel
+        info = diagnostics.collect(VERSION, self.settings, self.hub, w, checks, getattr(decky, "DECKY_PLUGIN_LOG_DIR", None))
+        logs = diagnostics.log_tail(getattr(decky, "DECKY_PLUGIN_LOG_DIR", None))
+        uid = gid = None
+        try:
+            import pwd
+            pw = pwd.getpwnam(decky.DECKY_USER)
+            uid, gid = pw.pw_uid, pw.pw_gid
+        except (KeyError, ImportError, AttributeError):
+            pass
+        path = await self._run(lambda: diagnostics.write_zip(info, logs, HOME, uid, gid))
+        tok = self.downloads.issue(path)
+        return {"path": path, "summary": diagnostics.summary_text(info),
+                "download_url": f"{self.dashboard.url}/diag/{tok}" if not self.dashboard.error else None,
+                "issue_url": diagnostics.issue_url(info)}
 
     # ============================================================ telemetry
     async def session_status(self) -> dict:
@@ -334,7 +397,10 @@ class Plugin:
         self.rev_lights = None
         self.hub = Hub(os.path.join(DATA_DIR, "laps.sqlite"), ports=self.settings.get("ports"), logger=decky.logger)
         self.hub.start()
-        self.dashboard = Dashboard(self.hub, int(self.settings["dashboard_port"]))
+        self.loop = asyncio.get_running_loop()
+        self.downloads = diagnostics.DownloadTokens()
+        self.hub.car_listeners.append(self._on_car_change)
+        self.dashboard = Dashboard(self.hub, int(self.settings["dashboard_port"]), self.downloads)
         self.dashboard.start()
         self.compat = compat_mod.Compat(HOME, DATA_DIR)
         self._apply_rev_lights()

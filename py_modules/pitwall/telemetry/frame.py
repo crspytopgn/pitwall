@@ -27,7 +27,12 @@ class Frame:
     lap_dist: float | None = None  # metres into the lap, if the sim reports it
     lap_frac: float | None = None  # 0..1 around the lap, if the sim reports it
     fuel: float | None = None      # 0..1
+    fuel_l: float | None = None    # litres in the tank, where the sim reports it
+    fuel_cap_l: float | None = None  # tank capacity in litres
     tyre_temp: list | None = None  # [FL, FR, RL, RR] °C
+    tyre_wear: list | None = None  # [FL, FR, RL, RR] raw wear value; direction varies by sim, so
+                                   # strategy only uses how much it changes per lap
+    tyre_window: tuple | None = None  # (cold, optimal, hot) °C where the sim reports it
     shift_light: bool = False
     car: str | None = None
     track: str | None = None

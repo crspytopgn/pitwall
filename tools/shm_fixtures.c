@@ -22,7 +22,7 @@ int main(int argc, char **argv){
   pc->mUnfilteredThrottle=0.75f; pc->mUnfilteredBrake=0.25f; pc->mUnfilteredSteering=-0.5f; pc->mUnfilteredClutch=0.1f;
   strcpy(pc->mCarName,"Formula Vintage"); strcpy(pc->mTrackLocation,"Interlagos"); strcpy(pc->mTrackVariation,"GP");
   pc->mTrackLength=4309.0f; pc->mBestLapTime=71.5f; pc->mLastLapTime=72.25f; pc->mCurrentTime=30.5f; pc->mFuelLevel=0.4f;
-  pc->mSpeed=55.5f; pc->mRpm=7000; pc->mMaxRPM=9000; pc->mGear=4; pc->mTyreTemp[0]=80; pc->mTyreTemp[3]=85; pc->mSequenceNumber=10;
+  pc->mSpeed=55.5f; pc->mRpm=7000; pc->mMaxRPM=9000; pc->mGear=4; pc->mTyreTemp[0]=80; pc->mTyreTemp[3]=85; pc->mSequenceNumber=10; pc->mFuelCapacity=100; pc->mTyreWear[0]=0.1f; pc->mTyreWear[1]=0.2f;
   snprintf(path,sizeof path,"%s/pcars2.bin",dir); dump(path, pc, sizeof *pc);
   /* rF2 */
   struct rF2Telemetry *t = calloc(1, sizeof *t); struct rF2Scoring *s = calloc(1, sizeof *s);
@@ -33,7 +33,7 @@ int main(int argc, char **argv){
   t->mVehicles[1].mLocalVel.x=3; t->mVehicles[1].mLocalVel.y=0; t->mVehicles[1].mLocalVel.z=-4;
   t->mVehicles[1].mGear=5; t->mVehicles[1].mEngineRPM=8000; t->mVehicles[1].mEngineMaxRPM=9500;
   t->mVehicles[1].mUnfilteredThrottle=1.0; t->mVehicles[1].mUnfilteredBrake=0.0; t->mVehicles[1].mUnfilteredSteering=0.2; t->mVehicles[1].mUnfilteredClutch=0;
-  t->mVehicles[1].mFuel=30; t->mVehicles[1].mFuelCapacity=75;
+  t->mVehicles[1].mFuel=30; t->mVehicles[1].mFuelCapacity=75; t->mVehicles[1].mWheel[2].mWear=0.9; t->mVehicles[1].mWheel[2].mTireCarcassTemperature=363.15;
   s->mVersionUpdateBegin=s->mVersionUpdateEnd=7; strcpy(s->mScoringInfo.mTrackName,"Spa-Francorchamps");
   s->mScoringInfo.mNumVehicles=2; s->mScoringInfo.mInRealtime=1; s->mScoringInfo.mLapDist=7004.0;
   s->mVehicles[0].mID=7; s->mVehicles[1].mID=42; s->mVehicles[1].mIsPlayer=1; s->mVehicles[1].mTotalLaps=3;
@@ -57,7 +57,7 @@ int main(int argc, char **argv){
   r->completed_laps=1; r->lap_distance=1000; r->lap_distance_fraction=0.048f; r->lap_time_best_self=420.5f;
   r->lap_time_previous_self=421.0f; r->lap_time_current_self=60.25f; r->car_speed=40; r->engine_rps=628.3185f; r->max_engine_rps=837.758f;
   r->gear=3; r->car_cg_location.x=5; r->car_cg_location.y=6; r->car_cg_location.z=7; r->fuel_left=20; r->fuel_capacity=80;
-  r->throttle_raw=0.9f; r->brake_raw=0.0f; r->clutch_raw=0.0f; r->steer_input_raw=0.1f;
+  r->tire_wear[3]=0.8f; r->tire_temp[0].current_temp[1]=85; r->tire_temp[0].optimal_temp=90; r->tire_temp[0].cold_temp=70; r->tire_temp[0].hot_temp=110; r->throttle_raw=0.9f; r->brake_raw=0.0f; r->clutch_raw=0.0f; r->steer_input_raw=0.1f;
   snprintf(path,sizeof path,"%s/r3e.bin",dir); dump(path, r, sizeof *r);
   return 0;
 }

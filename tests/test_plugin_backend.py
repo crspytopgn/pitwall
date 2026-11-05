@@ -19,6 +19,14 @@ class TestPluginBackend(unittest.TestCase):
         d.DECKY_PLUGIN_RUNTIME_DIR = os.path.join(tmp, "data")
         d.DECKY_USER_HOME = os.path.join(tmp, "home")
         d.DECKY_USER = "nobody"
+        d.DECKY_PLUGIN_LOG_DIR = os.path.join(tmp, "logs")
+        os.makedirs(d.DECKY_PLUGIN_LOG_DIR)
+        with open(os.path.join(d.DECKY_PLUGIN_LOG_DIR, "2026-11-05.log"), "w") as fh:
+            fh.write("hello log\n")
+
+        async def emit(*a):
+            return None
+        d.emit = emit
         d.logger = logging.getLogger("pitwall-test")
         sys.modules["decky"] = d
         sys.path.insert(0, ROOT)
@@ -61,6 +69,27 @@ class TestPluginBackend(unittest.TestCase):
             self.assertIsNotNone(p.rev_lights)
             self.assertTrue(await p.set_setting("rev_lights", False))
             self.assertIsNone(p.rev_lights)
+            # strategy
+            rep = await p.strategy_set_target(20, 0)
+            self.assertEqual(rep["target_laps"], 20)
+            # car profiles: no wheel, so saving fails cleanly; listing works
+            prof = await p.get_profiles()
+            self.assertEqual(prof["cars"], {})
+            # diagnostics
+            dg = await p.diagnostics_create()
+            self.assertTrue(os.path.exists(dg["path"]))
+            self.assertIn("issues/new", dg["issue_url"])
+            import zipfile
+            with zipfile.ZipFile(dg["path"]) as z:
+                names = z.namelist()
+                self.assertIn("summary.txt", names)
+                self.assertIn("logs/2026-11-05.log", names)
+                self.assertNotIn("sk-test", z.read("diagnostics.json").decode())   # API key redacted
+            import urllib.request
+            data = urllib.request.urlopen(dg["download_url"].replace(dg["download_url"].split("/")[2], "127.0.0.1:48191"), timeout=3).read()
+            self.assertEqual(data[:2], b"PK")
+            with self.assertRaises(Exception):          # one-time link
+                urllib.request.urlopen(dg["download_url"].replace(dg["download_url"].split("/")[2], "127.0.0.1:48191"), timeout=3)
             await p._unload()
         asyncio.run(go())
 
