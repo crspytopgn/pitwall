@@ -86,10 +86,36 @@ def render_wheels() -> str:
            f"table by JacKeTUs and contributors (as of {d['source_date']}). Platinum is best. Pitwall's **Pre-race checks** identify your wheel and tell you "
            "which driver it needs.", "", "## What Pitwall controls", ""]
     out += [f"- **{b}**: {c}" for b, c in d["pitwall_control"].items()]
-    out += ["", "## Support table", "", "| Brand | Model | Support | Driver | Notes |", "|---|---|---|---|---|"]
+    out += ["", "## Support table", "",
+            "Support ranks: Platinum works fully and is well tested; Gold works but is less tested; Silver is missing some "
+            "effects or has workarounds; Bronze has major gaps; Broken has no force feedback. Not ranked means nobody has "
+            "reported it yet.", "",
+            "| Brand | Model | USB ID | Support | Driver | Notes |", "|---|---|---|---|---|---|"]
     for w in d["wheels"]:
-        out.append(f"| {w['brand']} | {w['model']} | {w.get('rank') or 'Not ranked'} | {w['driver']}"
-                   f"{' (included in Linux)' if w.get('in_kernel') and 'Linux' not in w['driver'] else ''} | {w.get('notes') or ''} |")
+        drv = w["driver"] or "–"
+        if w.get("driver_url"):
+            name, _, rest = drv.partition(" ")
+            drv = f"[{name}]({w['driver_url']}) {rest}".strip()
+        drv += " (included in Linux)" if w.get("in_kernel") and "Linux" not in drv else ""
+        drv += "" if w.get("in_kernel") else " (community driver)"
+        usb = f"`{w['vid']}:{w['pid']}`" if w.get("vid") and w.get("pid") else "–"
+        notes = w.get("notes") or []
+        notes = [notes] if isinstance(notes, str) else notes
+        notes = notes + [f"[More]({l})" for l in w.get("links") or []]
+        out.append(f"| {w['brand']} | {w['model']} | {usb} | {w.get('rank') or 'Not ranked'} | {drv} | {' '.join(notes)} |")
+    out += ["", "## If a game doesn't see your wheel", "",
+            "Pitwall can fix the two most common causes. Open **Wheel** (or a game's page in the **Game guide**):", "",
+            "1. **Fix wheel and pedal detection**: shown when Linux doesn't class your wheel, pedals or shifter as a joystick, which Steam and Proton need. "
+            "Pitwall adds a udev rule for your wheel's USB ID and reloads udev. Unplug and replug the wheel afterwards.",
+            "2. **Add wheel ID to launch options** (per game): sets `SDL_JOYSTICK_WHEEL_DEVICES` to your wheel's USB ID, so "
+            "Steam's input layer treats it as a wheel even if it isn't on SDL's built-in list. Your other launch options are kept.",
+            "",
+            "Also check that Steam Input is off for the game (Properties → Controller) and that you're on a recent Proton "
+            "(Proton 10 or Experimental). If it still isn't seen, `PROTON_ENABLE_HIDRAW=0xVID/0xPID %command%` is a last resort; "
+            "some Proton versions don't pass force feedback through it.", "",
+            "Logitech G920 and G923 (Xbox): if force feedback lags, lower the game's FFB update rate if it has one. "
+            "Asetek bases that keep reconnecting when idle need the kernel to always poll them (`usbhid.quirks=0xVID:0xPID:0x0400` "
+            "on the kernel command line), which on SteamOS means editing the boot configuration; ask in the community first.", ""]
     return "\n".join(out) + "\n"
 
 

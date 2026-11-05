@@ -31,3 +31,6 @@ First public preview. Not yet tested on real hardware.
 - Fixes: launch options are fetched from Steam when not cached; car profiles re-apply after relaunch; a frozen shared-memory map no longer blocks another sim
 - Track position for Assetto Corsa, AC EVO and ACC, so the track map works there
 - Credits for every project, data source, library, icon set and font (CREDITS.md)
+- Wheel table rebuilt from linux-steering-wheels with every wheel, USB IDs and notes (`scripts/sync_wheels.py`)
+- Wheel and pedal detection: checks whether Linux sees them as joysticks, with a one-tap udev fix and a per-game SDL wheel ID launch option
+- Logitech mice, keyboards and other non-wheel devices are no longer mistaken for wheels

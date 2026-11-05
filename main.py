@@ -367,6 +367,25 @@ class Plugin:
         prefix = bridge.launch_prefix(HOME)
         return bridge.merge_launch_options(current, prefix) if enable else bridge.remove_from_launch_options(current, prefix)
 
+    # ===================================================== wheel detection
+    async def wheel_detection(self) -> dict:
+        """Connected wheel bases and the two detection fixes Pitwall can apply."""
+        def go():
+            devs = health.input_wheels()
+            bases = list({(d["vid"], d["pid"]): d for d in devs}.values())
+            return {"wheels": [{"name": d["name"], "vid": d["vid"], "pid": d["pid"], "joystick": d["joystick"],
+                                "model": (d["known"] or {}).get("model"), "brand": d["brand"]} for d in bases],
+                    "needs_hwdb": any(d["joystick"] is False for d in bases),
+                    "sdl_value": health.sdl_wheel_env(bases)}
+        return await self._run(go)
+
+    async def wheel_detection_fix(self) -> dict:
+        return await self._run(lambda: health.apply_joystick_fix(health.input_wheels()))
+
+    async def wheel_launch_options(self, current: str, enable: bool) -> str:
+        value = health.sdl_wheel_env(health.input_wheels())
+        return health.sdl_launch_options(current, value, enable)
+
     # ===================================================== health / perf
     async def health_check(self) -> list:
         game = None

@@ -59,8 +59,8 @@ function wheels() {
     $("wlist").innerHTML = (ctl ? `<div class="card"><span class="name">Pitwall controls</span><br><span class="meta">${esc(ctl)}</span></div>` : "")
       + W.wheels.filter((w) => w.brand === b).map((w) => `<div class="card"><span class="name">${esc(w.model)}</span>
         <span class="rank ${esc(w.rank || "")}" style="float:right">${esc(w.rank || "Not ranked")}</span><br>
-        <span class="meta">Driver: ${esc(w.driver)}${w.in_kernel && !/Linux/.test(w.driver) ? " (included in Linux)" : ""}</span>
-        ${w.notes ? `<br><span class="meta">${esc(w.notes)}</span>` : ""}</div>`).join("");
+        <span class="meta">Driver: ${w.driver_url ? `<a href="${esc(w.driver_url)}">${esc(w.driver || "")}</a>` : esc(w.driver || "unknown")}${w.in_kernel ? (/Linux/.test(w.driver || "") ? "" : " (included in Linux)") : " (community driver)"}${w.vid && w.pid ? ` · USB ${esc(w.vid)}:${esc(w.pid)}` : ""}</span>
+        ${(Array.isArray(w.notes) ? w.notes : w.notes ? [w.notes] : []).map((n) => `<br><span class="meta">${esc(n)}</span>`).join("")}</div>`).join("");
   };
   $("wbrand").addEventListener("change", render);
   $("wsource").innerHTML = `Support ranks summarised from <a href="${esc(W.source)}">linux-steering-wheels</a> by JacKeTUs and contributors (as of ${esc(W.source_date)}). Platinum is best.`;

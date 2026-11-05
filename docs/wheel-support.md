@@ -12,33 +12,88 @@ Force feedback support by wheel, summarised from the community-tested [linux-ste
 
 ## Support table
 
-| Brand | Model | Support | Driver | Notes |
-|---|---|---|---|---|
-| MOZA | R3 | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| MOZA | R5 | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| MOZA | R9 (v1/v2/v3) | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| MOZA | R12 (v1/v2) | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| MOZA | R16 / R21 (v1/v2) | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| Logitech | G29 | Platinum | hid-logitech; new-lg4ff recommended for full effects (included in Linux) | The default driver lacks most effects; new-lg4ff adds them. |
-| Logitech | G923 (PlayStation) | Platinum | new-lg4ff | Not supported by the default driver. |
-| Logitech | G923 (Xbox) | Silver | hid-logitech-hidpp (included in Linux) | USB command queue errors reported; ffbwrap can help. |
-| Logitech | G920 | Not ranked | hid-logitech-hidpp (included in Linux) | Supported in mainline since Linux 6.3. |
-| Logitech | G25 / G27 / DFGT | Platinum | hid-logitech; new-lg4ff recommended (included in Linux) |  |
-| Fanatec | CSL DD / DD Pro / ClubSport DD | Gold | hid-fanatecff (community module) |  |
-| Fanatec | CSL Elite | Gold | hid-fanatecff (community module) |  |
-| Fanatec | ClubSport V2 / V2.5 | Silver | hid-fanatecff (community module) |  |
-| Fanatec | Podium DD1 / DD2 | Silver | hid-fanatecff (community module) |  |
-| Thrustmaster | T300RS | Gold | hid-tmff2 (community module) |  |
-| Thrustmaster | T248 | Gold | hid-tmff2 (community module) |  |
-| Thrustmaster | TX | Gold | hid-tmff2 (community module) |  |
-| Thrustmaster | T150 / TMX | Not ranked | t150_driver / hid-tminit (community modules) |  |
-| Cammus | C5 / C12 | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| Asetek | Invicta / Forte / La Prima | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Enable 'high torque mode' after power-on. |
-| Simagic | Alpha / Alpha Mini / Alpha Ultimate | Silver | simagic-ff (community module) |  |
-| Simagic | EVO / EVO Sport / EVO Pro | Silver | simagic-ff (community module) |  |
-| Simucube | Simucube 2 Sport / Pro / Ultimate | Silver | hid-pidff (mainline) (included in Linux) | See Granite Devices' Linux setup page. |
-| VRS | DirectForce Pro | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Some units' power saving disables FFB until the wheel is moved. |
-| PXN | V10 / V12 / V12 Lite | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| Turtle Beach | VelocityOne Race | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| FFBeast | Wheel | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
-| OpenFFBoard | (DIY) | Platinum | hid-pidff (mainline) (included in Linux) |  |
+Support ranks: Platinum works fully and is well tested; Gold works but is less tested; Silver is missing some effects or has workarounds; Bronze has major gaps; Broken has no force feedback. Not ranked means nobody has reported it yet.
+
+| Brand | Model | USB ID | Support | Driver | Notes |
+|---|---|---|---|---|---|
+| Asetek | Invicta | `2433:f300` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Switch on high torque mode after power-on. Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line). [More](https://github.com/moonrail/asetek_wheelbase_cli) |
+| Asetek | Forte | `2433:f301` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Switch on high torque mode after power-on. Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line). [More](https://github.com/moonrail/asetek_wheelbase_cli) |
+| Asetek | La Prima | `2433:f303` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Switch on high torque mode after power-on. Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line). [More](https://github.com/moonrail/asetek_wheelbase_cli) |
+| Asetek | Tony Kannan | `2433:f306` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Switch on high torque mode after power-on. Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line). [More](https://github.com/moonrail/asetek_wheelbase_cli) |
+| Cammus | C5 | `3416:0301` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Some games may not detect it as a wheel; see the detection fixes. |
+| Cammus | C12 | `3416:0302` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Some games may not detect it as a wheel; see the detection fixes. |
+| Fanatec | CSL Elite | `0eb7:0e03` | Gold | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | CSL Elite (PS4) | `0eb7:0005` | Gold | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | DD | `0eb7:0020` | Gold | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | DD Pro | `0eb7:0020` | Gold | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | Clubsport DD | `0eb7:0020` | Gold | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | ClubSport Wheel Base V2 | `0eb7:0001` | Silver | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | ClubSport Wheel Base V2.5 | `0eb7:0004` | Silver | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | Podium DD1 | `0eb7:0006` | Silver | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | Podium DD2 | `0eb7:0007` | Silver | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| Fanatec | CSR Elite | `0eb7:0011` | Silver | [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) (community driver) |  |
+| FFBeast | Wheel | `045b:59d7` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| Logitech | MOMO Wheel | `046d:c295` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | DFP | `046d:c298` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | DFGT | `046d:c29a` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | G25 | `046d:c29b` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | G27 | `046d:c29b` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | G29 | `046d:c24f` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (included in Linux) | The stock driver lacks most effects; the new-lg4ff driver adds them. |
+| Logitech | G920 | `046d:c262` | Silver | hid-logitech-hidpp (included in Linux) | Force feedback can lag in some games when the wheel's command queue fills up. Lowering the game's FFB update rate helps; ffbwrap can also help. |
+| Logitech | G923 (Xbox edition) | `046d:c26d` | Silver | hid-logitech-hidpp (included in Linux) | Force feedback can lag in some games when the wheel's command queue fills up. Lowering the game's FFB update rate helps; ffbwrap can also help. |
+| Logitech | G923 (PS edition) | `046d:c267` | Platinum | [hid-logitech](https://github.com/berarma/new-lg4ff) (community driver) | The stock driver doesn't support it; it needs the new-lg4ff driver. |
+| Logitech | G Pro | `046d:c272` | Bronze | [hid-logitech-hidpp](https://github.com/JacKeTUs/hid-logitech-hidpp) (community driver) | The stock driver doesn't support it; it needs a patched hid-logitech-hidpp. Some games may not detect it as a wheel; see the detection fixes. |
+| MOZA | R3 | `346e:0005` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| MOZA | R5 | `346e:0004` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| MOZA | R9 (v1/v2/v3) | `346e:0002` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| MOZA | R12 (v1/v2) | `346e:0006` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| MOZA | R16 (v1/v2) | `346e:0000` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| MOZA | R21 (v1/v2) | `346e:0000` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| OpenFFBoard | (DIY) | `1209:ffb0` | Platinum | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | V10 | `11ff:3245` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | V12 | `11ff:1212` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | V12 Lite | `11ff:1112` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | V12 Lite (SE?) | `11ff:1211` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | VD4 | – | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | VD6 | `36e6:400f` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| PXN | VD10 | – | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| Lite Star | GT987 FF | `11ff:2141` | Gold | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| Simagic | M10 | `0483:0522` | Silver | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| Simagic | Alpha Mini | `0483:0522` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simagic | Alpha | `0483:0522` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simagic | Alpha Ultimate | `0483:0522` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simagic | EVO Sport | `3670:0500` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simagic | EVO | `3670:0501` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simagic | EVO Pro | `3670:0502` | Silver | [simagic-ff](https://github.com/JacKeTUs/simagic-ff) (community driver) | Uses a modified protocol; it needs the simagic-ff driver. |
+| Simucube | Simucube 1 | `16d0:0d5a` | Silver | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Needs a one-time setup; see Granite Devices' Linux guide. [More](https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux) |
+| Simucube | Simucube 2 Sport | `16d0:0d61` | Silver | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Needs a one-time setup; see Granite Devices' Linux guide. [More](https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux) |
+| Simucube | Simucube 2 Pro | `16d0:0d60` | Silver | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Needs a one-time setup; see Granite Devices' Linux guide. [More](https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux) |
+| Simucube | Simucube 2 Ultimate | `16d0:0d5f` | Silver | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Needs a one-time setup; see Granite Devices' Linux guide. [More](https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux) |
+| Simucube | Simucube 3 | – | Not ranked | – (community driver) | Not tested yet; it may work out of the box if it uses the standard HID PID descriptor. |
+| SimXperience | AccuForce Pro | `1fc9:804c` | Platinum | hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| Thrustmaster | Nascar Pro FF2 | `044f:b605` | Not ranked | hid-tmff (included in Linux) |  |
+| Thrustmaster | FGT Rumble Force | `044f:b651` | Not ranked | hid-tmff (included in Linux) |  |
+| Thrustmaster | RGT FF CLUTCH | `044f:b653` | Not ranked | hid-tmff (included in Linux) |  |
+| Thrustmaster | FGT Force Feedback | `044f:b654` | Not ranked | hid-tmff (included in Linux) |  |
+| Thrustmaster | F430 Force Feedback | `044f:b65a` | Not ranked | hid-tmff (included in Linux) |  |
+| Thrustmaster | T248 | `044f:b696` | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | T300RS (PS3 mode) | `044f:b66e` | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | T300RS (PS3 advanced mode) | `044f:b66f` | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | T300RS (PS4 mode) | `044f:b66d` | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | TX | `044f:b669` | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | TS-XV | – | Gold | [hid-tmff2](https://github.com/Kimplul/hid-tmff2) (community driver) |  |
+| Thrustmaster | TMX | `044f:b67f` | Gold | [hid-tminit](https://github.com/NKkrisz/Thrustmaster_TMX_Linux_Driver) (community driver) |  |
+| Turtle Beach | VelocityOne Race | `10f5:7077` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) |  |
+| VRS | DirectForce Pro (including uDFP20, DFP15, DFP20) | `0483:a355` | Platinum | hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates) | Some units save power by disabling force feedback until the wheel is moved a little. Normal, and the same on Windows. Some games may not detect it as a wheel; see the detection fixes. |
+
+## If a game doesn't see your wheel
+
+Pitwall can fix the two most common causes. Open **Wheel** (or a game's page in the **Game guide**):
+
+1. **Fix wheel and pedal detection**: shown when Linux doesn't class your wheel, pedals or shifter as a joystick, which Steam and Proton need. Pitwall adds a udev rule for your wheel's USB ID and reloads udev. Unplug and replug the wheel afterwards.
+2. **Add wheel ID to launch options** (per game): sets `SDL_JOYSTICK_WHEEL_DEVICES` to your wheel's USB ID, so Steam's input layer treats it as a wheel even if it isn't on SDL's built-in list. Your other launch options are kept.
+
+Also check that Steam Input is off for the game (Properties → Controller) and that you're on a recent Proton (Proton 10 or Experimental). If it still isn't seen, `PROTON_ENABLE_HIDRAW=0xVID/0xPID %command%` is a last resort; some Proton versions don't pass force feedback through it.
+
+Logitech G920 and G923 (Xbox): if force feedback lags, lower the game's FFB update rate if it has one. Asetek bases that keep reconnecting when idle need the kernel to always poll them (`usbhid.quirks=0xVID:0xPID:0x0400` on the kernel command line), which on SteamOS means editing the boot configuration; ask in the community first.
+

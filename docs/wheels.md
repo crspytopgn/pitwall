@@ -21,6 +21,10 @@ Pitwall only offers settings whose driver files actually exist, so the same plug
 
 > **SteamOS note:** community kernel drivers (hid-fanatecff, hid-tmff2, new-lg4ff) aren't part of SteamOS and its system partition is read-only, so installing them takes extra work and may need redoing after SteamOS updates. MOZA and basic Logitech support are in the mainline kernel.
 
+## If a game doesn't see your wheel
+
+Pre-race checks tell you whether Linux classes your wheel as a joystick, which Steam and Proton need. If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
+
 ## MOZA
 
 Pitwall talks to MOZA bases with the serial protocol reverse engineered by [Boxflat](https://github.com/Lawstorant/boxflat). Every command Pitwall sends is checked byte for byte against Boxflat's encoder in the test suite.

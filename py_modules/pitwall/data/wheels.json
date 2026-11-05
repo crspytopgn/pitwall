@@ -1,5 +1,5 @@
 {
-  "_about": "Wheel force feedback support on Linux. Ranks (Platinum best) and drivers summarised from the community-tested table at linux-steering-wheels; Pitwall control support from Pitwall's own drivers.",
+  "_about": "Wheel force feedback support on Linux. Ranks, drivers and Proton notes are summarised from the community-tested table at linux-steering-wheels by JacKeTUs and contributors (regenerate with scripts/sync_wheels.py). Notes, fixes and control support are Pitwall's own.",
   "source": "https://github.com/JacKeTUs/linux-steering-wheels",
   "source_date": "2026-09-22",
   "pitwall_control": {
@@ -10,114 +10,124 @@
   },
   "wheels": [
     {
-      "brand": "MOZA",
-      "model": "R3",
-      "vid": "346e",
-      "pid": "0005",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "MOZA",
-      "model": "R5",
-      "vid": "346e",
-      "pid": "0004",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "MOZA",
-      "model": "R9 (v1/v2/v3)",
-      "vid": "346e",
-      "pid": "0002",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "MOZA",
-      "model": "R12 (v1/v2)",
-      "vid": "346e",
-      "pid": "0006",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "MOZA",
-      "model": "R16 / R21 (v1/v2)",
-      "vid": "346e",
-      "pid": "0000",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "Logitech",
-      "model": "G29",
-      "vid": "046d",
-      "pid": "c24f",
-      "rank": "Platinum",
-      "driver": "hid-logitech; new-lg4ff recommended for full effects",
-      "in_kernel": true,
-      "notes": "The default driver lacks most effects; new-lg4ff adds them."
-    },
-    {
-      "brand": "Logitech",
-      "model": "G923 (PlayStation)",
-      "vid": "046d",
-      "pid": "c267",
-      "rank": "Platinum",
-      "driver": "new-lg4ff",
-      "in_kernel": false,
-      "notes": "Not supported by the default driver."
-    },
-    {
-      "brand": "Logitech",
-      "model": "G923 (Xbox)",
-      "vid": "046d",
-      "pid": "c26d",
-      "rank": "Silver",
-      "driver": "hid-logitech-hidpp",
-      "in_kernel": true,
-      "notes": "USB command queue errors reported; ffbwrap can help."
-    },
-    {
-      "brand": "Logitech",
-      "model": "G920",
-      "vid": "046d",
-      "pid": "c262",
-      "rank": null,
-      "driver": "hid-logitech-hidpp",
-      "in_kernel": true,
-      "notes": "Supported in mainline since Linux 6.3."
-    },
-    {
-      "brand": "Logitech",
-      "model": "G25 / G27 / DFGT",
-      "vid": "046d",
-      "pid": "c29b",
-      "rank": "Platinum",
-      "driver": "hid-logitech; new-lg4ff recommended",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "Fanatec",
-      "model": "CSL DD / DD Pro / ClubSport DD",
-      "vid": "0eb7",
-      "pid": "0020",
+      "brand": "Asetek",
+      "model": "Invicta",
+      "vid": "2433",
+      "pid": "f300",
       "rank": "Gold",
-      "driver": "hid-fanatecff (community module)",
-      "in_kernel": false,
-      "notes": null
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Switch on high torque mode after power-on.",
+        "Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line)."
+      ],
+      "fixes": [
+        "always_poll"
+      ],
+      "driver_url": null,
+      "links": [
+        "https://github.com/moonrail/asetek_wheelbase_cli"
+      ]
+    },
+    {
+      "brand": "Asetek",
+      "model": "Forte",
+      "vid": "2433",
+      "pid": "f301",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Switch on high torque mode after power-on.",
+        "Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line)."
+      ],
+      "fixes": [
+        "always_poll"
+      ],
+      "driver_url": null,
+      "links": [
+        "https://github.com/moonrail/asetek_wheelbase_cli"
+      ]
+    },
+    {
+      "brand": "Asetek",
+      "model": "La Prima",
+      "vid": "2433",
+      "pid": "f303",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Switch on high torque mode after power-on.",
+        "Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line)."
+      ],
+      "fixes": [
+        "always_poll"
+      ],
+      "driver_url": null,
+      "links": [
+        "https://github.com/moonrail/asetek_wheelbase_cli"
+      ]
+    },
+    {
+      "brand": "Asetek",
+      "model": "Tony Kannan",
+      "vid": "2433",
+      "pid": "f306",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Switch on high torque mode after power-on.",
+        "Can keep reconnecting when idle unless the kernel always polls it (a usbhid quirk on the kernel command line)."
+      ],
+      "fixes": [
+        "always_poll"
+      ],
+      "driver_url": null,
+      "links": [
+        "https://github.com/moonrail/asetek_wheelbase_cli"
+      ]
+    },
+    {
+      "brand": "Cammus",
+      "model": "C5",
+      "vid": "3416",
+      "pid": "0301",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Some games may not detect it as a wheel; see the detection fixes."
+      ],
+      "fixes": [
+        "detection"
+      ],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Cammus",
+      "model": "C12",
+      "vid": "3416",
+      "pid": "0302",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Some games may not detect it as a wheel; see the detection fixes."
+      ],
+      "fixes": [
+        "detection"
+      ],
+      "driver_url": null,
+      "links": []
     },
     {
       "brand": "Fanatec",
@@ -125,149 +135,139 @@
       "vid": "0eb7",
       "pid": "0e03",
       "rank": "Gold",
-      "driver": "hid-fanatecff (community module)",
+      "driver": "hid-fanatecff",
       "in_kernel": false,
-      "notes": null
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
     },
     {
       "brand": "Fanatec",
-      "model": "ClubSport V2 / V2.5",
+      "model": "CSL Elite (PS4)",
+      "vid": "0eb7",
+      "pid": "0005",
+      "rank": "Gold",
+      "driver": "hid-fanatecff",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
+    },
+    {
+      "brand": "Fanatec",
+      "model": "DD",
+      "vid": "0eb7",
+      "pid": "0020",
+      "rank": "Gold",
+      "driver": "hid-fanatecff",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
+    },
+    {
+      "brand": "Fanatec",
+      "model": "DD Pro",
+      "vid": "0eb7",
+      "pid": "0020",
+      "rank": "Gold",
+      "driver": "hid-fanatecff",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
+    },
+    {
+      "brand": "Fanatec",
+      "model": "Clubsport DD",
+      "vid": "0eb7",
+      "pid": "0020",
+      "rank": "Gold",
+      "driver": "hid-fanatecff",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
+    },
+    {
+      "brand": "Fanatec",
+      "model": "ClubSport Wheel Base V2",
       "vid": "0eb7",
       "pid": "0001",
       "rank": "Silver",
-      "driver": "hid-fanatecff (community module)",
+      "driver": "hid-fanatecff",
       "in_kernel": false,
-      "notes": null
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
     },
     {
       "brand": "Fanatec",
-      "model": "Podium DD1 / DD2",
+      "model": "ClubSport Wheel Base V2.5",
+      "vid": "0eb7",
+      "pid": "0004",
+      "rank": "Silver",
+      "driver": "hid-fanatecff",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
+    },
+    {
+      "brand": "Fanatec",
+      "model": "Podium DD1",
       "vid": "0eb7",
       "pid": "0006",
       "rank": "Silver",
-      "driver": "hid-fanatecff (community module)",
+      "driver": "hid-fanatecff",
       "in_kernel": false,
-      "notes": null
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
     },
     {
-      "brand": "Thrustmaster",
-      "model": "T300RS",
-      "vid": "044f",
-      "pid": "b66e",
-      "rank": "Gold",
-      "driver": "hid-tmff2 (community module)",
-      "in_kernel": false,
-      "notes": null
-    },
-    {
-      "brand": "Thrustmaster",
-      "model": "T248",
-      "vid": "044f",
-      "pid": "b696",
-      "rank": "Gold",
-      "driver": "hid-tmff2 (community module)",
-      "in_kernel": false,
-      "notes": null
-    },
-    {
-      "brand": "Thrustmaster",
-      "model": "TX",
-      "vid": "044f",
-      "pid": "b669",
-      "rank": "Gold",
-      "driver": "hid-tmff2 (community module)",
-      "in_kernel": false,
-      "notes": null
-    },
-    {
-      "brand": "Thrustmaster",
-      "model": "T150 / TMX",
-      "vid": "044f",
-      "pid": null,
-      "rank": null,
-      "driver": "t150_driver / hid-tminit (community modules)",
-      "in_kernel": false,
-      "notes": null
-    },
-    {
-      "brand": "Cammus",
-      "model": "C5 / C12",
-      "vid": "3416",
-      "pid": "0301",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "Asetek",
-      "model": "Invicta / Forte / La Prima",
-      "vid": "2433",
-      "pid": "f300",
-      "rank": "Gold",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": "Enable 'high torque mode' after power-on."
-    },
-    {
-      "brand": "Simagic",
-      "model": "Alpha / Alpha Mini / Alpha Ultimate",
-      "vid": "0483",
-      "pid": "0522",
+      "brand": "Fanatec",
+      "model": "Podium DD2",
+      "vid": "0eb7",
+      "pid": "0007",
       "rank": "Silver",
-      "driver": "simagic-ff (community module)",
+      "driver": "hid-fanatecff",
       "in_kernel": false,
-      "notes": null
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
     },
     {
-      "brand": "Simagic",
-      "model": "EVO / EVO Sport / EVO Pro",
-      "vid": "3670",
-      "pid": "0500",
+      "brand": "Fanatec",
+      "model": "CSR Elite",
+      "vid": "0eb7",
+      "pid": "0011",
       "rank": "Silver",
-      "driver": "simagic-ff (community module)",
+      "driver": "hid-fanatecff",
       "in_kernel": false,
-      "notes": null
-    },
-    {
-      "brand": "Simucube",
-      "model": "Simucube 2 Sport / Pro / Ultimate",
-      "vid": "16d0",
-      "pid": "0d61",
-      "rank": "Silver",
-      "driver": "hid-pidff (mainline)",
-      "in_kernel": true,
-      "notes": "See Granite Devices' Linux setup page."
-    },
-    {
-      "brand": "VRS",
-      "model": "DirectForce Pro",
-      "vid": "0483",
-      "pid": "a355",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": "Some units' power saving disables FFB until the wheel is moved."
-    },
-    {
-      "brand": "PXN",
-      "model": "V10 / V12 / V12 Lite",
-      "vid": "11ff",
-      "pid": "3245",
-      "rank": "Gold",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
-    },
-    {
-      "brand": "Turtle Beach",
-      "model": "VelocityOne Race",
-      "vid": "10f5",
-      "pid": "7077",
-      "rank": "Platinum",
-      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
-      "in_kernel": true,
-      "notes": null
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/gotzl/hid-fanatecff",
+      "links": []
     },
     {
       "brand": "FFBeast",
@@ -277,7 +277,262 @@
       "rank": "Platinum",
       "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
       "in_kernel": true,
-      "notes": null
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "MOMO Wheel",
+      "vid": "046d",
+      "pid": "c295",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "DFP",
+      "vid": "046d",
+      "pid": "c298",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "DFGT",
+      "vid": "046d",
+      "pid": "c29a",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G25",
+      "vid": "046d",
+      "pid": "c29b",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G27",
+      "vid": "046d",
+      "pid": "c29b",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G29",
+      "vid": "046d",
+      "pid": "c24f",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "The stock driver lacks most effects; the new-lg4ff driver adds them."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G920",
+      "vid": "046d",
+      "pid": "c262",
+      "rank": "Silver",
+      "driver": "hid-logitech-hidpp",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Force feedback can lag in some games when the wheel's command queue fills up. Lowering the game's FFB update rate helps; ffbwrap can also help."
+      ],
+      "fixes": [
+        "queue_full"
+      ],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G923 (Xbox edition)",
+      "vid": "046d",
+      "pid": "c26d",
+      "rank": "Silver",
+      "driver": "hid-logitech-hidpp",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Force feedback can lag in some games when the wheel's command queue fills up. Lowering the game's FFB update rate helps; ffbwrap can also help."
+      ],
+      "fixes": [
+        "queue_full"
+      ],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G923 (PS edition)",
+      "vid": "046d",
+      "pid": "c267",
+      "rank": "Platinum",
+      "driver": "hid-logitech",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "The stock driver doesn't support it; it needs the new-lg4ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/berarma/new-lg4ff",
+      "links": []
+    },
+    {
+      "brand": "Logitech",
+      "model": "G Pro",
+      "vid": "046d",
+      "pid": "c272",
+      "rank": "Bronze",
+      "driver": "hid-logitech-hidpp",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "The stock driver doesn't support it; it needs a patched hid-logitech-hidpp.",
+        "Some games may not detect it as a wheel; see the detection fixes."
+      ],
+      "fixes": [
+        "detection"
+      ],
+      "driver_url": "https://github.com/JacKeTUs/hid-logitech-hidpp",
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R3",
+      "vid": "346e",
+      "pid": "0005",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R5",
+      "vid": "346e",
+      "pid": "0004",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R9 (v1/v2/v3)",
+      "vid": "346e",
+      "pid": "0002",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R12 (v1/v2)",
+      "vid": "346e",
+      "pid": "0006",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R16 (v1/v2)",
+      "vid": "346e",
+      "pid": "0000",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "MOZA",
+      "model": "R21 (v1/v2)",
+      "vid": "346e",
+      "pid": "0000",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
     },
     {
       "brand": "OpenFFBoard",
@@ -285,9 +540,538 @@
       "vid": "1209",
       "pid": "ffb0",
       "rank": "Platinum",
-      "driver": "hid-pidff (mainline)",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
       "in_kernel": true,
-      "notes": null
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "V10",
+      "vid": "11ff",
+      "pid": "3245",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "V12",
+      "vid": "11ff",
+      "pid": "1212",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "V12 Lite",
+      "vid": "11ff",
+      "pid": "1112",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "V12 Lite (SE?)",
+      "vid": "11ff",
+      "pid": "1211",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "VD4",
+      "vid": null,
+      "pid": null,
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "VD6",
+      "vid": "36e6",
+      "pid": "400f",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "PXN",
+      "model": "VD10",
+      "vid": null,
+      "pid": null,
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Lite Star",
+      "model": "GT987 FF",
+      "vid": "11ff",
+      "pid": "2141",
+      "rank": "Gold",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "M10",
+      "vid": "0483",
+      "pid": "0522",
+      "rank": "Silver",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "Alpha Mini",
+      "vid": "0483",
+      "pid": "0522",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "Alpha",
+      "vid": "0483",
+      "pid": "0522",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "Alpha Ultimate",
+      "vid": "0483",
+      "pid": "0522",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "EVO Sport",
+      "vid": "3670",
+      "pid": "0500",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "EVO",
+      "vid": "3670",
+      "pid": "0501",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simagic",
+      "model": "EVO Pro",
+      "vid": "3670",
+      "pid": "0502",
+      "rank": "Silver",
+      "driver": "simagic-ff",
+      "in_kernel": false,
+      "proton": "Works",
+      "notes": [
+        "Uses a modified protocol; it needs the simagic-ff driver."
+      ],
+      "fixes": [],
+      "driver_url": "https://github.com/JacKeTUs/simagic-ff",
+      "links": []
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 1",
+      "vid": "16d0",
+      "pid": "0d5a",
+      "rank": "Silver",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Needs a one-time setup; see Granite Devices' Linux guide."
+      ],
+      "fixes": [],
+      "driver_url": null,
+      "links": [
+        "https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux"
+      ]
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 2 Sport",
+      "vid": "16d0",
+      "pid": "0d61",
+      "rank": "Silver",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Needs a one-time setup; see Granite Devices' Linux guide."
+      ],
+      "fixes": [],
+      "driver_url": null,
+      "links": [
+        "https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux"
+      ]
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 2 Pro",
+      "vid": "16d0",
+      "pid": "0d60",
+      "rank": "Silver",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Needs a one-time setup; see Granite Devices' Linux guide."
+      ],
+      "fixes": [],
+      "driver_url": null,
+      "links": [
+        "https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux"
+      ]
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 2 Ultimate",
+      "vid": "16d0",
+      "pid": "0d5f",
+      "rank": "Silver",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Needs a one-time setup; see Granite Devices' Linux guide."
+      ],
+      "fixes": [],
+      "driver_url": null,
+      "links": [
+        "https://granitedevices.com/wiki/Using_Simucube_wheel_base_in_Linux"
+      ]
+    },
+    {
+      "brand": "Simucube",
+      "model": "Simucube 3",
+      "vid": null,
+      "pid": null,
+      "rank": null,
+      "driver": null,
+      "in_kernel": false,
+      "proton": null,
+      "notes": [
+        "Not tested yet; it may work out of the box if it uses the standard HID PID descriptor."
+      ],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "SimXperience",
+      "model": "AccuForce Pro",
+      "vid": "1fc9",
+      "pid": "804c",
+      "rank": "Platinum",
+      "driver": "hid-pidff (full support in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "Nascar Pro FF2",
+      "vid": "044f",
+      "pid": "b605",
+      "rank": null,
+      "driver": "hid-tmff",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "FGT Rumble Force",
+      "vid": "044f",
+      "pid": "b651",
+      "rank": null,
+      "driver": "hid-tmff",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "RGT FF CLUTCH",
+      "vid": "044f",
+      "pid": "b653",
+      "rank": null,
+      "driver": "hid-tmff",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "FGT Force Feedback",
+      "vid": "044f",
+      "pid": "b654",
+      "rank": null,
+      "driver": "hid-tmff",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "F430 Force Feedback",
+      "vid": "044f",
+      "pid": "b65a",
+      "rank": null,
+      "driver": "hid-tmff",
+      "in_kernel": true,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T248",
+      "vid": "044f",
+      "pid": "b696",
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T300RS (PS3 mode)",
+      "vid": "044f",
+      "pid": "b66e",
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T300RS (PS3 advanced mode)",
+      "vid": "044f",
+      "pid": "b66f",
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "T300RS (PS4 mode)",
+      "vid": "044f",
+      "pid": "b66d",
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "TX",
+      "vid": "044f",
+      "pid": "b669",
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "TS-XV",
+      "vid": "044f",
+      "pid": null,
+      "rank": "Gold",
+      "driver": "hid-tmff2",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/Kimplul/hid-tmff2",
+      "links": []
+    },
+    {
+      "brand": "Thrustmaster",
+      "model": "TMX",
+      "vid": "044f",
+      "pid": "b67f",
+      "rank": "Gold",
+      "driver": "hid-tminit",
+      "in_kernel": false,
+      "proton": null,
+      "notes": [],
+      "fixes": [],
+      "driver_url": "https://github.com/NKkrisz/Thrustmaster_TMX_Linux_Driver",
+      "links": []
+    },
+    {
+      "brand": "Turtle Beach",
+      "model": "VelocityOne Race",
+      "vid": "10f5",
+      "pid": "7077",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [],
+      "fixes": [],
+      "driver_url": null,
+      "links": []
+    },
+    {
+      "brand": "VRS",
+      "model": "DirectForce Pro (including uDFP20, DFP15, DFP20)",
+      "vid": "0483",
+      "pid": "a355",
+      "rank": "Platinum",
+      "driver": "hid-universal-pidff (in Linux 6.15+, and the 6.12.24+, 6.13.12+, 6.14.3+ updates)",
+      "in_kernel": true,
+      "proton": "Works",
+      "notes": [
+        "Some units save power by disabling force feedback until the wheel is moved a little. Normal, and the same on Windows.",
+        "Some games may not detect it as a wheel; see the detection fixes."
+      ],
+      "fixes": [
+        "detection"
+      ],
+      "driver_url": null,
+      "links": []
     }
   ]
 }

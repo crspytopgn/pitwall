@@ -16,16 +16,41 @@ try:
 except (OSError, ValueError):
     WHEEL_DB = {"wheels": []}
 
-WHEEL_VENDORS = {w["vid"]: w["brand"] for w in WHEEL_DB["wheels"] if w.get("vid")}
-WHEEL_VENDORS["0483"] = "Simagic / VRS"        # shared STM32 vendor id
+# Vendor IDs that only make sim racing hardware. Anything else (Logitech, Thrustmaster,
+# STMicro's shared 0483, PXN's 11ff) also makes mice, keyboards or gamepads, so those
+# count as wheels only when the exact product ID is in the table.
+WHEEL_ONLY_VENDORS = {"346e": "MOZA", "0eb7": "Fanatec", "2433": "Asetek", "3416": "Cammus", "3670": "Simagic"}
+_BY_ID: dict[tuple, list] = {}
+for _w in WHEEL_DB["wheels"]:
+    if _w.get("vid") and _w.get("pid"):
+        _BY_ID.setdefault((_w["vid"], _w["pid"]), []).append(_w)
 
 
 def identify(vid: str, pid: str) -> dict | None:
-    """Look a wheel up in the community-tested support table."""
-    for w in WHEEL_DB["wheels"]:
-        if w.get("vid") == vid and w.get("pid") == pid:
-            return w
-    return None
+    """Look a wheel up in the community-tested support table. Some bases share a
+    USB ID (MOZA R16 and R21, several Simagic and Fanatec bases), so matches are
+    merged: 'R16 (v1/v2) / R21 (v1/v2)'."""
+    rows = _BY_ID.get(((vid or "").lower(), (pid or "").lower()))
+    if not rows:
+        return None
+    if len(rows) == 1:
+        return rows[0]
+    w = dict(rows[0])
+    w["model"] = " / ".join(r["model"] for r in rows)
+    ranks = ["Platinum", "Gold", "Silver", "Bronze", "Broken"]
+    known = [r["rank"] for r in rows if r.get("rank") in ranks]
+    w["rank"] = max(known, key=ranks.index) if known else None      # the most cautious rank
+    w["notes"] = list(dict.fromkeys(n for r in rows for n in (r.get("notes") or [])))
+    w["fixes"] = list(dict.fromkeys(f for r in rows for f in (r.get("fixes") or [])))
+    return w
+
+
+def wheel_brand(vid: str, pid: str) -> str | None:
+    """Brand if this USB device is a wheel base we know, else None."""
+    k = identify(vid, pid)
+    if k:
+        return k["brand"]
+    return WHEEL_ONLY_VENDORS.get((vid or "").lower())
 
 
 def kernel_has_universal_pidff(release: str | None = None, root: str = "/") -> bool:
@@ -63,21 +88,80 @@ def _read(p):
         return None
 
 
-def input_wheels() -> list[dict]:
-    """Input devices from known wheel vendors, with whether they accept force feedback."""
+def _udev_props(ev_dir: str, root: str = "/") -> dict | None:
+    """udev's properties for an input event node (from /run/udev/data), or None."""
+    devnum = _read(os.path.join(ev_dir, "dev"))
+    if not devnum:
+        return None
+    data = _read(os.path.join(root, "run/udev/data", f"c{devnum}"))
+    if data is None:
+        return None
+    return dict(l[2:].split("=", 1) for l in data.splitlines() if l.startswith("E:") and "=" in l)
+
+
+def input_wheels(root: str = "/") -> list[dict]:
+    """Wheel bases among the input devices, with whether they accept force feedback
+    and whether Linux classes them as a joystick (what Steam and Proton look for)."""
     out = []
-    for ev in sorted(glob.glob("/sys/class/input/event*")):
+    for ev in sorted(glob.glob(os.path.join(root, "sys/class/input/event*"))):
         dev = os.path.join(ev, "device")
         vendor = (_read(os.path.join(dev, "id/vendor")) or "").lower()
-        if vendor not in WHEEL_VENDORS:
+        product = (_read(os.path.join(dev, "id/product")) or "").lower()
+        brand = wheel_brand(vendor, product)
+        if not brand:
             continue
         ff = _read(os.path.join(dev, "capabilities/ff")) or "0"
-        name = _read(os.path.join(dev, "name")) or "?"
-        product = (_read(os.path.join(dev, "id/product")) or "").lower()
-        out.append({"event": os.path.basename(ev), "name": name, "brand": WHEEL_VENDORS[vendor],
-                    "vid": vendor, "pid": product, "known": identify(vendor, product),
-                    "ffb": any(c not in "0 " for c in ff)})
+        props = _udev_props(ev, root)
+        out.append({"event": os.path.basename(ev), "name": _read(os.path.join(dev, "name")) or "?",
+                    "brand": brand, "vid": vendor, "pid": product, "known": identify(vendor, product),
+                    "ffb": any(c not in "0 " for c in ff),
+                    "joystick": None if props is None else props.get("ID_INPUT_JOYSTICK") == "1"})
     return out
+
+
+HWDB_PATH = "/etc/udev/hwdb.d/99-pitwall-wheels.hwdb"
+
+
+def hwdb_entry(vid: str, pid: str, name: str = "") -> str:
+    """A udev hwdb entry that makes Linux class a device as a joystick (and not an
+    accelerometer, which 3-axis pedals can be mistaken for)."""
+    return (f"# {name or 'wheel'} (added by Pitwall)\n"
+            f"id-input:modalias:input:*v{vid.upper()}p{pid.upper()}*\n"
+            " ID_INPUT_ACCELEROMETER=0\n ID_INPUT_JOYSTICK=1\n")
+
+
+def apply_joystick_fix(devs: list[dict], path: str = HWDB_PATH, run=None) -> dict:
+    """Add hwdb entries for wheels Linux doesn't class as joysticks, then reload udev.
+    Keeps existing entries; safe to run twice."""
+    import subprocess
+    run = run or (lambda cmd: subprocess.run(cmd, capture_output=True, timeout=30))
+    todo = [d for d in devs if d.get("joystick") is False]
+    if not todo:
+        return {"ok": True, "changed": False, "message": "Nothing to fix: your wheel is already seen as a joystick."}
+    try:
+        cur = open(path).read() if os.path.exists(path) else ""
+    except OSError:
+        cur = ""
+    add = "".join(hwdb_entry(d["vid"], d["pid"], d["name"]) for d in todo
+                  if f"v{d['vid'].upper()}p{d['pid'].upper()}" not in cur)
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if add:
+            with open(path, "a") as f:
+                f.write(("\n" if cur and not cur.endswith("\n") else "") + add)
+        run(["systemd-hwdb", "update"])
+        run(["udevadm", "trigger", "--subsystem-match=input"])
+    except OSError as e:
+        return {"ok": False, "changed": False, "message": f"Couldn't write {path}: {e.strerror}"}
+    return {"ok": True, "changed": bool(add),
+            "message": "Done. Unplug the wheel and plug it back in, then restart the game."}
+
+
+def sdl_wheel_env(devs: list[dict]) -> str:
+    """SDL_JOYSTICK_WHEEL_DEVICES value naming the connected wheels, so SDL (and so
+    Steam and Proton) treat them as wheels even if they're not on SDL's built-in list."""
+    ids = list(dict.fromkeys(f"0x{d['vid']}/0x{d['pid']}" for d in devs if d.get("vid") and d.get("pid")))
+    return ",".join(ids)
 
 
 def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | None = None) -> list[dict]:
@@ -91,8 +175,8 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     if wheel:
         add("wheel", True, f"{wheel.name} connected")
     else:
-        add("wheel", False, "No supported wheel found for settings",
-            "MOZA and Logitech are supported for settings. Check the USB cable and power.")
+        add("wheel", False, "No wheel found for settings",
+            "Pitwall controls MOZA, Logitech, Fanatec and Thrustmaster settings. Check the USB cable and power.")
 
     # Force feedback available to games
     devs = input_wheels()
@@ -105,12 +189,16 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
             need = known["driver"]
             extra = ""
             if "universal-pidff" in need and not kernel_has_universal_pidff():
-                extra = f" Your kernel ({platform.release()}) is older than that: update SteamOS."
+                extra = (f" It isn't in your kernel ({platform.release()}): update SteamOS, or install it with "
+                         "the universal-pidff project's SteamOS script.")
+            elif known.get("driver_url") and not known.get("in_kernel"):
+                extra = f" It isn't part of SteamOS: {known['driver_url']}"
             add("ffb", False, f"{known['brand']} {known['model']} found but no force feedback",
                 f"It needs {need}.{extra}")
         else:
-            add("ffb", False, "Wheel found but no force feedback",
-                "The kernel driver isn't providing FFB. Check SteamOS is up to date.")
+            add("ffb", False, "Sim racing device found, but no force feedback",
+                f"Seen: {', '.join(sorted({d['name'] for d in devs}))}. If one of these is your wheel base, "
+                "its kernel driver isn't providing force feedback; check SteamOS is up to date.")
     else:
         add("ffb", None, "No wheel input device seen", "Plug in the wheel, or it may use an unsupported brand.")
 
@@ -119,8 +207,17 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     for d in devs:
         k = d.get("known")
         if k:
+            notes = k.get("notes") or []
+            if isinstance(notes, str):
+                notes = [notes]
             add(f"model:{d['event']}", None, f"{k['brand']} {k['model']}: {k.get('rank') or 'untested'} support on Linux",
-                (k.get("notes") or "") + f" Source: {WHEEL_DB.get('source', '')}")
+                " ".join(notes + [f"Source: {WHEEL_DB.get('source', '')}"]))
+    not_joy = [d for d in devs if d.get("joystick") is False]
+    if not_joy:
+        add("joystick", False, "Linux doesn't see " + ", ".join(sorted({d['name'] for d in not_joy})) + " as a joystick",
+            "Steam and games may ignore it. Open Wheel, press Fix wheel and pedal detection, then unplug and replug the wheel.")
+    elif any(d.get("joystick") for d in devs):
+        add("joystick", True, "Wheel and pedals are visible to games as joysticks")
 
     # Telemetry
     if hub:
@@ -152,3 +249,18 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     else:
         add("mangohud", None, "MangoHud not found", "Performance benchmarks need MangoHud.")
     return res
+
+
+SDL_VAR = "SDL_JOYSTICK_WHEEL_DEVICES"
+
+
+def sdl_launch_options(current: str, value: str, enable: bool) -> str:
+    """Add, update or remove SDL_JOYSTICK_WHEEL_DEVICES at the start of a game's
+    launch options, keeping everything else the user (or Pitwall's bridge) set."""
+    cur = (current or "").strip()
+    cur = re.sub(rf"(^|\s){SDL_VAR}=\S+\s*", r"\1", cur).strip()
+    if not enable or not value:
+        return "" if cur == "%command%" else cur
+    if "%command%" not in cur:
+        cur = f"%command% {cur}".strip()
+    return f"{SDL_VAR}={value} {cur}"

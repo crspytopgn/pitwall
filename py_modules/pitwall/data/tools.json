@@ -5,7 +5,17 @@
     {
       "name": "Sim Racing on Linux",
       "url": "https://simracingonlinux.com/",
-      "what": "Community site and Discord for help and setups."
+      "what": "Community hub: Discord, Matrix chat, Reddit and a wiki for help with setups."
+    },
+    {
+      "name": "r/simracingonlinux",
+      "url": "https://www.reddit.com/r/simracingonlinux/",
+      "what": "Reddit community for Linux sim racing questions and setups."
+    },
+    {
+      "name": "SROL community racing",
+      "url": "https://acsm.simracingonlinux.com",
+      "what": "Sim Racing on Linux's own Assetto Corsa server, with live timing."
     },
     {
       "name": "awesome-linux-simracing",
@@ -102,6 +112,20 @@
       "category": "Launcher",
       "what": "Guide to running Assetto Corsa's Content Manager under Proton.",
       "steamos": "Proton."
+    },
+    {
+      "name": "SimMonitor",
+      "url": "https://github.com/Spacefreak18/simmonitor",
+      "category": "Dashboards",
+      "what": "Telemetry dashboards in the terminal, a web browser or on a small screen, by the author of Monocoque.",
+      "steamos": "Desktop Mode; Pitwall's phone dashboard covers the same need in Gaming Mode."
+    },
+    {
+      "name": "simracing-hwdb",
+      "url": "https://github.com/JacKeTUs/simracing-hwdb",
+      "category": "Devices",
+      "what": "Community collection of udev hwdb entries so wheels, pedals and shifters are seen as joysticks.",
+      "steamos": "Pitwall's Fix wheel and pedal detection writes an equivalent entry for the devices you have plugged in."
     }
   ],
   "license": "CC BY-SA 4.0, adapted from awesome-linux-simracing by Lukas Lichten and contributors"

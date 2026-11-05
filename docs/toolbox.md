@@ -5,7 +5,9 @@ Other tools worth knowing, curated from [awesome-linux-simracing](https://github
 
 ## Community
 
-- **[Sim Racing on Linux](https://simracingonlinux.com/)**: Community site and Discord for help and setups.
+- **[Sim Racing on Linux](https://simracingonlinux.com/)**: Community hub: Discord, Matrix chat, Reddit and a wiki for help with setups.
+- **[r/simracingonlinux](https://www.reddit.com/r/simracingonlinux/)**: Reddit community for Linux sim racing questions and setups.
+- **[SROL community racing](https://acsm.simracingonlinux.com)**: Sim Racing on Linux's own Assetto Corsa server, with live timing.
 - **[awesome-linux-simracing](https://github.com/LukasLichten/awesome-linux-simracing)**: Community index of Linux sim racing software.
 - **[linux-steering-wheels](https://github.com/JacKeTUs/linux-steering-wheels)**: Tested force feedback support table for wheels on Linux.
 
@@ -31,6 +33,7 @@ Other tools worth knowing, curated from [awesome-linux-simracing](https://github
 ## Dashboards
 
 - **[simlcd / gilles](https://github.com/Spacefreak18/simlcd)**: Dashboards and overlays from telemetry. *SteamOS: Builds from source.*
+- **[SimMonitor](https://github.com/Spacefreak18/simmonitor)**: Telemetry dashboards in the terminal, a web browser or on a small screen, by the author of Monocoque. *SteamOS: Desktop Mode; Pitwall's phone dashboard covers the same need in Gaming Mode.*
 
 ## Spotter
 
@@ -43,6 +46,7 @@ Other tools worth knowing, curated from [awesome-linux-simracing](https://github
 ## Devices
 
 - **[protopedal](https://gitlab.com/openirseny/protopedal)**: Virtual devices to merge or fix pedals and wheels that games don't detect properly. *SteamOS: Advanced.*
+- **[simracing-hwdb](https://github.com/JacKeTUs/simracing-hwdb)**: Community collection of udev hwdb entries so wheels, pedals and shifters are seen as joysticks. *SteamOS: Pitwall's Fix wheel and pedal detection writes an equivalent entry for the devices you have plugged in.*
 
 ## Launcher
 

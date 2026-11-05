@@ -542,6 +542,46 @@ class TestWheelDb(unittest.TestCase):
     def test_identify_and_kernel(self):
         self.assertEqual(health.identify("346e", "0005")["model"], "R3")
         self.assertIsNone(health.identify("dead", "beef"))
+        both = health.identify("346e", "0000")                       # R16 and R21 share an ID
+        self.assertIn("R16", both["model"]); self.assertIn("R21", both["model"])
+        self.assertEqual(health.wheel_brand("346e", "9999"), "MOZA")   # MOZA-only vendor
+        self.assertIsNone(health.wheel_brand("046d", "c52b"))          # a Logitech receiver isn't a wheel
+        self.assertIsNone(health.wheel_brand("0483", "5740"))          # nor any STM32 device
+        self.assertEqual(health.wheel_brand("0483", "a355"), "VRS")
+
+    def test_wheel_detection_fixes(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as root:
+            ev = os.path.join(root, "sys/class/input/event7")
+            os.makedirs(os.path.join(ev, "device/id")); os.makedirs(os.path.join(ev, "device/capabilities"))
+            for k, v in (("device/id/vendor", "346e"), ("device/id/product", "0005"), ("device/name", "Gudsen MOZA R3 Base"),
+                         ("device/capabilities/ff", "107030000 0"), ("dev", "13:71")):
+                open(os.path.join(ev, k), "w").write(v + "\n")
+            os.makedirs(os.path.join(root, "run/udev/data"))
+            open(os.path.join(root, "run/udev/data/c13:71"), "w").write("E:ID_INPUT=1\nE:ID_INPUT_ACCELEROMETER=1\n")
+            devs = health.input_wheels(root)
+            self.assertEqual(len(devs), 1)
+            self.assertTrue(devs[0]["ffb"]); self.assertIs(devs[0]["joystick"], False)
+            self.assertEqual(devs[0]["known"]["model"], "R3")
+            calls = []
+            path = os.path.join(root, "etc/udev/hwdb.d/99-pitwall-wheels.hwdb")
+            r = health.apply_joystick_fix(devs, path, run=calls.append)
+            self.assertTrue(r["ok"] and r["changed"])
+            text = open(path).read()
+            self.assertIn("id-input:modalias:input:*v346Ep0005*", text)
+            self.assertIn(" ID_INPUT_JOYSTICK=1", text)
+            self.assertEqual(calls[0], ["systemd-hwdb", "update"])
+            self.assertFalse(health.apply_joystick_fix(devs, path, run=calls.append)["changed"])   # idempotent
+            self.assertEqual(text, open(path).read())
+        v = health.sdl_wheel_env([{"vid": "346e", "pid": "0005"}])
+        self.assertEqual(v, "0x346e/0x0005")
+        self.assertEqual(health.sdl_launch_options("", v, True), "SDL_JOYSTICK_WHEEL_DEVICES=0x346e/0x0005 %command%")
+        bridged = "WINECARTE_WINE2LINUX_EXE=/x winecarte-run %command% -fast"
+        on = health.sdl_launch_options(bridged, v, True)
+        self.assertEqual(on, "SDL_JOYSTICK_WHEEL_DEVICES=0x346e/0x0005 " + bridged)
+        self.assertEqual(health.sdl_launch_options(on, "0x346e/0x0004", True), "SDL_JOYSTICK_WHEEL_DEVICES=0x346e/0x0004 " + bridged)
+        self.assertEqual(health.sdl_launch_options(on, v, False), bridged)
+        self.assertEqual(health.sdl_launch_options("SDL_JOYSTICK_WHEEL_DEVICES=0x1/0x2 %command%", v, False), "")
         for rel, ok in [("6.15.0", True), ("6.16.2-valve1", True), ("6.12.24", True), ("6.12.23", False),
                         ("6.13.12", True), ("6.14.2", False), ("6.11.9", False), ("7.0", True)]:
             self.assertEqual(health.kernel_has_universal_pidff(rel), ok, rel)

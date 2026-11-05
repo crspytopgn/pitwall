@@ -93,6 +93,10 @@ const dismissFirstRun = callable<[], void>("dismiss_first_run");
 const bridgeStatus = callable<[appid: string], { supported: boolean; installed: boolean; prefix: string }>("bridge_status");
 const bridgeInstall = callable<[], { ok: boolean; message: string }>("bridge_install");
 const bridgeLaunchOptions = callable<[current: string, enable: boolean], string>("bridge_launch_options");
+type Detection = { wheels: { name: string; vid: string; pid: string; joystick: boolean | null; model?: string; brand: string }[]; needs_hwdb: boolean; sdl_value: string };
+const wheelDetection = callable<[], Detection>("wheel_detection");
+const wheelDetectionFix = callable<[], { ok: boolean; changed: boolean; message: string }>("wheel_detection_fix");
+const wheelLaunchOptions = callable<[current: string, enable: boolean], string>("wheel_launch_options");
 
 declare const SteamClient: any;
 const ROUTE = "/pitwall";
@@ -375,10 +379,13 @@ function Wheel({ go }: { go?: Go }) {
 
   if (!st) return <PanelSection><Back go={go} /><Row>Looking for wheel…</Row></PanelSection>;
   if (!st.connected) return (
-    <PanelSection title="Wheel"><Back go={go} />
-      <Row><div style={small}>{st.error}</div></Row>
-      <Row><ButtonItem layout="below" onClick={refresh}>Retry</ButtonItem></Row>
-    </PanelSection>
+    <>
+      <PanelSection title="Wheel"><Back go={go} />
+        <Row><div style={small}>{st.error}</div></Row>
+        <Row><ButtonItem layout="below" onClick={refresh}>Retry</ButtonItem></Row>
+      </PanelSection>
+      <WheelDetection />
+    </>
   );
   const defs = st.settings ?? {};
   const render = (k: string) => {
@@ -422,6 +429,7 @@ function Wheel({ go }: { go?: Go }) {
         {prof && Object.keys(prof.games).length > 0 && <Row><div style={dim}>Games: {Object.values(prof.games).join(", ")}</div></Row>}
         {prof && Object.keys(prof.cars).length > 0 && <Row><div style={dim}>Cars: {Object.values(prof.cars).join(", ")}</div></Row>}
       </PanelSection>
+      <WheelDetection />
     </>
   );
 }
@@ -477,6 +485,7 @@ function GamePage({ id, go, back }: { id: string; go?: Go; back: () => void }) {
           <Row><div style={small}>{ing.starting_points}<div style={dim}>{ing.sources.map(src).join(" · ")}</div></div></Row>
         </PanelSection>
       )}
+      {(g as any).steam_appid && g.runtime !== "none" && <WheelDetection appid={String((g as any).steam_appid)} name={g.name} />}
       {g.known_issues.length > 0 && (
         <PanelSection title="Known issues">
           {g.known_issues.map((k, i) => <Row key={i}><div style={small}>• {k.text}<div style={dim}>{src(k.source)}</div></div></Row>)}
@@ -515,6 +524,46 @@ function BridgeSetup({ appid, name }: { appid: string; name: string }) {
       </ButtonItem></Row>
       <Row><div style={dim}>Uses winecarte (github.com/srounce/winecarte). It's added to the game's launch options; your existing options are kept.</div></Row>
     </>
+  );
+}
+
+// "The game doesn't see my wheel": the two fixes Pitwall can apply, plus the settings to check.
+function WheelDetection({ appid, name }: { appid?: string; name?: string }) {
+  const [det, setDet] = useState<Detection | null>(null);
+  const [cur, setCur] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = async () => { setDet(await wheelDetection()); if (appid) setCur(await getLaunchOptions(appid)); };
+  useEffect(() => { load(); }, [appid]);
+  if (!det) return null;
+  const hasEnv = cur !== null && cur.includes("SDL_JOYSTICK_WHEEL_DEVICES=");
+  const fixSystem = async () => { setBusy(true); try { toast((await wheelDetectionFix()).message); await load(); } finally { setBusy(false); } };
+  const toggleGame = async () => {
+    if (!appid || cur === null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
+    const next = await wheelLaunchOptions(cur, !hasEnv);
+    SteamClient.Apps.SetAppLaunchOptions(Number(appid), next);
+    setCur(next);
+    toast(hasEnv ? `Wheel ID removed from ${name}'s launch options` : `Wheel ID added to ${name}. Restart the game.`);
+  };
+  return (
+    <PanelSection title={appid ? "Game doesn't see your wheel?" : "Wheel detection"}>
+      {det.wheels.length === 0 && <Row><div style={dim}>No wheel, pedals or shifter recognised.</div></Row>}
+      {det.wheels.map((w) => (
+        <Row key={w.vid + w.pid}><div style={small}>
+          <b>{w.model ? `${w.brand} ${w.model}` : w.name}</b>: {w.joystick === true ? "visible to games as a joystick" : w.joystick === false ? "not seen as a joystick, so games may ignore it" : "detection unknown"}
+        </div></Row>
+      ))}
+      {det.needs_hwdb && (
+        <Row><ButtonItem layout="below" disabled={busy} onClick={fixSystem}>{busy ? "Working…" : "Fix wheel and pedal detection"}</ButtonItem></Row>
+      )}
+      {appid && det.sdl_value && (
+        <Row><ButtonItem layout="below" onClick={toggleGame}>{hasEnv ? "Remove wheel ID from launch options" : "Add wheel ID to launch options"}</ButtonItem></Row>
+      )}
+      <Row><div style={dim}>
+        {det.needs_hwdb ? "This tells Linux these devices are joysticks (a udev rule, kept across reboots). Unplug and replug them afterwards. " : ""}
+        {appid ? "Adding the wheel ID tells Steam's input layer to treat it as a wheel in this game; your other launch options are kept. " : ""}
+        Also check: Steam Input off for the game (Properties, Controller), and a recent Proton such as Proton 10 or Experimental.
+      </div></Row>
+    </PanelSection>
   );
 }
 
