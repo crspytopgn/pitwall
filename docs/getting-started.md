@@ -27,11 +27,23 @@ The Session panel shows an address like `http://192.168.1.20:8090` and a QR code
 - shift lights, gear, speed and RPM
 - a live delta against your best lap (green: ahead, red: behind)
 - current, last and best lap times
-- throttle, brake and fuel bars
+- throttle and brake bars
 - coaching tips after each lap
-- fuel in the tank, laps left and tyre temperatures
-- a track map with your position
+- fuel in the tank, laps left and tyre temperatures (when the game sends them)
+- a track map drawn from your own driving, with your position
 - optional voice callouts (tap **Voice**) for lap times and the top tip
+
+Pick a layout from the bar at the bottom, or swipe left and right:
+
+| Layout | Shows |
+|---|---|
+| **All** | Everything above |
+| **Drive** | Rev lights, a huge gear, speed and RPM, delta |
+| **Laps** | A big delta and lap time, last and best, coaching |
+| **Track** | A large track map with delta and times |
+| **Race** | Fuel, tyres, delta and times, for longer races |
+
+Every layout works in portrait and landscape and scales to the size of the phone. Your choice is remembered. To give a second phone a different layout, add it to the address, for example `http://192.168.1.20:8090/#track`.
 
 Add it to your home screen for a full-screen view.
 

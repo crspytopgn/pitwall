@@ -103,5 +103,6 @@
       "what": "Guide to running Assetto Corsa's Content Manager under Proton.",
       "steamos": "Proton."
     }
-  ]
+  ],
+  "license": "CC BY-SA 4.0, adapted from awesome-linux-simracing by Lukas Lichten and contributors"
 }

@@ -34,7 +34,7 @@
 | Feature | What it does |
 |---|---|
 | **Live telemetry** | Reads speed, inputs, laps, fuel and tyres from more than 20 sims |
-| **Phone dashboard** | Scan a QR code to turn any phone on your Wi-Fi into a dash: shift lights, gear, live delta, lap times, fuel, tyres, track map and voice callouts |
+| **Phone dashboard** | Scan a QR code to turn any phone on your Wi-Fi into a dash: shift lights, gear, live delta, lap times, fuel, tyres, track map and voice callouts, with five layouts from everything to just the essentials |
 | **Coaching** | Compares each lap with your best, corner by corner: where you braked, how fast you went through, and how much time it cost |
 | **Strategy** | Fuel per lap, laps remaining and how much to add at a stop; tyre temperatures, balance and wear |
 
@@ -50,7 +50,7 @@
 | **Engineer debrief** | A summary of your session and the corners that cost the most time, optionally written up by Claude with your own API key |
 | **Send diagnostics** | Bundles everything needed for a bug report, ready to download to your phone and attach to a pre-filled GitHub issue |
 
-<p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard" width="300"></p>
+<p align="center"><img src="docs/images/dashboard.png" alt="Phone dashboard, All layout" width="240"> <img src="docs/images/dashboard-drive.png" alt="Drive layout" width="240"> <img src="docs/images/dashboard-track.png" alt="Track layout" width="240"></p>
 
 ## Quick start
 
@@ -124,11 +124,17 @@ Pitwall is free and open source. If it saved you an evening of setup, you can [s
 
 ## Credits
 
+Pitwall builds on the work of the Linux sim racing community. The main ones:
+
 - MOZA protocol: [Boxflat](https://github.com/Lawstorant/boxflat) by Tomasz Pakuła
-- Shared-memory layouts: [simapi](https://github.com/Spacefreak18/simapi) by Spacefreak18
-- Telemetry bridge: [winecarte](https://github.com/srounce/winecarte)
+- Shared-memory layouts: [simapi](https://github.com/Spacefreak18/simapi) and [simshmbridge](https://github.com/Spacefreak18/simshmbridge) by Spacefreak18
+- Telemetry bridges: [winecarte](https://github.com/srounce/winecarte) by srounce, [Datalink](https://github.com/LukasLichten/Datalink) by Lukas Lichten
+- Wheel drivers: [new-lg4ff](https://github.com/berarma/new-lg4ff) by berarma, [hid-fanatecff](https://github.com/gotzl/hid-fanatecff) by gotzl, [hid-tmff2](https://github.com/Kimplul/hid-tmff2) by Kimplul, [universal-pidff](https://github.com/JacKeTUs/universal-pidff) by JacKeTUs
+- Wheel support table: [linux-steering-wheels](https://github.com/JacKeTUs/linux-steering-wheels); toolbox list: [awesome-linux-simracing](https://github.com/LukasLichten/awesome-linux-simracing) (CC BY-SA 4.0)
 - Compatibility data: [ProtonDB](https://www.protondb.com), Valve's Steam Deck ratings, [Are We Anti-Cheat Yet](https://areweanticheatyet.com), [GamingOnLinux](https://www.gamingonlinux.com)
-- Wheel drivers: [hid-fanatecff](https://github.com/gotzl/hid-fanatecff), [hid-tmff2](https://github.com/Kimplul/hid-tmff2), [new-lg4ff](https://github.com/berarma/new-lg4ff), and `hid-universal-pidff` in mainline Linux
+- Built on [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) by Steam Deck Homebrew
+
+Full list with licences, including bundled libraries, icons and fonts: [CREDITS.md](CREDITS.md).
 
 Pitwall is unofficial and not affiliated with Valve, MOZA Racing or any sim developer. Licensed under GPL-3.0.
 

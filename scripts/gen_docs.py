@@ -82,7 +82,7 @@ def render() -> str:
 def render_wheels() -> str:
     d = json.load(open(WHEELS_SRC, encoding="utf-8"))
     out = [HEADER, "# Wheel support on Linux", "",
-           f"Force feedback support by wheel, summarised from the community-tested [linux-steering-wheels]({d['source']}) "
+           f"Force feedback support by wheel, summarised from the community-tested [linux-steering-wheels]({d['source']}) by JacKeTUs and contributors "
            f"table (as of {d['source_date']}). Platinum is best. Pitwall's **Pre-race checks** identify your wheel and tell you "
            "which driver it needs.", "", "## What Pitwall controls", ""]
     out += [f"- **{b}**: {c}" for b, c in d["pitwall_control"].items()]
@@ -96,7 +96,7 @@ def render_wheels() -> str:
 def render_tools() -> str:
     d = json.load(open(TOOLS_SRC, encoding="utf-8"))
     out = [HEADER, "# Linux sim racing toolbox", "",
-           f"Other tools worth knowing, curated from [awesome-linux-simracing]({d['source']}) and the projects themselves.",
+           f"Other tools worth knowing, curated from [awesome-linux-simracing]({d['source']}) by Lukas Lichten and contributors, and the projects themselves. This list is adapted from theirs and shared under CC BY-SA 4.0.",
            "", "## Community", ""]
     out += [f"- **[{c['name']}]({c['url']})**: {c['what']}" for c in d["community"]]
     cats = []
