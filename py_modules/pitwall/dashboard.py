@@ -15,6 +15,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 RATE_HZ = 15
+# Small static files the page needs (home-screen icons, manifest, keep-awake video).
+STATIC = {"/icon-180.png": "image/png", "/icon-192.png": "image/png", "/icon-512.png": "image/png",
+          "/icon-maskable.png": "image/png", "/keepawake.mp4": "video/mp4"}
+MANIFEST = json.dumps({
+    "name": "Pitwall", "short_name": "Pitwall", "start_url": "/", "scope": "/", "display": "standalone",
+    "orientation": "any", "background_color": "#000000", "theme_color": "#000000",
+    "icons": [{"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
+              {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"},
+              {"src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}],
+}).encode()
 
 
 def local_ip() -> str:
@@ -47,10 +57,10 @@ class Dashboard:
             def log_message(self, *a):
                 pass
 
-            def _send(self, code, body: bytes, ctype):
+            def _send(self, code, body: bytes, ctype, cache="no-store"):
                 self.send_response(code)
                 self.send_header("Content-Type", ctype)
-                self.send_header("Cache-Control", "no-store")
+                self.send_header("Cache-Control", cache)
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -59,6 +69,11 @@ class Dashboard:
                 if self.path in ("/", "/index.html"):
                     with open(os.path.join(WEB_DIR, "index.html"), "rb") as f:
                         self._send(200, f.read(), "text/html; charset=utf-8")
+                elif self.path in STATIC:
+                    with open(os.path.join(WEB_DIR, self.path[1:]), "rb") as f:
+                        self._send(200, f.read(), STATIC[self.path], "max-age=86400")
+                elif self.path == "/manifest.webmanifest":
+                    self._send(200, MANIFEST, "application/manifest+json", "max-age=86400")
                 elif self.path == "/events":
                     self.send_response(200)
                     self.send_header("Content-Type", "text/event-stream")

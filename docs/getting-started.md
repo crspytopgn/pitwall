@@ -45,7 +45,7 @@ Pick a layout from the bar at the bottom, or swipe left and right:
 
 Every layout works in portrait and landscape and scales to the size of the phone. Your choice is remembered. To give a second phone a different layout, add it to the address, for example `http://192.168.1.20:8090/#track`.
 
-Add it to your home screen for a full-screen view.
+Add it to your home screen for a full-screen view: on Android, open the browser menu and choose **Install app** or **Add to Home screen**; on iPhone, tap Share, then **Add to Home Screen**. It works in any current phone browser (Chrome, Samsung Internet, Firefox, Safari). The screen stays on while the dashboard is open; on some phones that starts after your first tap.
 
 ## 5. Drive
 
