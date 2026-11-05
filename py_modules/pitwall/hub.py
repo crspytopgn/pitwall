@@ -159,7 +159,7 @@ class Hub:
             ref = self.tracker.reference
             return {
                 "receiving": time.monotonic() - f.t < STALE_S,
-                "sim": f.sim, "sim_name": SIM_NAMES.get(f.sim, f.sim), "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
+                "sim": f.sim, "sim_name": SIM_NAMES.get(f.sim, f.sim), "track": f.track or None, "speed": f.speed, "rpm": f.rpm, "max_rpm": f.max_rpm,
                 "gear": f.gear, "throttle": f.throttle, "brake": f.brake, "clutch": f.clutch,
                 "steer": f.steer, "tyre_temp": f.tyre_temp,
                 "fuel": f.fuel if f.fuel is not None else ((f.fuel_l / f.fuel_cap_l) if (f.fuel_l is not None and f.fuel_cap_l) else None),

@@ -123,6 +123,27 @@ def _wstr(buf: bytes, off: int, chars: int) -> str:
     return raw.decode("utf-16-le", "ignore").split("\0", 1)[0]
 
 
+def _ac_pos(graph: bytes):
+    """Player car position (x, z, y with Y-up flipped). Assetto Corsa and EVO
+    store one carCoordinates[3] at 252; ACC stores activeCars at 252, then
+    carCoordinates[60][3], carID[60] and playerCarID, so find the player's slot."""
+    import math
+    if len(graph) >= 1220:
+        active = struct.unpack_from("<i", graph, 252)[0]
+        if 1 <= active <= 60:
+            ids = struct.unpack_from("<60i", graph, 976)
+            player = struct.unpack_from("<i", graph, 1216)[0]
+            if player in ids[:active]:
+                x, y, z = struct.unpack_from("<3f", graph, 256 + 12 * ids.index(player))
+                if all(math.isfinite(v) and abs(v) < 1e5 for v in (x, y, z)):
+                    return (x, z, y)
+    if len(graph) >= 264:
+        x, y, z = struct.unpack_from("<3f", graph, 252)
+        if all(math.isfinite(v) and abs(v) < 1e5 for v in (x, y, z)) and (x or z):
+            return (x, z, y)
+    return None
+
+
 def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
     if len(phys) < 32 or len(graph) < 252:   # offsets verified against simapi's acdata.h
         return None
@@ -149,7 +170,7 @@ def parse_ac(phys: bytes, graph: bytes, static: bytes | None) -> Frame | None:
         gear=gear - 1, throttle=gas, brake=brake, steer=steer,
         lap=laps, lap_time=ms(cur), last_lap=ms(last), best_lap=ms(best),
         lap_frac=frac if 0 <= frac <= 1 else None,
-        car=car, track=track,
+        car=car, track=track, pos=_ac_pos(graph),
         fuel_l=fuel, fuel_cap_l=max_fuel, fuel=(fuel / max_fuel) if max_fuel else None,
         tyre_temp=core, tyre_wear=wear,
     )

@@ -4,195 +4,312 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0b0d10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
 <title>Pitwall</title>
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgcng9IjU2IiBmaWxsPSIjMGIwZDEwIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTAwLjg0NzAxMTE0NDg4MzQ4IDIxNi4wKSBzY2FsZSgwLjEwMTMxNzEyMjU5MzcxODM1IC0wLjEwMTMxNzEyMjU5MzcxODM1KSI+PHBhdGggZD0iTTk2IDBINDQwVjEwNTZIOTZaIiBmaWxsPSIjZjRmNmY4Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyOTIzLjg0KSBzY2FsZSgxIC0xKSI+PHJlY3QgeD0iLTcuMiIgeT0iMTE4Ni43IiB3aWR0aD0iNTUwLjQiIGhlaWdodD0iNTUwLjQiIHJ4PSI0OC4yIiBmaWxsPSIjZjRmNmY4Ii8+PHJlY3QgeD0iMTMwLjQiIHk9IjExODYuNyIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSI0MDUuNiIgeT0iMTE4Ni43IiB3aWR0aD0iMTM3LjYwIiBoZWlnaHQ9IjEzNy42MCIgZmlsbD0iIzBiMGQxMCIvPjxyZWN0IHg9Ii03LjIiIHk9IjEzMjQuMyIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSIyNjguMCIgeT0iMTMyNC4zIiB3aWR0aD0iMTM3LjYwIiBoZWlnaHQ9IjEzNy42MCIgZmlsbD0iIzBiMGQxMCIvPjxyZWN0IHg9IjEzMC40IiB5PSIxNDYxLjkiIHdpZHRoPSIxMzcuNjAiIGhlaWdodD0iMTM3LjYwIiBmaWxsPSIjMGIwZDEwIi8+PHJlY3QgeD0iNDA1LjYiIHk9IjE0NjEuOSIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSItNy4yIiB5PSIxNTk5LjUiIHdpZHRoPSIxMzcuNjAiIGhlaWdodD0iMTM3LjYwIiBmaWxsPSIjMGIwZDEwIi8+PHJlY3QgeD0iMjY4LjAiIHk9IjE1OTkuNSIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48L2c+PC9nPjwvc3ZnPg==">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cmVjdCB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgcng9IjU2IiBmaWxsPSIjMGIwZDEwIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTAwLjg0NzAxMTE0NDg4MzQ4IDIxNi4wKSBzY2FsZSgwLjEwMTMxNzEyMjU5MzcxODM1IC0wLjEwMTMxNzEyMjU5MzcxODM1KSI+PHBhdGggZD0iTTk2IDBINDQwVjEwNTZIOTZaIiBmaWxsPSIjZjRmNmY4Ii8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyOTIzLjg0KSBzY2FsZSgxIC0xKSI+PHJlY3QgeD0iLTcuMiIgeT0iMTE4Ni43IiB3aWR0aD0iNTUwLjQiIGhlaWdodD0iNTUwLjQiIHJ4PSI0OC4yIiBmaWxsPSIjZjRmNmY4Ii8+PHJlY3QgeD0iMTMwLjQiIHk9IjExODYuNyIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSI0MDUuNiIgeT0iMTE4Ni43IiB3aWR0aD0iMTM3LjYwIiBoZWlnaHQ9IjEzNy42MCIgZmlsbD0iIzBiMGQxMCIvPjxyZWN0IHg9Ii03LjIiIHk9IjEzMjQuMyIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSIyNjguMCIgeT0iMTMyNC4zIiB3aWR0aD0iMTM3LjYwIiBoZWlnaHQ9IjEzNy42MCIgZmlsbD0iIzBiMGQxMCIvPjxyZWN0IHg9IjEzMC40IiB5PSIxNDYxLjkiIHdpZHRoPSIxMzcuNjAiIGhlaWdodD0iMTM3LjYwIiBmaWxsPSIjMGIwZDEwIi8+PHJlY3QgeD0iNDA1LjYiIHk9IjE0NjEuOSIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48cmVjdCB4PSItNy4yIiB5PSIxNTk5LjUiIHdpZHRoPSIxMzcuNjAiIGhlaWdodD0iMTM3LjYwIiBmaWxsPSIjMGIwZDEwIi8+PHJlY3QgeD0iMjY4LjAiIHk9IjE1OTkuNSIgd2lkdGg9IjEzNy42MCIgaGVpZ2h0PSIxMzcuNjAiIGZpbGw9IiMwYjBkMTAiLz48L2c+PC9nPjwvc3ZnPg==">
 <style>
-  :root { --bg:#0b0d10; --panel:#151a20; --text:#e8edf2; --dim:#7d8894; --green:#3ddc84; --red:#ff5a5f; --amber:#ffb020; --blue:#4da3ff; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
-  body { display:flex; flex-direction:column; padding:env(safe-area-inset-top) 12px 12px; gap:10px; user-select:none; }
-  .lights { display:grid; grid-template-columns:repeat(15,1fr); gap:4px; height:22px; margin-top:10px; }
-  .lights i { border-radius:4px; background:#222a33; }
-  .lights.flash i { animation:flash .12s steps(2) infinite; }
-  @keyframes flash { 50% { opacity:.2; } }
-  .main { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; }
-  .gear { font-size:min(38vw,190px); font-weight:800; line-height:1; text-align:center; font-variant-numeric:tabular-nums; }
-  .big { font-size:min(11vw,56px); font-weight:700; font-variant-numeric:tabular-nums; }
-  .label { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
-  .right { text-align:right; }
-  .delta { font-size:min(13vw,64px); font-weight:800; text-align:center; font-variant-numeric:tabular-nums; }
-  .delta.up { color:var(--red); } .delta.down { color:var(--green); }
-  .row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-  .card { background:var(--panel); border-radius:12px; padding:10px 12px; }
-  .card .v { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
-  .pedals { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-  .bar { height:10px; border-radius:6px; background:#222a33; overflow:hidden; }
-  .bar b { display:block; height:100%; width:0; }
-  .strat { display:grid; grid-template-columns:1.3fr 1fr; gap:8px; }
-  .tyres { display:grid; grid-template-columns:1fr 1fr; gap:4px; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; }
-  .tyres div { background:#222a33; border-radius:6px; padding:3px 0; }
-  .tips { background:var(--panel); border-radius:12px; padding:10px 12px; font-size:15px; line-height:1.4; min-height:48px; }
-  .tips div + div { margin-top:6px; }
-  .tags span { display:inline-block; padding:2px 8px; border-radius:6px; background:#222a33; color:var(--dim); font-size:12px; margin-right:4px; }
-  .tags span.on { background:var(--amber); color:#000; }
-  .status { color:var(--dim); text-align:center; font-size:14px; }
-  .units, .voice { background:none; border:1px solid #333; color:var(--dim); border-radius:8px; padding:6px 10px; font-size:13px; }
-  .voice.on { border-color:var(--green); color:var(--green); }
-  .bottom { display:flex; gap:8px; justify-content:flex-end; }
-  .map { background:var(--panel); border-radius:12px; height:min(38vh,260px); position:relative; }
-  .map canvas { width:100%; height:100%; display:block; }
-  .map .empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:13px; }
-  @media (orientation: landscape) and (max-height: 500px) { .map { display:none; } }
+  /* Glass look without backdrop-filter: the background is a fixed, smooth gradient,
+     so a translucent card over it looks the same as a blurred one and costs nothing per frame. */
+  :root {
+    --text:#f5f7fa; --dim:rgba(235,240,245,.52); --faint:rgba(255,255,255,.08);
+    --glass:rgba(255,255,255,.065); --edge:rgba(255,255,255,.10); --hi:rgba(255,255,255,.14);
+    --green:#34c759; --red:#ff453a; --amber:#ffd60a; --blue:#0a84ff; --cyan:#64d2ff;
+    --r:22px; --gap:10px;
+    --num: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; }
+  html { background:#000; }
+  body {
+    min-height:100dvh; color:var(--text); -webkit-font-smoothing:antialiased;
+    font-family:-apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 14px) calc(env(safe-area-inset-left) + 12px);
+    display:grid; gap:var(--gap); align-content:start;
+    user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent;
+  }
+  body::before {
+    content:""; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(40% 35% at 15% 10%, rgba(10,132,255,.28), transparent 70%),
+      radial-gradient(45% 40% at 90% 35%, rgba(94,92,230,.22), transparent 70%),
+      radial-gradient(50% 40% at 30% 95%, rgba(48,209,88,.12), transparent 70%), #000;
+  }
+  .glass { background:var(--glass); border:1px solid var(--edge); border-radius:var(--r);
+           box-shadow:inset 0 1px 0 var(--hi), 0 10px 30px rgba(0,0,0,.35); contain:layout paint; }
+  .num { font-family:var(--num); font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+  .label { color:var(--dim); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+
+  /* Header */
+  header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .pill { display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 14px; border-radius:17px;
+          font-size:14px; font-weight:600; max-width:65vw; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); flex:none; }
+  .live .dot { background:var(--green); box-shadow:0 0 10px var(--green); }
+  .btns { display:flex; gap:8px; }
+  .btn { height:34px; min-width:34px; padding:0 12px; border-radius:17px; color:var(--dim); font:600 13px -apple-system, system-ui, sans-serif; cursor:pointer; }
+  .btn.on { color:var(--text); background:rgba(10,132,255,.35); border-color:rgba(10,132,255,.6); }
+
+  /* Rev lights */
+  .revs { display:grid; grid-template-columns:repeat(15,1fr); gap:4px; height:14px; padding:0 2px; }
+  .revs i { border-radius:4px; background:var(--faint); transition:opacity .05s; }
+  .revs i.on.g { background:var(--green); } .revs i.on.a { background:var(--amber); } .revs i.on.r { background:var(--red); }
+  .revs.flash i { background:var(--blue) !important; animation:flash .14s steps(2) infinite; }
+  @keyframes flash { 50% { opacity:.25; } }
+
+  /* Hero: speed, gear, rpm */
+  .hero { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:14px 18px 12px; }
+  .hero .side .v { font-size:clamp(30px,10vw,52px); font-weight:700; line-height:1; }
+  .hero .right { text-align:right; }
+  .gear { font-size:clamp(110px,36vw,190px); font-weight:700; line-height:.9; text-align:center; min-width:1.1ch; }
+  .pedals { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .bar { height:6px; border-radius:3px; background:var(--faint); overflow:hidden; }
+  .bar b { display:block; height:100%; transform-origin:left; transform:scaleX(0); will-change:transform; }
+  .chips { display:flex; gap:6px; justify-content:flex-end; margin-top:6px; min-height:20px; }
+  .chip { font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; background:var(--faint); color:var(--dim); }
+  .chip.on { background:var(--amber); color:#000; }
+  .chip[hidden] { display:none; }
+
+  /* Delta */
+  .delta { padding:12px 18px 14px; display:grid; grid-template-columns:1fr auto; align-items:end; gap:4px 12px; }
+  .delta .v { font-size:clamp(44px,15vw,72px); font-weight:700; line-height:1; transition:color .2s; }
+  .delta.up .v { color:var(--red); } .delta.down .v { color:var(--green); }
+  .delta .lap { text-align:right; } .delta .lap .num { font-size:22px; font-weight:600; }
+  .dbar { grid-column:1/-1; height:6px; border-radius:3px; background:var(--faint); position:relative; overflow:hidden; margin-top:6px; }
+  .dbar::after { content:""; position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:rgba(255,255,255,.35); }
+  .dbar b { position:absolute; top:0; bottom:0; left:50%; width:50%; transform-origin:left; transform:scaleX(0); will-change:transform; border-radius:3px; }
+
+  /* Small tiles */
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--gap); }
+  .tile { padding:12px 16px; min-width:0; }
+  .tile .v { font-size:24px; font-weight:650; margin-top:4px; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tile .sub { color:var(--dim); font-size:13px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .best .v { color:#bf5af2; }
+  .fbar { margin-top:8px; } .fbar b { background:var(--cyan); }
+  .tyres { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+  .tyres div { border-radius:10px; padding:5px 0; text-align:center; font-size:16px; font-weight:650; background:var(--faint); transition:background .3s, color .3s; }
+  .tyres .cold { background:rgba(10,132,255,.28); color:#cfe6ff; }
+  .tyres .ok { background:rgba(52,199,89,.26); color:#d4f7dc; }
+  .tyres .hot { background:rgba(255,69,58,.32); color:#ffd9d6; }
+  [hidden] { display:none !important; }
+
+  /* Coaching and map */
+  .coach { padding:14px 16px; font-size:16px; line-height:1.4; }
+  .coach .label { margin-bottom:6px; }
+  .coach p + p { margin-top:8px; padding-top:8px; border-top:1px solid var(--faint); }
+  .coach .empty { color:var(--dim); font-size:14px; }
+  .map { height:min(36vh,280px); position:relative; padding:12px; }
+  .map svg { width:100%; height:100%; display:block; overflow:visible; }
+  .map path { fill:none; stroke:rgba(255,255,255,.28); stroke-width:4; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+  .map circle { fill:var(--blue); stroke:#fff; stroke-width:2; vector-effect:non-scaling-stroke; }
+  .map .empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--dim); font-size:14px; }
+
+  .waiting .hero, .waiting .delta { opacity:.45; }
+  .hint { text-align:center; color:var(--dim); font-size:13px; padding:4px 0; }
+
+  /* Landscape: driving info left, the rest right */
+  @media (orientation:landscape) and (min-width:640px) {
+    body { grid-template-columns:1.15fr 1fr; align-items:start; }
+    header, .revs { grid-column:1/-1; }
+    .left, .rightcol { display:grid; gap:var(--gap); align-content:start; }
+    .gear { font-size:clamp(90px,24vh,170px); }
+    .map { height:min(40vh,240px); }
+  }
+  @media (orientation:portrait), (max-width:639px) { .left, .rightcol { display:contents; } }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
 </style>
 </head>
-<body>
-  <div class="lights" id="lights"></div>
-  <div class="status" id="status">Waiting for telemetry…</div>
-  <div class="main">
-    <div><div class="label">Speed</div><div class="big" id="speed">0</div><div class="label" id="sunit">km/h</div></div>
-    <div class="gear" id="gear">N</div>
-    <div class="right"><div class="label">RPM</div><div class="big" id="rpm">0</div><div class="tags" id="tags"><span id="abs">ABS</span><span id="tc">TC</span></div></div>
+<body class="waiting">
+  <header>
+    <div class="pill glass" id="statusPill"><span class="dot"></span><span id="status">Waiting for telemetry</span></div>
+    <div class="btns">
+      <button class="btn glass" id="voice" aria-label="Voice">Voice</button>
+      <button class="btn glass" id="units" aria-label="Units">km/h</button>
+    </div>
+  </header>
+  <div class="revs" id="revs"></div>
+
+  <div class="left">
+    <section class="hero glass">
+      <div class="side"><div class="label">Speed</div><div class="v num" id="speed">0</div><div class="label" id="sunit">km/h</div></div>
+      <div class="gear num" id="gear">N</div>
+      <div class="side right"><div class="label">RPM</div><div class="v num" id="rpm">0</div>
+        <div class="chips"><span class="chip" id="abs" hidden>ABS</span><span class="chip" id="tc" hidden>TC</span></div></div>
+      <div class="pedals">
+        <div class="bar"><b id="thr" style="background:var(--green)"></b></div>
+        <div class="bar"><b id="brk" style="background:var(--red)"></b></div>
+      </div>
+    </section>
+
+    <section class="delta glass" id="deltaCard">
+      <div><div class="label">Delta to best</div><div class="v num" id="delta">0.00</div></div>
+      <div class="lap"><div class="label">Lap</div><div class="num" id="lap">–</div></div>
+      <div class="dbar"><b id="dbar"></b></div>
+    </section>
   </div>
-  <div class="delta" id="delta">±0.00</div>
-  <div class="row">
-    <div class="card"><div class="label">Lap</div><div class="v" id="lap">–</div></div>
-    <div class="card"><div class="label">Last</div><div class="v" id="last">–</div></div>
-    <div class="card"><div class="label">Best</div><div class="v" id="best">–</div></div>
+
+  <div class="rightcol">
+    <div class="grid2">
+      <section class="tile glass"><div class="label">Last</div><div class="v num" id="last">–</div></section>
+      <section class="tile glass best"><div class="label">Best</div><div class="v num" id="best">–</div></section>
+    </div>
+
+    <div class="grid2" id="strat" hidden>
+      <section class="tile glass" id="fuelTile" hidden><div class="label">Fuel</div><div class="v num" id="fuelv">–</div><div class="sub" id="fuelsub"></div><div class="bar fbar"><b id="fuel"></b></div></section>
+      <section class="tile glass" id="tyreTile" hidden><div class="label">Tyres °C</div><div class="tyres num"><div id="tFL">–</div><div id="tFR">–</div><div id="tRL">–</div><div id="tRR">–</div></div></section>
+    </div>
+
+    <section class="coach glass"><div class="label">Coach</div><div id="tips"><p class="empty">Tips appear after your second lap.</p></div></section>
+
+    <section class="map glass">
+      <svg id="map" preserveAspectRatio="xMidYMid meet"><g id="mapG"><path id="trackPath" d=""/><circle id="car" r="7" cx="-9999" cy="-9999"/></g></svg>
+      <div class="empty" id="mapEmpty">Track map appears after your first lap</div>
+    </section>
   </div>
-  <div class="pedals">
-    <div><div class="label">Throttle</div><div class="bar"><b id="thr" style="background:var(--green)"></b></div></div>
-    <div><div class="label">Brake</div><div class="bar"><b id="brk" style="background:var(--red)"></b></div></div>
-    <div><div class="label">Fuel</div><div class="bar"><b id="fuel" style="background:var(--blue)"></b></div></div>
-  </div>
-  <div class="strat" id="strat" style="display:none">
-    <div class="card"><div class="label">Fuel</div><div class="v" id="fuelv">–</div><div class="label" id="fuelsub"></div></div>
-    <div class="card"><div class="label">Tyres °C</div><div class="tyres"><div id="tFL">–</div><div id="tFR">–</div><div id="tRL">–</div><div id="tRR">–</div></div></div>
-  </div>
-  <div class="tips" id="tips"><span class="label">Coaching appears after your second lap</span></div>
-  <div class="map"><canvas id="map"></canvas><div class="empty" id="mapEmpty">Track map appears after your first lap</div></div>
-  <div class="bottom"><button class="voice" id="voice">Voice off</button><button class="units" id="units">km/h / mph</button></div>
 <script>
+"use strict";
 const $ = id => document.getElementById(id);
-const N_LIGHTS = 15;
-for (let i = 0; i < N_LIGHTS; i++) $("lights").appendChild(document.createElement("i"));
-let mph = false;
-try { mph = localStorage.getItem("pitwall-mph") === "1"; } catch (e) {}
-$("units").onclick = () => { mph = !mph; try { localStorage.setItem("pitwall-mph", mph ? "1" : "0"); } catch (e) {} };
+// Only touch the DOM when a value actually changes.
+const cache = new Map();
+const text = (id, v) => { if (cache.get(id) !== v) { cache.set(id, v); $(id).textContent = v; } };
+const prop = (key, v, fn) => { if (cache.get(key) !== v) { cache.set(key, v); fn(v); } };
+const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+// Rev lights
+const N = 15, revs = $("revs");
+for (let i = 0; i < N; i++) { const el = document.createElement("i"); el.className = i < 5 ? "g" : i < 10 ? "a" : "r"; revs.appendChild(el); }
+const leds = revs.children;
+
+// Units and voice
+let mph = store.get("pitwall-mph") === "1";
+const setUnits = () => { $("units").textContent = mph ? "mph" : "km/h"; text("sunit", mph ? "mph" : "km/h"); };
+$("units").onclick = () => { mph = !mph; store.set("pitwall-mph", mph ? "1" : "0"); setUnits(); };
+setUnits();
+let voice = store.get("pitwall-voice") === "1";
+const setVoice = () => $("voice").classList.toggle("on", voice);
+$("voice").onclick = () => { voice = !voice; store.set("pitwall-voice", voice ? "1" : "0"); setVoice(); if (voice) say("Voice on"); };
+setVoice();
+function say(t) {
+  if (!voice || !("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(t); u.rate = 1.05; speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+const spoken = s => { const m = Math.floor(s / 60), r = (s - m * 60).toFixed(1); return (m ? m + " " : "") + r; };
 const fmt = s => {
   if (s == null || !isFinite(s) || s <= 0) return "–";
   const m = Math.floor(s / 60), r = s - m * 60;
   return (m ? m + ":" + (r < 10 ? "0" : "") : "") + r.toFixed(m ? 3 : 2);
 };
-let maxSeen = 0;
-// ---- track map
-let track = [], bounds = null, lastPos = null;
+
+// Track map: the outline is drawn once per lap as an SVG path; each frame only moves the dot.
+let tf = null;
 async function loadTrack() {
   try {
-    const t = await (await fetch("/api/track")).json();
-    track = t.points || [];
-    $("mapEmpty").style.display = track.length > 10 ? "none" : "flex";
-    if (track.length > 10) {
-      const xs = track.map(p => p[0]), ys = track.map(p => p[1]);
-      bounds = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    }
+    const pts = (await (await fetch("/api/track")).json()).points || [];
+    const ok = pts.length > 10;
+    $("mapEmpty").hidden = ok;
+    if (!ok) return;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+    const w = Math.max(1, x1 - x0), h = Math.max(1, y1 - y0), pad = Math.max(w, h) * 0.04;
+    tf = { x0, y1 };
+    $("map").setAttribute("viewBox", `${-pad} ${-pad} ${w + 2 * pad} ${h + 2 * pad}`);
+    let d = "";
+    for (let i = 0; i < pts.length; i++) d += (i ? "L" : "M") + (pts[i][0] - x0).toFixed(1) + " " + (y1 - pts[i][1]).toFixed(1);
+    $("trackPath").setAttribute("d", d + "Z");
+    $("car").setAttribute("r", Math.max(w, h) * 0.018);
   } catch (e) {}
-  drawMap();
 }
-function drawMap() {
-  const c = $("map"), r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  if (!r.width) return;
-  c.width = r.width * dpr; c.height = r.height * dpr;
-  const g = c.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, r.width, r.height);
-  if (!bounds || track.length < 10) return;
-  const [x0, x1, y0, y1] = bounds, pad = 14;
-  const sc = Math.min((r.width - 2 * pad) / Math.max(1, x1 - x0), (r.height - 2 * pad) / Math.max(1, y1 - y0));
-  const ox = (r.width - (x1 - x0) * sc) / 2, oy = (r.height - (y1 - y0) * sc) / 2;
-  const P = p => [ox + (p[0] - x0) * sc, r.height - (oy + (p[1] - y0) * sc)];
-  g.lineWidth = 4; g.strokeStyle = "#2c3640"; g.lineJoin = "round"; g.beginPath();
-  track.forEach((p, i) => { const [x, y] = P(p); i ? g.lineTo(x, y) : g.moveTo(x, y); });
-  g.stroke();
-  if (lastPos) { const [x, y] = P(lastPos); g.fillStyle = "#4da3ff"; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); }
-}
-window.addEventListener("resize", drawMap);
 loadTrack(); setInterval(loadTrack, 15000);
-// ---- voice
-let voice = false, lastLapId = null;
-try { voice = localStorage.getItem("pitwall-voice") === "1"; } catch (e) {}
-const setVoiceBtn = () => { $("voice").textContent = voice ? "Voice on" : "Voice off"; $("voice").className = "voice" + (voice ? " on" : ""); };
-setVoiceBtn();
-$("voice").onclick = () => {
-  voice = !voice; setVoiceBtn();
-  try { localStorage.setItem("pitwall-voice", voice ? "1" : "0"); } catch (e) {}
-  if (voice) say("Voice on");
-};
-function say(text) {
-  if (!voice || !("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(text); u.rate = 1.05;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
-const spokenTime = s => { const m = Math.floor(s / 60), r = (s - m * 60).toFixed(1); return (m ? m + " " : "") + r; };
+
+let maxSeen = 0, lastLapId = null, wasLive = null;
 function render(d) {
-  if (!d.receiving) { $("status").textContent = "Waiting for telemetry…"; return; }
-  $("status").textContent = d.needs_start_line ? "Set a start line in Pitwall to time laps" : (d.sim || "").toUpperCase();
-  $("speed").textContent = Math.round(d.speed * (mph ? 2.23694 : 3.6));
-  $("sunit").textContent = mph ? "mph" : "km/h";
-  $("gear").textContent = d.gear < 0 ? "R" : d.gear === 0 ? "N" : d.gear;
-  $("rpm").textContent = Math.round(d.rpm);
+  const live = !!d.receiving;
+  if (live !== wasLive) { wasLive = live; document.body.classList.toggle("waiting", !live); $("statusPill").classList.toggle("live", live); }
+  if (!live) { text("status", "Waiting for telemetry"); return; }
+  text("status", d.needs_start_line ? "Set a start line in Pitwall" : [d.track, d.sim_name || d.sim].filter(Boolean).join(" · ") || "Live");
+
+  text("speed", String(Math.round(d.speed * (mph ? 2.23694 : 3.6))));
+  text("gear", d.gear < 0 ? "R" : d.gear === 0 ? "N" : String(d.gear));
+  text("rpm", String(Math.round(d.rpm / 10) * 10));
+
   maxSeen = Math.max(maxSeen * 0.9999, d.rpm);
-  const max = d.max_rpm || maxSeen || 1;
-  const frac = Math.min(1, d.rpm / max);
-  const lit = Math.round(Math.max(0, (frac - 0.6) / 0.38) * N_LIGHTS);
-  const lights = $("lights").children;
-  for (let i = 0; i < N_LIGHTS; i++) {
-    lights[i].style.background = i < lit ? (i < 5 ? "var(--green)" : i < 10 ? "var(--amber)" : "var(--red)") : "#222a33";
-  }
-  $("lights").classList.toggle("flash", d.shift || frac > 0.97);
-  const dl = $("delta");
-  if (d.delta == null) { dl.textContent = "±0.00"; dl.className = "delta"; }
-  else { dl.textContent = (d.delta > 0 ? "+" : "") + d.delta.toFixed(2); dl.className = "delta " + (d.delta > 0 ? "up" : "down"); }
-  $("lap").textContent = fmt(d.lap_time);
-  $("last").textContent = fmt(d.last);
-  $("best").textContent = fmt(d.best);
-  $("thr").style.width = (d.throttle * 100) + "%";
-  $("brk").style.width = (d.brake * 100) + "%";
-  $("fuel").style.width = ((d.fuel ?? 0) * 100) + "%";
-  $("abs").className = d.abs ? "on" : ""; $("tc").className = d.tc ? "on" : "";
-  $("abs").hidden = d.abs == null; $("tc").hidden = d.tc == null;
+  const frac = Math.min(1, d.rpm / (d.max_rpm || maxSeen || 1));
+  const lit = Math.min(N, Math.round(Math.max(0, (frac - 0.6) / 0.38) * N));
+  prop("lit", lit, n => { for (let i = 0; i < N; i++) leds[i].classList.toggle("on", i < n); });
+  prop("flash", !!(d.shift || frac > 0.97), f => revs.classList.toggle("flash", f));
+
+  prop("thr", Math.round(d.throttle * 50), v => $("thr").style.transform = `scaleX(${v / 50})`);
+  prop("brk", Math.round(d.brake * 50), v => $("brk").style.transform = `scaleX(${v / 50})`);
+  prop("absH", d.abs == null, h => $("abs").hidden = h);
+  prop("tcH", d.tc == null, h => $("tc").hidden = h);
+  prop("absOn", !!d.abs, o => $("abs").classList.toggle("on", o));
+  prop("tcOn", !!d.tc, o => $("tc").classList.toggle("on", o));
+
+  const dl = d.delta;
+  text("delta", dl == null ? "0.00" : (dl > 0 ? "+" : dl < 0 ? "−" : "") + Math.abs(dl).toFixed(2));
+  prop("dcls", dl == null || Math.abs(dl) < 0.005 ? "" : dl > 0 ? "up" : "down", c => $("deltaCard").className = "delta glass " + c);
+  prop("dbar", dl == null ? 0 : Math.round(Math.max(-1, Math.min(1, dl)) * 100), v => {
+    const b = $("dbar"); b.style.background = v > 0 ? "var(--red)" : "var(--green)";
+    b.style.transform = v >= 0 ? `scaleX(${v / 100})` : `translateX(-100%) scaleX(${-v / 100})`;
+    b.style.transformOrigin = v >= 0 ? "left" : "right";
+  });
+  text("lap", fmt(d.lap_time));
+  text("last", fmt(d.last));
+  text("best", fmt(d.best));
+
+  // Fuel and tyres, each shown only when the sim reports it
   const st = d.strategy || {};
-  if (st.fuel_now != null || st.temps) {
-    $("strat").style.display = "grid";
-    $("fuelv").textContent = st.fuel_now != null ? `${st.fuel_now} ${st.fuel_unit}` : "–";
-    $("fuelsub").textContent = st.laps_left != null ? `${st.laps_left} laps` + (st.to_add ? ` · add ${st.to_add}` : "") : "measuring";
+  const hasFuel = st.fuel_now != null || d.fuel != null, hasTyres = !!st.temps;
+  prop("fuelT", hasFuel, v => $("fuelTile").hidden = !v);
+  prop("tyreT", hasTyres, v => $("tyreTile").hidden = !v);
+  prop("strat", hasFuel || hasTyres, v => $("strat").hidden = !v);
+  if (hasFuel) {
+    text("fuelv", st.fuel_now != null ? `${st.fuel_now} ${st.fuel_unit || ""}`.trim() : Math.round(d.fuel * 100) + "%");
+    text("fuelsub", st.laps_left != null ? `${st.laps_left} laps left` + (st.to_add ? `, add ${st.to_add}` : "") : st.fuel_now != null ? "Measuring use" : "");
+    prop("fuelW", Math.round((d.fuel ?? 0) * 100), v => $("fuel").style.transform = `scaleX(${v / 100})`);
+  }
+  if (hasTyres) {
+    const w = st.window;
     for (const k of ["FL", "FR", "RL", "RR"]) {
-      const v = st.temps ? st.temps[k] : null, el = $("t" + k);
-      el.textContent = v == null ? "–" : Math.round(v);
-      const w = st.window;
-      el.style.color = (v == null || !w) ? "" : v < w[0] ? "var(--blue)" : v > w[2] ? "var(--red)" : "var(--green)";
+      const v = st.temps[k];
+      text("t" + k, v == null ? "–" : String(Math.round(v)));
+      prop("c" + k, v == null || !w ? "" : v < w[0] ? "cold" : v > w[2] ? "hot" : "ok", c => $("t" + k).className = c);
     }
   }
-  if (d.pos) { lastPos = d.pos; }
+
+  // Coaching
+  const tips = d.tips && d.tips.length ? d.tips.join("\n") : d.coached ? "\u0001" : "";
+  prop("tips", tips, t => {
+    const box = $("tips"); box.textContent = "";
+    if (!t) { const p = document.createElement("p"); p.className = "empty"; p.textContent = "Tips appear after your second lap."; box.appendChild(p); return; }
+    const lines = t === "\u0001" ? ["No corner lost time against your best lap."] : t.split("\n");
+    for (const l of lines) { const p = document.createElement("p"); p.textContent = l; box.appendChild(p); }
+  });
+
+  prop("nopos", !d.pos, np => text("mapEmpty", np ? "This game doesn't share car position, so there's no map" : "Track map appears after your first lap"));
+  if (d.pos && tf) {
+    const c = $("car"); c.setAttribute("cx", (d.pos[0] - tf.x0).toFixed(1)); c.setAttribute("cy", (tf.y1 - d.pos[1]).toFixed(1));
+  }
   if (d.lap_id != null && d.lap_id !== lastLapId) {
     if (lastLapId !== null) {
-      say((d.lap_best ? "Best lap. " : "Lap ") + spokenTime(d.last) + (d.tips && d.tips.length ? ". " + d.tips[0].replace(/\(.*?\)/g, "") : ""));
+      say((d.lap_best ? "Best lap. " : "Lap ") + spoken(d.last) + (d.tips && d.tips.length ? ". " + d.tips[0].replace(/\(.*?\)/g, "") : ""));
       loadTrack();
     }
     lastLapId = d.lap_id;
   }
-  if (d.tips && d.tips.length) $("tips").innerHTML = d.tips.map(t => "<div>" + t.replace(/</g, "&lt;") + "</div>").join("");
-  else if (d.coached) $("tips").innerHTML = "<div>No corner lost time against your best lap.</div>";
 }
-let drawPending = false;
-function scheduleDraw() { if (!drawPending) { drawPending = true; requestAnimationFrame(() => { drawPending = false; drawMap(); }); } }
+
+// Render at most once per screen refresh, always with the newest data.
+let latest = null, queued = false;
 function connect() {
   const es = new EventSource("/events");
-  es.onmessage = e => { render(JSON.parse(e.data)); scheduleDraw(); };
-  es.onerror = () => { $("status").textContent = "Reconnecting…"; es.close(); setTimeout(connect, 1500); };
+  es.onmessage = e => { latest = e.data; if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; render(JSON.parse(latest)); }); } };
+  es.onerror = () => { es.close(); wasLive = null; render({ receiving: false }); text("status", "Reconnecting"); setTimeout(connect, 1500); };
 }
 connect();
-// Keep the phone screen awake where supported.
-if ("wakeLock" in navigator) { const lock = () => navigator.wakeLock.request("screen").catch(() => {}); lock(); document.addEventListener("visibilitychange", lock); }
+if ("wakeLock" in navigator) { const lock = () => navigator.wakeLock.request("screen").catch(() => {}); lock(); document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && lock()); }
 </script>
 </body>
 </html>

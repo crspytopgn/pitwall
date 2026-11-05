@@ -104,6 +104,16 @@ class TestParsers(unittest.TestCase):
         self.assertAlmostEqual(f.speed, 50.0)
         self.assertAlmostEqual(f.last_lap, 101.234)
         self.assertTrue(f.active)
+        self.assertIsNone(f.pos)                       # all-zero coordinates
+        struct.pack_into("<3f", graph, 252, 120.0, 5.0, -340.0)          # AC / EVO: one car
+        self.assertEqual(parse_ac(bytes(phys), bytes(graph), None).pos, (120.0, -340.0, 5.0))
+        acc = bytearray(1600)
+        acc[:1200] = graph
+        struct.pack_into("<i", acc, 252, 3)                              # ACC: activeCars
+        struct.pack_into("<9f", acc, 256, 1, 1, 1, 2, 2, 2, 50.0, 7.0, 900.0)
+        struct.pack_into("<3i", acc, 976, 11, 12, 13)                    # carID
+        struct.pack_into("<i", acc, 1216, 13)                            # playerCarID
+        self.assertEqual(parse_ac(bytes(phys), bytes(acc), None).pos, (50.0, 900.0, 7.0))
 
 
 def drive_loop(tracker, laps=2, radius=100.0, speed=40.0, brake_zone=(0.45, 0.55), sim="beamng",

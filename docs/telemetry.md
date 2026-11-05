@@ -52,6 +52,12 @@ Layouts come from the C headers in [simapi](https://github.com/Spacefreak18/sima
 
 Sims disagree on which axis points up. Pitwall reorders every sim's coordinates to (horizontal, horizontal, height) so maps and start lines work the same everywhere.
 
+## Track map
+
+Pitwall doesn't need track files. It records your car's position from the telemetry as you drive, and the dashboard draws your best lap's path (or the lap in progress before you have one). The map appears once you've completed a lap and works on any circuit, including mods.
+
+It needs a game that sends position: everything in the tables above except LFS over OutGauge, and BeamNG only with MotionSim switched on. Assetto Corsa and EVO give position in one field; ACC keeps a slot per car, and Pitwall picks yours using ACC's documented layout (that part is checked with a hand-built test buffer, not a C fixture). ETS2/ATS send position but have no laps, so there's no map. If a game sends no position, the dashboard says so instead of waiting for a map.
+
 ## Changing ports
 
 Ports can be overridden in `~/homebrew/settings/Pitwall/settings.json`:
