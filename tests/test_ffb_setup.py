@@ -220,3 +220,31 @@ class TestInstaller(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUninstall(unittest.TestCase):
+    def test_remove_all_and_hwdb(self):
+        from pitwall import health
+        with tempfile.TemporaryDirectory() as root:
+            os.makedirs(os.path.join(root, "etc"))
+            with open(os.path.join(root, "etc/os-release"), "w") as f:
+                f.write("ID=steamos\n")
+            fake = FakeSteamOS(root)
+            inst = drivers.Installer(os.path.join(root, "d.json"), os.path.join(root, "w"), run=fake, root=root)
+            for did in ("universal-pidff", "hid-fanatecff"):
+                inst.start(did)
+                for _ in range(200):
+                    if inst.job["state"] != "running":
+                        break
+                    time.sleep(0.01)
+            self.assertEqual(sorted(inst.state()), ["hid-fanatecff", "universal-pidff"])
+            self.assertEqual(sorted(inst.remove_all()), ["hid-fanatecff", "universal-pidff"])
+            self.assertEqual(inst.state(), {})
+            self.assertFalse(os.listdir(drivers.module_dir(fake.krel, root)))
+            self.assertFalse(os.path.exists(os.path.join(root, "etc/udev/rules.d/99-fanatec.rules")))
+            self.assertTrue(fake.readonly)
+            hw = os.path.join(root, "hw.hwdb")
+            open(hw, "w").close()
+            self.assertTrue(health.remove_joystick_fix(hw, run=lambda c: None))
+            self.assertFalse(os.path.exists(hw))
+            self.assertFalse(health.remove_joystick_fix(hw, run=lambda c: None))

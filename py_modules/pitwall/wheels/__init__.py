@@ -28,7 +28,6 @@ with mainline and community drivers.
 from __future__ import annotations
 
 import glob
-import os
 
 from .moza import MozaBase, SETTINGS as MOZA_SETTINGS, base_model
 

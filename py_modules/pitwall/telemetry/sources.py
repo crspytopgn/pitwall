@@ -83,6 +83,16 @@ class UdpListener(threading.Thread):
             sel.close()
 
     def handle(self, kind: str, data: bytes, now: float):
+        # A malformed packet must never stop the listener thread.
+        try:
+            self._dispatch(kind, data, now)
+        except Exception as e:
+            self.bad_packets = getattr(self, "bad_packets", 0) + 1
+            if self.bad_packets in (1, 100, 10000):
+                import logging
+                logging.getLogger("pitwall").warning("Ignored bad %s packet (%d so far): %s", kind, self.bad_packets, e)
+
+    def _dispatch(self, kind: str, data: bytes, now: float):
         frame = None
         if kind in ("outgauge", "motionsim"):
             motion = parse_motionsim(data)

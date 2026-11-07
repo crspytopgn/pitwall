@@ -157,6 +157,24 @@ def apply_joystick_fix(devs: list[dict], path: str = HWDB_PATH, run=None) -> dic
             "message": "Done. Unplug the wheel and plug it back in, then restart the game."}
 
 
+def remove_joystick_fix(path: str = HWDB_PATH, run=None) -> bool:
+    """Undo apply_joystick_fix (used when Pitwall is uninstalled)."""
+    import subprocess
+    run = run or (lambda cmd: subprocess.run(cmd, capture_output=True, timeout=30))
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return False
+    try:
+        run(["systemd-hwdb", "update"])
+        run(["udevadm", "trigger", "--subsystem-match=input"])
+    except OSError:
+        pass
+    return True
+
+
 def sdl_wheel_env(devs: list[dict]) -> str:
     """SDL_JOYSTICK_WHEEL_DEVICES value naming the connected wheels, so SDL (and so
     Steam and Proton) treat them as wheels even if they're not on SDL's built-in list."""

@@ -95,8 +95,12 @@ function fuel() {
     const v = (i) => parseFloat($(i).value);
     const per = v("fpl"), now = v("fnow"), cap = v("fcap"), lap = v("flap"), margin = v("fmargin") || 0;
     let laps = v("flen");
-    if ($("funit").value === "min") laps = Math.ceil((laps * 60) / lap);
     if (!(per > 0) || !(laps > 0)) { $("fresult").textContent = "Enter fuel per lap and race length."; return; }
+    if ($("funit").value === "min") {
+      if (!(lap > 0)) { $("fresult").textContent = "Enter your lap time to turn minutes into laps."; return; }
+      laps = Math.ceil((laps * 60) / lap);
+    }
+    if (laps > 100000) { $("fresult").textContent = "That race is longer than Pitwall can plan for."; return; }
     const need = (laps + margin) * per;
     const add = Math.max(0, need - (now || 0));
     const stops = cap > 0 && add > 0 ? Math.ceil(add / cap) : 0;
@@ -127,6 +131,7 @@ function dayOne() {
     "Install Decky Loader from decky.xyz (Desktop Mode).",
     "Install the Pitwall zip: Decky, cog, Developer mode, Install Plugin from ZIP File.",
     "Plug in the wheel and pedals, open Pitwall and run auto setup.",
+    "Open Wheel, Force feedback: install a driver if Pitwall offers one, then press Test force feedback.",
     "Install your sims and follow each game's setup steps.",
     "Run pre-race checks with a game running.",
     "Scan the dashboard QR code with your phone.",

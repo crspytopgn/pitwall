@@ -300,6 +300,21 @@ class Installer:
         shutil.rmtree(src, ignore_errors=True)
         return f"{d['name']} ({rev}) installed for kernel {krel}. Unplug the wheel and plug it back in."
 
+    def remove_all(self) -> list[str]:
+        """Remove every driver Pitwall installed, synchronously (plugin uninstall)."""
+        done = []
+        for did in list(self.state()):
+            if did not in DRIVERS:
+                continue
+            self.job = {"driver": did, "action": "remove", "state": "running", "step": "", "log": []}
+            try:
+                self._remove(did)
+                done.append(did)
+            except Exception as e:
+                self._log(f"Error: {e}")
+            self.job["state"] = "done"
+        return done
+
     def _remove(self, driver_id: str) -> str:
         d = DRIVERS[driver_id]
         krel = platform.release()

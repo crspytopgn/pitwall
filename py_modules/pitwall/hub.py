@@ -5,6 +5,7 @@ the live state the dashboard and Decky UI read.
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 
@@ -15,6 +16,8 @@ from .strategy import Strategy
 from .telemetry.frame import Frame
 from .telemetry.shm import ShmSource
 from .telemetry.sources import UdpListener, DEFAULT_PORTS
+
+log = logging.getLogger("pitwall")
 
 STALE_S = 2.0
 
@@ -57,6 +60,7 @@ class Hub:
         return track_key(f_or_lap.sim, f_or_lap.track, self.tracker.gate)
 
     def _on_frame(self, f: Frame):
+        f.sanitize()
         with self.lock:
             prev = self.frame
             self.frame = f
@@ -71,7 +75,7 @@ class Hub:
             try:
                 cb(f)
             except Exception:
-                pass
+                log.exception("Frame listener failed")
         car_key = (f.sim, f.car) if f.car and f.active else None
         if car_key and car_key != self._car_key:
             self._car_key = car_key
@@ -79,7 +83,7 @@ class Hub:
                 try:
                     cb(f.sim, f.car)
                 except Exception:
-                    pass
+                    log.exception("Car change listener failed")
         if prev is None or prev.sim != f.sim:
             self._info(f"Telemetry from {f.sim}")
 

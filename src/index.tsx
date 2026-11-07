@@ -974,9 +974,13 @@ export default definePlugin(() => {
       async (e: { unAppID: number; bRunning: boolean }) => {
         const app = runningApp();
         const name = app && app.appid === String(e.unAppID) ? app.name : "";
-        const r = await gameChanged(String(e.unAppID), name, e.bRunning);
-        if (r.applied) toast(`Applied wheel profile: ${r.applied}`);
-        if (e.bRunning && r.game?.status === "broken") toast(`${r.game.name} is known not to run on SteamOS. See Pitwall's game guide.`);
+        try {
+          const r = await gameChanged(String(e.unAppID), name, e.bRunning);
+          if (r.applied) toast(`Applied wheel profile: ${r.applied}`);
+          if (e.bRunning && r.game?.status === "broken") toast(`${r.game.name} is known not to run on SteamOS. See Pitwall's game guide.`);
+        } catch (err) {
+          console.error("Pitwall: game change handling failed", err);
+        }
       }
     );
   } catch (err) {

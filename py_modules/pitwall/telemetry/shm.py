@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import math
 import mmap
+import logging
 import os
 import struct
 import threading
@@ -375,12 +376,15 @@ class ShmSource(threading.Thread):
                 idle_since = time.monotonic()
                 try:
                     frame = parser(maps)
-                except (struct.error, IndexError, ValueError, OSError):
+                except Exception:          # a torn or garbage read: skip this tick
                     frame = None
                 if frame:
                     frame.t = time.monotonic()
                     self.packets += 1
-                    self.on_frame(frame)
+                    try:
+                        self.on_frame(frame)
+                    except Exception:
+                        logging.getLogger("pitwall").exception("Frame handler failed")
             elif time.monotonic() - idle_since > self.frozen_after:
                 # Data stopped changing: the game probably exited. Rescan so a
                 # different sim's bridge can take over.

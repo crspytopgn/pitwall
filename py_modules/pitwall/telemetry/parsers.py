@@ -14,6 +14,7 @@ Sources:
 
 from __future__ import annotations
 
+import math
 import struct
 
 from .frame import Frame
@@ -112,6 +113,8 @@ def parse_codemasters(data: bytes) -> Frame | None:
         return None
     v = _CM.unpack_from(data)
     gear = v[33]
+    if not math.isfinite(gear) or not math.isfinite(v[36]):
+        return None                                   # garbage packet
     gear_i = -1 if (gear >= 9.5 or gear < -0.5) else int(round(gear))
     lap_len = v[61] if v[61] > 0 else None
     return Frame(

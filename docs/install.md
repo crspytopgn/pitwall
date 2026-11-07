@@ -44,3 +44,7 @@ Decky → cog → **Plugins** → Pitwall → **Uninstall**. To remove everythin
 - `~/.local/share/pitwall` (benchmark logs, downloaded telemetry bridge)
 
 If you set up a telemetry bridge or a benchmark, open the game's **Properties → General → Launch Options** and remove the `winecarte-run` or `MANGOHUD` part.
+
+## Uninstalling
+
+Remove Pitwall from Decky's plugin list. Uninstalling also removes the wheel detection rule and any force feedback drivers Pitwall installed. Two things stay, on purpose: the telemetry bridge in `~/.local/share/pitwall` (games whose launch options use it would otherwise fail to start; remove the bridge from each game's page first if you want it gone) and your settings and lap history in `~/homebrew/settings/Pitwall` and `~/homebrew/data/Pitwall`.

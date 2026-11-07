@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import math
 import os
 import sys
 import threading
@@ -99,6 +100,12 @@ class Plugin:
         return await self._run(w.read_all) if w else None
 
     async def wheel_set(self, key: str, value: float) -> bool:
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return False
+        if not math.isfinite(value) or not isinstance(key, str):
+            return False
         w = await self._run(self._wheel)
         return bool(w) and await self._run(w.write, {key: value})
 
@@ -262,7 +269,13 @@ class Plugin:
         return self.hub.strategy.report()
 
     async def strategy_set_target(self, laps: float, minutes: float) -> dict:
-        self.hub.strategy.set_target(laps or None, minutes or None)
+        def num(v, hi):
+            try:
+                v = float(v)
+            except (TypeError, ValueError):
+                return None
+            return v if 0 < v <= hi else None
+        self.hub.strategy.set_target(num(laps, 1000), num(minutes, 48 * 60))
         return self.hub.strategy.report()
 
     # ======================================================== auto setup
@@ -418,7 +431,11 @@ class Plugin:
     async def ffb_test(self, event: str, strength: float = 0.2) -> dict:
         if not event.startswith("event") or not event[5:].isdigit():
             return {"ok": False, "message": "Unknown device."}
-        return await self._run(ffbtest.run_test, f"/dev/input/{event}", float(strength))
+        try:
+            strength = float(strength)
+        except (TypeError, ValueError):
+            strength = 0.2
+        return await self._run(ffbtest.run_test, f"/dev/input/{event}", strength)
 
     async def driver_install(self, driver_id: str) -> dict:
         return self.drivers.start(driver_id, "install")
@@ -526,8 +543,24 @@ class Plugin:
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
         return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates")}
 
+    # Settings the UI may change, each with a check on the value.
+    SETTING_CHECKS = {
+        "target_fps": lambda v: isinstance(v, int) and not isinstance(v, bool) and 20 <= v <= 240,
+        "units": lambda v: v in ("kmh", "mph"),
+        "anthropic_api_key": lambda v: isinstance(v, str) and len(v) < 400,
+        "rev_lights": lambda v: isinstance(v, bool),
+        "check_updates": lambda v: isinstance(v, bool),
+    }
+
     async def set_setting(self, key: str, value):
-        if key not in ("target_fps", "units", "anthropic_api_key", "rev_lights", "check_updates"):
+        check = self.SETTING_CHECKS.get(key)
+        if check is None:
+            return False
+        if key == "target_fps" and isinstance(value, float) and value.is_integer():
+            value = int(value)
+        if key == "anthropic_api_key" and isinstance(value, str):
+            value = value.strip()
+        if not check(value):
             return False
         self.settings[key] = value
         _save(self.settings)
@@ -573,13 +606,31 @@ class Plugin:
         decky.logger.info("Pitwall started; dashboard at %s", self.dashboard.url)
 
     async def _unload(self):
-        self._updates_stop.set()
-        if self.rev_lights:
+        if getattr(self, "_updates_stop", None):
+            self._updates_stop.set()
+        if getattr(self, "rev_lights", None):
             self.rev_lights.stop()
-        self.hub.stop()
-        self.dashboard.stop()
-        if self.wheel:
+        if getattr(self, "hub", None):
+            self.hub.stop()
+        if getattr(self, "dashboard", None):
+            self.dashboard.stop()
+        if getattr(self, "wheel", None):
             self.wheel.close()
 
     async def _uninstall(self):
-        pass
+        """Undo Pitwall's system changes: the wheel detection udev rule and any
+        force feedback drivers it installed. The telemetry bridge in
+        ~/.local/share/pitwall stays, because games' launch options may still
+        use it; Pitwall's settings and laps stay, as with any Decky plugin."""
+        try:
+            health.remove_joystick_fix()
+        except Exception:
+            decky.logger.exception("Removing the wheel detection rule failed")
+        try:
+            inst = getattr(self, "drivers", None) or drivers.Installer(
+                os.path.join(SETTINGS_DIR, "drivers.json"), os.path.join(DATA_DIR, "driver-build"))
+            removed = await self._run(inst.remove_all)
+            if removed:
+                decky.logger.info("Removed drivers on uninstall: %s", removed)
+        except Exception:
+            decky.logger.exception("Removing installed drivers failed")

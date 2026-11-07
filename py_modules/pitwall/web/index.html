@@ -413,11 +413,30 @@ function render(d) {
 
 // Render at most once per screen refresh, always with the newest data.
 let latest = null, queued = false;
-function connect() {
-  const es = new EventSource("/events");
-  es.onmessage = e => { latest = e.data; if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; render(JSON.parse(latest)); }); } };
-  es.onerror = () => { es.close(); wasLive = null; render({ receiving: false }); text("status", "Reconnecting"); setTimeout(connect, 1500); };
+// The server sends at least twice a second. If nothing arrives for 3 s (Wi-Fi drop,
+// Steam Machine asleep) say so instead of showing old numbers as live, and reconnect.
+let es = null, lastMsg = 0;
+function lost(msg) {
+  if (es) { es.close(); es = null; }
+  wasLive = null; render({ receiving: false }); text("status", msg);
+  setTimeout(connect, 1500);
 }
+function connect() {
+  if (es) return;
+  es = new EventSource("/events");
+  lastMsg = Date.now();
+  es.onmessage = e => {
+    lastMsg = Date.now(); latest = e.data;
+    if (!queued) { queued = true; requestAnimationFrame(() => {
+      queued = false;
+      let d; try { d = JSON.parse(latest); } catch (err) { return; }
+      try { render(d); } catch (err) { console.warn("render", err); }
+    }); }
+  };
+  es.onerror = () => lost("Reconnecting");
+}
+setInterval(() => { if (es && Date.now() - lastMsg > 3000) lost("Connection lost, reconnecting"); }, 1000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && es && Date.now() - lastMsg > 3000) lost("Reconnecting"); });
 connect();
 // Keep the screen on. The Wake Lock API only works over HTTPS, and the dashboard is plain
 // HTTP on your home network, so on most phones (Android and iPhone) we fall back to a tiny

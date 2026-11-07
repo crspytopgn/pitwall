@@ -7,10 +7,10 @@ http://<steam-machine-ip>:8090 on a phone or tablet on the same network.
 from __future__ import annotations
 
 import json
+import math
 import os
 import socket
 import threading
-import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
@@ -18,6 +18,25 @@ RATE_HZ = 15
 # Small static files the page needs (home-screen icons, manifest, keep-awake video).
 STATIC = {"/icon-180.png": "image/png", "/icon-192.png": "image/png", "/icon-512.png": "image/png",
           "/icon-maskable.png": "image/png", "/keepawake.mp4": "video/mp4"}
+def _finite(o):
+    if isinstance(o, float):
+        return o if math.isfinite(o) else None
+    if isinstance(o, dict):
+        return {k: _finite(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_finite(v) for v in o]
+    return o
+
+
+def safe_json(o) -> str:
+    """Strict JSON for the browser: NaN/inf would make JSON.parse throw and
+    freeze the dashboard, so they become null."""
+    try:
+        return json.dumps(o, separators=(",", ":"), allow_nan=False)
+    except ValueError:
+        return json.dumps(_finite(o), separators=(",", ":"), allow_nan=False)
+
+
 MANIFEST = json.dumps({
     "name": "Pitwall", "short_name": "Pitwall", "start_url": "/", "scope": "/", "display": "standalone",
     "orientation": "any", "background_color": "#000000", "theme_color": "#000000",
@@ -52,6 +71,7 @@ class Dashboard:
     def start(self):
         hub = self.hub
         downloads = self.downloads
+        self._stopping = stopping = threading.Event()
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *a):
@@ -80,15 +100,16 @@ class Dashboard:
                     self.send_header("Cache-Control", "no-store")
                     self.end_headers()
                     try:
-                        while True:
-                            payload = json.dumps(hub.snapshot(), separators=(",", ":"))
-                            self.wfile.write(f"data: {payload}\n\n".encode())
+                        while not stopping.is_set():
+                            snap = hub.snapshot()
+                            self.wfile.write(f"data: {safe_json(snap)}\n\n".encode())
                             self.wfile.flush()
-                            time.sleep(1 / RATE_HZ)
+                            # Full rate while driving; a slow heartbeat when nothing's running.
+                            stopping.wait(1 / RATE_HZ if snap.get("receiving") else 0.5)
                     except (BrokenPipeError, ConnectionResetError, OSError):
                         return
                 elif self.path == "/api/laps":
-                    self._send(200, json.dumps(hub.store.recent(30)).encode(), "application/json")
+                    self._send(200, safe_json(hub.store.recent(30)).encode(), "application/json")
                 elif self.path.startswith("/diag/") and downloads is not None:
                     path = downloads.take(self.path[len("/diag/"):])
                     if not path or not os.path.exists(path):
@@ -103,9 +124,9 @@ class Dashboard:
                     self.end_headers()
                     self.wfile.write(data)
                 elif self.path == "/api/track":
-                    self._send(200, json.dumps(hub.track_map()).encode(), "application/json")
+                    self._send(200, safe_json(hub.track_map()).encode(), "application/json")
                 elif self.path == "/api/session":
-                    self._send(200, json.dumps(hub.session_summary()).encode(), "application/json")
+                    self._send(200, safe_json(hub.session_summary()).encode(), "application/json")
                 else:
                     self._send(404, b"not found", "text/plain")
 
@@ -118,6 +139,8 @@ class Dashboard:
         threading.Thread(target=self.server.serve_forever, daemon=True, name="dashboard").start()
 
     def stop(self):
+        if getattr(self, "_stopping", None):
+            self._stopping.set()          # ends open /events streams
         if self.server:
             self.server.shutdown()
             self.server.server_close()

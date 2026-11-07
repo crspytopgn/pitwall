@@ -38,3 +38,8 @@ First public preview. Not yet tested on real hardware.
 - Per game: raw HID access (PROTON_ENABLE_HIDRAW) as a last-resort detection fix
 - Updates: daily check (switchable) of installed force feedback drivers and the winecarte bridge against their latest GitHub versions, with one-tap update; the bridge now records its installed version
 - README: the dashboard screenshots now have a heading and captions
+- Robustness: every telemetry frame is cleaned (NaN/infinity removed, values clamped) so a bad packet can't freeze the phone dashboard; malformed UDP packets can no longer stop the listener; strict JSON to the browser
+- Phone dashboard: shows 'Connection lost, reconnecting' if updates stop for 3 seconds instead of showing old numbers as live; sends a slow heartbeat when no game is running
+- Values from the UI are checked before reaching the wheel or settings (non-numbers, NaN, out-of-range FPS)
+- Uninstalling Pitwall removes its wheel detection rule and any drivers it installed
+- Website fuel calculator handles a missing or zero lap time; day-one checklist includes the force feedback test
