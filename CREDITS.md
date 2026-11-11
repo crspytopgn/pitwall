@@ -51,7 +51,7 @@ When you press **Install**, Pitwall downloads the source from the project's own 
 | [ProtonDB](https://www.protondb.com) | Live community ratings | ProtonDB terms; read through its public summaries API, cached for a day |
 | Valve's Steam Deck compatibility ratings | Live Deck/SteamOS ratings | Steam store data |
 | [Are We Anti-Cheat Yet](https://areweanticheatyet.com) | Anti-cheat status | MIT |
-| [linux-steering-wheels](https://github.com/JacKeTUs/linux-steering-wheels) | Wheel support table (`data/wheels.json`, rebuilt by `scripts/sync_wheels.py`), and the background for Pitwall's wheel detection fixes | Community project by JacKeTUs and contributors; Pitwall's notes and fixes are its own wording and code |
+| [linux-steering-wheels](https://github.com/JacKeTUs/linux-steering-wheels) | Wheel support table (`data/wheels.json`, rebuilt by `scripts/sync_wheels.py`), and the background for Pitwall's wheel detection fixes | Community project by JacKeTUs and contributors. The repository has no licence file, so Pitwall summarises the support table with credit and a link back; Pitwall's notes and fixes are its own wording and code |
 | [awesome-linux-simracing](https://github.com/LukasLichten/awesome-linux-simracing) | Toolbox list (`data/tools.json`, `docs/toolbox.md`), adapted | CC BY-SA 4.0; the adapted list is shared under the same licence |
 | [GamingOnLinux](https://www.gamingonlinux.com), [Box This Lap](https://boxthislap.org), [Sim Racing on Linux](https://simracingonlinux.com) and the game developers' own posts | Notes and known issues in the game guide; every note links to its source | Linked articles |
 
