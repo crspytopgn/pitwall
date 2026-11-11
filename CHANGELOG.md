@@ -43,3 +43,4 @@ First public preview. Not yet tested on real hardware.
 - Values from the UI are checked before reaching the wheel or settings (non-numbers, NaN, out-of-range FPS)
 - Uninstalling Pitwall removes its wheel detection rule and any drivers it installed
 - Website fuel calculator handles a missing or zero lap time; day-one checklist includes the force feedback test
+- Standalone version (no Decky): the same backend as a system service with a local web app covering every plugin page; detects the running game from Steam's processes; writes launch options to Steam's settings while Steam is closed (queued while it's open, with a backup); localhost-only control API with host and header checks; install.sh / uninstall.sh; built by CI as Pitwall-standalone

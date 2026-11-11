@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pitwall</title>
+<link rel="icon" href="logo.svg">
+<style>
+  :root { --bg:#0b0d10; --panel:#14181d; --panel2:#1b2027; --edge:#262d36; --text:#e9eef3; --dim:#9aa6b2;
+          --green:#3ddc84; --blue:#4da3ff; --amber:#ffb020; --red:#ff6b6b; --r:12px; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  a { color:var(--blue); }
+  .shell { display:grid; grid-template-columns:230px minmax(0,1fr); min-height:100vh; }
+  nav { background:var(--panel); border-right:1px solid var(--edge); padding:16px 10px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  nav .brand { display:flex; align-items:center; gap:10px; padding:4px 10px 16px; font-weight:700; font-size:18px; letter-spacing:-.01em; }
+  nav .brand img { width:26px; height:26px; }
+  nav .group { color:var(--dim); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:14px 10px 6px; }
+  nav a { display:block; padding:8px 10px; border-radius:8px; color:var(--text); text-decoration:none; font-size:14px; }
+  nav a:hover { background:var(--panel2); }
+  nav a.on { background:rgba(77,163,255,.16); color:#fff; }
+  nav .badge { float:right; background:var(--blue); color:#000; border-radius:9px; padding:0 7px; font-size:11px; font-weight:700; }
+  main { padding:24px 28px 60px; max-width:920px; }
+  header.top { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  header.top h1 { margin:0; font-size:22px; letter-spacing:-.01em; }
+  .status { display:flex; gap:8px; flex-wrap:wrap; }
+  .pill { font-size:12px; padding:4px 10px; border-radius:999px; background:var(--panel2); border:1px solid var(--edge); color:var(--dim); }
+  .pill.ok { color:var(--green); } .pill.warn { color:var(--amber); }
+  section.card { background:var(--panel); border:1px solid var(--edge); border-radius:var(--r); padding:16px 18px; margin-bottom:14px; }
+  section.card h2 { margin:0 0 10px; font-size:15px; }
+  .dim { color:var(--dim); font-size:13px; }
+  .small { font-size:13px; }
+  .row { margin:8px 0; }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }
+  button, .btn { font:inherit; font-size:14px; padding:8px 14px; border-radius:8px; border:1px solid var(--edge); background:var(--panel2); color:var(--text); cursor:pointer; }
+  button:hover { border-color:#3a4450; } button:disabled { opacity:.5; cursor:default; }
+  button.primary { background:var(--blue); border-color:var(--blue); color:#00131f; font-weight:600; }
+  button.list { display:block; width:100%; text-align:left; margin:6px 0; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  label.slider { display:grid; grid-template-columns:180px minmax(0,1fr) 70px; align-items:center; gap:12px; margin:8px 0; font-size:14px; }
+  label.slider output { text-align:right; color:var(--dim); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); }
+  label.toggle { display:flex; align-items:center; gap:10px; margin:8px 0; font-size:14px; cursor:pointer; }
+  input[type=checkbox] { width:18px; height:18px; accent-color:var(--blue); }
+  input[type=text], input[type=password], input[type=number] { font:inherit; padding:7px 10px; border-radius:8px; border:1px solid var(--edge); background:var(--bg); color:var(--text); }
+  .tag { font-weight:700; font-size:12px; margin-right:6px; }
+  .ok { color:var(--green); } .bad { color:var(--red); } .warn { color:var(--amber); } .info { color:var(--dim); } .blue { color:var(--blue); }
+  pre.log { background:var(--bg); border:1px solid var(--edge); border-radius:8px; padding:10px; font-size:11px; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow:auto; }
+  .qr { background:#fff; border-radius:8px; padding:8px; display:inline-block; }
+  .tyres { display:grid; grid-template-columns:1fr 1fr; gap:6px; max-width:240px; text-align:center; }
+  .tyres div { background:var(--panel2); border-radius:8px; padding:6px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; } td, th { text-align:left; padding:6px 8px; border-bottom:1px solid var(--edge); }
+  #toasts { position:fixed; right:18px; bottom:18px; display:grid; gap:8px; z-index:10; max-width:380px; }
+  .toast { background:#222a33; border:1px solid var(--edge); border-left:3px solid var(--blue); border-radius:10px; padding:10px 14px; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+  .opts { font-family:ui-monospace, monospace; font-size:12px; background:var(--bg); padding:8px; border-radius:8px; border:1px solid var(--edge); word-break:break-all; }
+  @media (max-width:760px) { .shell { grid-template-columns:1fr; } nav { position:static; height:auto; } label.slider { grid-template-columns:1fr 60px; } label.slider span { grid-column:1/-1; } main { padding:16px; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav id="nav"></nav>
+  <main>
+    <header class="top"><h1 id="title">Pitwall</h1><div class="status" id="status"></div></header>
+    <div id="page"></div>
+  </main>
+</div>
+<div id="toasts"></div>
+<script src="qrcode.js"></script>
+<script>
+"use strict";
+// ------------------------------------------------------------------ basics
+// Optional pieces are written as `cond ? el : null` throughout; skip them (and
+// flatten arrays) instead of letting the DOM print "null".
+for (const proto of [Element.prototype, DocumentFragment.prototype]) {
+  for (const m of ["append", "prepend"]) {
+    const orig = proto[m];
+    proto[m] = function (...kids) { return orig.apply(this, kids.flat(Infinity).filter((k) => k != null && k !== false)); };
+  }
+}
+const $ = (s) => document.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else if (k === "html") el.innerHTML = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat(Infinity)) if (c != null && c !== false) el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return el;
+}
+const card = (title, ...kids) => h("section", { class: "card" }, title ? h("h2", {}, title) : null, ...kids);
+const dim = (...k) => h("div", { class: "dim" }, ...k);
+const small = (...k) => h("div", { class: "small" }, ...k);
+const row = (...k) => h("div", { class: "row" }, ...k);
+const btns = (...k) => h("div", { class: "btns" }, ...k);
+function button(label, fn, opts = {}) {
+  const b = h("button", { class: opts.primary ? "primary" : opts.list ? "list" : "" }, label);
+  b.addEventListener("click", async () => {
+    if (b.disabled) return;
+    const old = b.textContent; b.disabled = true; if (opts.busy) b.textContent = opts.busy;
+    try { await fn(b); } catch (e) { toast(String(e.message || e)); } finally { if (b.isConnected) { b.disabled = false; if (opts.busy) b.textContent = old; } }
+  });
+  return b;
+}
+function toggle(label, checked, fn) {
+  const i = h("input", { type: "checkbox" }); i.checked = !!checked;
+  i.addEventListener("change", () => fn(i.checked));
+  return h("label", { class: "toggle" }, i, label);
+}
+function slider(label, value, min, max, step, suffix, fn, debounce = 200) {
+  const out = h("output", {}, `${value}${suffix || ""}`);
+  const i = h("input", { type: "range", min, max, step, value });
+  let t;
+  i.addEventListener("input", () => { out.textContent = `${i.value}${suffix || ""}`; clearTimeout(t); t = setTimeout(() => fn(Number(i.value)), debounce); });
+  return h("label", { class: "slider" }, h("span", {}, label), i, out);
+}
+function toast(msg) {
+  const t = h("div", { class: "toast" }, msg);
+  $("#toasts").append(t);
+  setTimeout(() => t.remove(), 6000);
+}
+function qr(text, size = 180) {
+  try {
+    const q = qrcode(0, "M"); q.addData(text); q.make();
+    const n = q.getModuleCount(), m = 4, tot = n + 2 * m; let d = "";
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
+    return h("div", { class: "qr", html: `<svg width="${size}" height="${size}" viewBox="0 0 ${tot} ${tot}" shape-rendering="crispEdges"><rect width="${tot}" height="${tot}" fill="#fff"/><path d="${d}" fill="#000"/></svg>` });
+  } catch (e) { return dim(text); }
+}
+const fmt = (s) => { if (s == null || !isFinite(s) || s <= 0) return "–"; const m = Math.floor(s / 60), r = s - m * 60; return (m ? `${m}:${r < 10 ? "0" : ""}` : "") + r.toFixed(3); };
+const src = (u) => String(u || "").replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
+const STATUS = { works: "Works", setup: "Works with setup", community: "Community fixes only", broken: "Doesn't run" };
+const STATUS_CLASS = { works: "ok", setup: "blue", community: "warn", broken: "bad" };
+const DRIVER_NAMES = { "universal-pidff": "hid-universal-pidff", "new-lg4ff": "new-lg4ff", "hid-fanatecff": "hid-fanatecff", "hid-tmff2": "hid-tmff2", "simagic-ff": "simagic-ff" };
+
+async function api(name, ...args) {
+  const r = await fetch(`/api/call/${name}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Pitwall": "1" }, body: JSON.stringify({ args }) });
+  let j; try { j = await r.json(); } catch (e) { throw new Error(`Pitwall didn't answer (${r.status})`); }
+  if (!r.ok) throw new Error(j.error || `Error ${r.status}`);
+  return j.result;
+}
+
+// Launch options: written to Steam's settings when Steam is closed, otherwise
+// queued and applied when it exits.
+async function setLaunch(appid, opts, okMsg) {
+  const r = await api("launch_options_set", String(appid), opts);
+  toast(r.applied ? okMsg : r.message);
+  refreshStatus();
+  return r;
+}
+
+// ------------------------------------------------------------------ shell
+let INFO = { game: null, steam_running: false, pending_launch_options: 0 };
+let UPDATES = 0;
+const PAGES = [
+  ["Session", [["session", "Session"], ["laps", "Laps"]]],
+  ["Set up", [["auto", "Auto setup"], ["guide", "Game guide"], ["checks", "Pre-race checks"]]],
+  ["Drive", [["wheel", "Wheel"], ["feel", "Force feedback feel"], ["strategy", "Fuel and tyres"]]],
+  ["More", [["perf", "Performance check"], ["debrief", "Engineer debrief"], ["updates", "Updates"], ["diag", "Send diagnostics"]]],
+];
+const TITLES = Object.fromEntries(PAGES.flatMap(([, ps]) => ps));
+function drawNav(cur) {
+  const nav = $("#nav"); nav.textContent = "";
+  nav.append(h("div", { class: "brand" }, h("img", { src: "logo.svg", alt: "" }), "Pitwall"));
+  for (const [group, ps] of PAGES) {
+    nav.append(h("div", { class: "group" }, group));
+    for (const [id, title] of ps) nav.append(h("a", { href: `#${id}`, class: id === cur ? "on" : "" }, title, id === "updates" && UPDATES ? h("span", { class: "badge" }, UPDATES) : null));
+  }
+}
+async function refreshStatus() {
+  try { INFO = await api("app_info"); } catch (e) { INFO = { offline: true }; }
+  const s = $("#status"); s.textContent = "";
+  if (INFO.offline) { s.append(h("span", { class: "pill warn" }, "Pitwall service not responding")); return; }
+  s.append(h("span", { class: "pill " + (INFO.game ? "ok" : "") }, INFO.game ? `Playing ${INFO.game.name}` : "No game running"));
+  s.append(h("span", { class: "pill" }, INFO.steam_running ? "Steam open" : "Steam closed"));
+  if (INFO.pending_launch_options) s.append(h("span", { class: "pill warn", title: "Applied when you exit Steam" }, `${INFO.pending_launch_options} launch option change(s) waiting for Steam to close`));
+}
+let poller = null;
+function poll(fn, ms) { clearInterval(poller); fn(); poller = setInterval(fn, ms); }
+
+async function route() {
+  const id = (location.hash.slice(1) || "session").split("/")[0];
+  const page = PAGE_FN[id] ? id : "session";
+  clearInterval(poller);
+  drawNav(page);
+  $("#title").textContent = TITLES[page] || "Pitwall";
+  const el = $("#page"); el.textContent = "";
+  try { await PAGE_FN[page](el, location.hash.slice(1).split("/").slice(1)); }
+  catch (e) { el.append(card("Something went wrong", dim(String(e.message || e)))); }
+}
+
+// ------------------------------------------------------------------ pages
+const PAGE_FN = {};
+
+PAGE_FN.session = async (el) => {
+  const box = h("div"); el.append(box);
+  const settings = await api("get_settings");
+  if (!settings.setup_done) {
+    el.prepend(card("Welcome to Pitwall", small("Let Pitwall check your device and wheel and apply the best starting settings. Takes a few seconds."),
+      btns(button("Run auto setup", () => { location.hash = "auto"; }, { primary: true }), button("Not now", async (b) => { await api("dismiss_first_run"); b.closest("section").remove(); }))));
+  }
+  try {
+    const u = await api("updates_status", false);
+    if (u.available && u.available.length) el.prepend(card("Update available", small(u.items.filter((i) => i.update).map((i) => i.name).join(", ")), btns(button("See updates", () => { location.hash = "updates"; }))));
+  } catch (e) { /* offline */ }
+  let qrShown = null;
+  poll(async () => {
+    const s = await api("session_status");
+    box.textContent = "";
+    const live = s.receiving
+      ? [small("Telemetry: ", h("b", {}, s.sim_name || s.sim), s.track ? ` · ${s.track}` : "", s.car ? ` · ${s.car}` : ""),
+         small("Lap ", fmt(s.live.lap_time), " ", s.live.delta != null ? h("b", { class: s.live.delta > 0 ? "bad" : "ok" }, `${s.live.delta > 0 ? "+" : ""}${s.live.delta.toFixed(2)}`) : null),
+         small(`Last ${fmt(s.last_lap && s.last_lap.time)} · Best ${fmt(s.best)} · ${s.session_laps} laps`)]
+      : [small(`Waiting for telemetry${INFO.game ? ` from ${INFO.game.name}` : ""}`)];
+    const sess = card("Session", ...live,
+      s.has_position ? btns(button(s.needs_start_line ? "Set start line here (needed for laps)" : "Move start line here", async () => toast((await api("set_start_line")) ? "Start line set here" : "No position data yet"))) : null,
+      s.tips.length ? card(null, ...s.tips.map((t) => small(t))) : null);
+    box.append(sess);
+    const dash = card("Phone dashboard",
+      s.dashboard_url ? small("Open ", h("b", {}, s.dashboard_url), " on a phone on the same Wi-Fi, or scan:") : dim(s.dashboard_error || "Dashboard not running"));
+    if (s.dashboard_url) { if (!qrShown || qrShown.url !== s.dashboard_url) qrShown = { url: s.dashboard_url, el: qr(s.dashboard_url, 180) }; dash.append(row(qrShown.el)); }
+    box.append(dash);
+  }, 1000);
+};
+
+PAGE_FN.laps = async (el) => {
+  const box = h("div"); el.append(box);
+  poll(async () => {
+    const laps = await api("recent_laps");
+    box.textContent = "";
+    if (!laps.length) { box.append(card("Recent laps", dim("No laps yet."))); return; }
+    box.append(card("Recent laps", h("table", {}, h("tr", {}, h("th", {}, "Time"), h("th", {}, "Sim"), h("th", {}, "Track"), h("th", {}, "Car"), h("th", {}, "When")),
+      laps.map((l) => h("tr", {}, h("td", {}, h("b", {}, fmt(l.time))), h("td", {}, l.sim), h("td", {}, l.track || "–"), h("td", {}, l.car || "–"), h("td", { class: "dim" }, new Date(l.created * 1000).toLocaleString()))))));
+  }, 5000);
+};
+
+const DEVICE = { steam_machine: "Steam Machine", steam_deck: "Steam Deck", pc: "PC" };
+PAGE_FN.auto = async (el) => {
+  const plan = await api("auto_setup_plan");
+  const d = plan.device;
+  const c = card("Auto setup",
+    small(h("b", {}, DEVICE[d.kind] || "PC"), d.product ? ` (${d.product})` : "", ` · ${d.cpus} CPU threads`, d.ram_gb ? ` · ${d.ram_gb} GB RAM` : "", d.vram_gb ? ` · ${d.vram_gb} GB VRAM` : ""),
+    dim(d.os), row(h("b", {}, "Pitwall will:")),
+    ...plan.steps.map((s) => row(small("• ", h("b", {}, s.title)), dim(s.detail))));
+  const res = h("div");
+  c.append(btns(button("Do it", async (b) => {
+    const r = await api("auto_setup_apply"); b.remove();
+    res.append(...r.results.map((x) => small(h("span", { class: "tag " + (x.ok ? "ok" : "warn") }, x.ok ? "Done" : "Check"), " ", x.detail)),
+      dim("Next: open the Game guide for each sim you play, then run Pre-race checks with the game running."));
+    toast("Auto setup done");
+  }, { primary: true, busy: "Setting up…" })), res,
+  dim("Graphics settings aren't changed automatically: use Performance check to measure, and Pitwall will say what to change."));
+  el.append(c);
+};
+
+PAGE_FN.guide = async (el, args) => {
+  if (args[0]) return gamePage(el, args[0]);
+  const list = await api("compat_list");
+  el.append(card("Game guide", ...list.map((g) => button(h("div", {}, h("div", {}, g.name, g.installed ? " · installed" : ""),
+    h("div", { class: "dim" }, h("span", { class: STATUS_CLASS[g.status] }, STATUS[g.status] || g.status), g.telemetry && g.telemetry !== "planned" ? ` · telemetry: ${g.telemetry}` : "")), () => { location.hash = `guide/${g.id}`; }, { list: true }))));
+};
+
+async function gamePage(el, id) {
+  const g = await api("compat_detail", id);
+  if (!g) { el.append(card("Not found", btns(button("‹ All games", () => { location.hash = "guide"; })))); return; }
+  $("#title").textContent = g.name;
+  el.append(card(null, btns(button("‹ All games", () => { location.hash = "guide"; })),
+    small(h("b", { class: STATUS_CLASS[g.status] }, STATUS[g.status]), ` (${g.runtime === "native" ? "native Linux" : g.runtime === "proton" ? "Proton" : "not runnable"})`),
+    small("Steam Deck rating (Valve): ", h("b", {}, (g.live_deck && g.live_deck.category) || "unavailable")),
+    small("ProtonDB: ", h("b", {}, (g.live_protondb && g.live_protondb.tier) || "unavailable"), g.live_protondb && g.live_protondb.total ? ` · ${g.live_protondb.total} reports` : ""),
+    g.live_anticheat ? small("Anti-cheat: ", h("b", {}, g.live_anticheat.status), ` (${(g.live_anticheat.anticheats || []).join(", ")})`) : null));
+  const setup = card("Setup", ...g.install.map((s, i) => small(`${i + 1}. ${s}`)));
+  if (g.auto_setup) setup.append(btns(button("Do this for me", async () => toast((await api("compat_auto_setup", g.id)).message))));
+  if (g.bridge_auto && g.steam_appid) setup.append(await bridgeSetup(String(g.steam_appid), g.name));
+  if (g.wheel) setup.append(small(`Suggested rotation ${g.wheel.rotation}°. ${g.wheel.note}`));
+  el.append(setup);
+  if (g.ffb_ingame) el.append(card("In-game force feedback", ...g.ffb_ingame.steps.map((t, i) => small(`${i + 1}. ${t}`)), small(g.ffb_ingame.starting_points), dim(g.ffb_ingame.sources.map(src).join(" · "))));
+  if (g.steam_appid && g.runtime !== "none") el.append(await wheelDetection(String(g.steam_appid), g.name));
+  if (g.known_issues.length) el.append(card("Known issues", ...g.known_issues.map((k) => row(small("• ", k.text), dim(src(k.source))))));
+}
+
+async function bridgeSetup(appid, name) {
+  const box = h("div");
+  const st = await api("bridge_status", appid);
+  if (!st.supported) return box;
+  const draw = async () => {
+    const cur = await api("launch_options_get", appid);
+    const on = cur != null && cur.includes("winecarte-run");
+    box.textContent = "";
+    box.append(btns(button(on ? "Remove telemetry bridge" : "Set up telemetry bridge", async () => {
+      if (cur == null) { toast("Couldn't read this game's launch options from Steam; nothing was changed"); return; }
+      if (!on && !st.installed) { const r = await api("bridge_install"); if (!r.ok) { toast(r.message); return; } st.installed = true; }
+      const next = await api("bridge_launch_options", cur, !on);
+      await setLaunch(appid, next, on ? `Bridge removed from ${name}'s launch options` : `Telemetry bridge added to ${name}. Start the game from Steam.`);
+      draw();
+    }, { busy: "Working…" })), dim("Uses winecarte (github.com/srounce/winecarte). It's added to the game's launch options; your existing options are kept."),
+    cur ? dim("Launch options: ", h("span", { class: "opts" }, cur)) : null);
+  };
+  await draw();
+  return box;
+}
+
+async function wheelDetection(appid, name) {
+  const c = card(appid ? "Game doesn't see your wheel?" : "Wheel detection");
+  const draw = async () => {
+    const det = await api("wheel_detection");
+    const cur = appid ? await api("launch_options_get", appid) : null;
+    c.querySelectorAll(":scope > :not(h2)").forEach((n) => n.remove());
+    if (!det.wheels.length) c.append(dim("No wheel, pedals or shifter recognised."));
+    for (const w of det.wheels) c.append(small(h("b", {}, w.model ? `${w.brand} ${w.model}` : w.name), ": ",
+      w.joystick === true ? "recognised as a game controller" : w.joystick === false ? "not recognised as a game controller, so games may ignore it" : "detection unknown"));
+    const b = btns();
+    if (det.needs_hwdb) b.append(button("Fix wheel and pedal detection", async () => { toast((await api("wheel_detection_fix")).message); draw(); }, { busy: "Working…" }));
+    const hasEnv = cur != null && cur.includes("SDL_JOYSTICK_WHEEL_DEVICES="), hasRaw = cur != null && cur.includes("PROTON_ENABLE_HIDRAW=");
+    if (appid && det.sdl_value) b.append(button(hasEnv ? "Remove wheel ID from launch options" : "Add wheel ID to launch options", async () => {
+      if (cur == null) { toast("Couldn't read this game's launch options; nothing was changed"); return; }
+      await setLaunch(appid, await api("wheel_launch_options", cur, !hasEnv), hasEnv ? `Wheel ID removed from ${name}` : `Wheel ID added to ${name}. Restart the game.`); draw();
+    }));
+    if (appid && det.sdl_value && (hasEnv || hasRaw)) b.append(button(hasRaw ? "Remove raw HID access" : "Still not seen: try raw HID access (last resort)", async () => {
+      await setLaunch(appid, await api("hidraw_launch_options", cur, !hasRaw), hasRaw ? `Raw HID access removed from ${name}` : `Raw HID access added to ${name}. Restart the game.`); draw();
+    }));
+    c.append(b, dim((det.needs_hwdb ? "This tells Linux these devices are game controllers (a udev rule, kept across reboots). Unplug and replug them afterwards. " : "")
+      + (appid ? "Adding the wheel ID tells Steam's input layer to treat it as a wheel in this game; your other launch options are kept. Raw HID access is a last resort: some Proton versions don't pass force feedback through it. " : "")
+      + "Also check: Steam Input off for the game (Properties, Controller), and a recent Proton such as Proton 10 or Experimental."));
+  };
+  await draw();
+  return c;
+}
+
+PAGE_FN.checks = async (el) => {
+  const c = card("Pre-race checks", dim("Checking…")); el.append(c);
+  const extra = h("div"); el.append(extra);
+  const run = async () => {
+    const res = await api("health_check");
+    c.textContent = ""; c.append(h("h2", {}, "Pre-race checks"));
+    for (const x of res) c.append(row(small(h("span", { class: "tag " + (x.ok === true ? "ok" : x.ok === false ? "bad" : "info") }, x.ok === true ? "OK" : x.ok === false ? "FIX" : "INFO"), " ", h("b", {}, x.title)), x.detail ? dim(x.detail) : null));
+    c.append(btns(button("Run again", run, { busy: "Checking…" })));
+    extra.textContent = "";
+    if (res.some((x) => x.id === "ffb" && x.ok === false)) extra.append(await ffbSetup());
+  };
+  await run();
+};
+
+const CORE_KEYS = ["rotation", "ffb_strength", "torque", "road_sensitivity", "ffb_enabled"];
+PAGE_FN.wheel = async (el) => {
+  const st = await api("wheel_status");
+  if (!st.connected) {
+    el.append(card("Wheel", small(st.error || "No wheel found."), btns(button("Retry", route))));
+  } else {
+    const vals = (await api("wheel_read")) || {};
+    const defs = st.settings || {};
+    const ctl = (k) => {
+      const d = defs[k]; if (!d || vals[k] === undefined) return null;
+      if (d.toggle) return toggle(d.label, vals[k] === 1, (on) => api("wheel_set", k, on ? 1 : 0));
+      return slider(d.label, vals[k], d.min, d.max, d.step, d.suffix, (v) => api("wheel_set", k, v));
+    };
+    const more = h("div", { hidden: true }, Object.keys(defs).filter((k) => !CORE_KEYS.includes(k)).map(ctl));
+    el.append(card(st.name, ...CORE_KEYS.map(ctl),
+      st.can_center ? btns(button("Set centre (hold wheel straight)", async () => toast((await api("wheel_center")) ? "Centre set" : "Centre failed"))) : null,
+      st.leds ? toggle("Rev lights from telemetry (drive the wheel's RPM LEDs from the game)", st.rev_lights, (on) => api("set_setting", "rev_lights", on)) : null,
+      Object.keys(defs).some((k) => !CORE_KEYS.includes(k)) ? toggle("Show more settings", false, (on) => { more.hidden = !on; }) : null, more));
+    el.append(await profiles());
+  }
+  el.append(await ffbSetup());
+  el.append(await wheelDetection());
+};
+
+async function profiles() {
+  const c = card("Profiles");
+  const draw = async () => {
+    const p = await api("get_profiles");
+    const game = INFO.game;
+    c.textContent = ""; c.append(h("h2", {}, "Profiles"));
+    c.append(toggle("Apply profiles automatically", p.auto_apply, async (on) => { await api("set_auto_apply", on); }));
+    const save = async (key, name) => { toast((await api("save_profile", key, name)) ? `Saved wheel profile: ${name}` : "Couldn't read settings from the wheel"); draw(); };
+    const b = btns();
+    if (game) {
+      const has = p.games[game.appid] !== undefined;
+      b.append(button(`${has ? "Update" : "Save"} profile for ${game.name}`, () => save(game.appid, game.name)));
+      if (has) b.append(button(`Delete profile for ${game.name}`, async () => { await api("delete_profile", game.appid); draw(); }));
+    }
+    if (p.current_car) {
+      const has = p.cars[p.current_car.key] !== undefined;
+      b.append(button(`${has ? "Update" : "Save"} profile for this car (${p.current_car.name})`, () => save(`car:${p.current_car.key}`, p.current_car.name)));
+      if (has) b.append(button(`Delete profile for ${p.current_car.name}`, async () => { await api("delete_profile", `car:${p.current_car.key}`); draw(); }));
+    }
+    b.append(button(`${p.has_default ? "Update" : "Save"} default (outside games)`, () => save("default", "Default")));
+    c.append(b, dim(game ? "A car profile overrides the game profile when that car is on track." : "Start a game from Steam to save a profile for it. A car profile overrides the game profile when that car is on track."));
+    if (Object.keys(p.games).length) c.append(dim("Games: ", Object.values(p.games).join(", ")));
+    if (Object.keys(p.cars).length) c.append(dim("Cars: ", Object.values(p.cars).join(", ")));
+  };
+  await draw();
+  return c;
+}
+
+async function ffbSetup() {
+  const c = card("Force feedback");
+  let strength = 20, timer = null;
+  const draw = async () => {
+    const st = await api("ffb_status");
+    c.textContent = ""; c.append(h("h2", {}, "Force feedback"));
+    for (const [id, r] of Object.entries(st.installed)) if (r.stale) c.append(small(h("b", { class: "warn" }, `${DRIVER_NAMES[id] || id} needs reinstalling.`), ` A SteamOS update replaced the kernel (${st.kernel}) and removed it.`), btns(button(`Reinstall ${DRIVER_NAMES[id] || id}`, () => start(id))));
+    const bases = st.devices.filter((d) => d.ffb || d.need || d.caps.effects.length);
+    if (!bases.length) c.append(dim("No wheel base found. Plug it in and switch it on, then open this page again."));
+    for (const d of bases) {
+      const name = d.model ? `${d.brand} ${d.model}` : d.name;
+      const state = d.ffb ? (d.caps.verdict === "full" ? h("span", { class: "ok" }, "force feedback ready") : d.caps.verdict === "no_constant" ? h("span", { class: "bad" }, "force feedback without constant force, which most sims need") : h("span", { class: "warn" }, `force feedback, some effects missing (${d.caps.missing.join(", ")})`)) : h("span", { class: "bad" }, "no force feedback");
+      c.append(row(small(h("b", {}, name), ": ", state), d.ffb ? dim("Driver offers: ", d.caps.effects.filter((e) => e !== "gain" && e !== "autocentre").join(", ") || "none") : d.driver ? dim(`Needs ${d.driver}.`) : null));
+      if (d.need) {
+        if (st.steamos) c.append(dim(`Pitwall can build and install ${d.need.name} (${src(d.need.repo)}) for your kernel. It needs internet and takes a few minutes. SteamOS updates remove it; Pitwall will offer to reinstall.`,
+          d.need.id === "new-lg4ff" && d.ffb ? " Your wheel works already; this adds the missing effects and wheel settings." : ""), btns(button(`Install ${d.need.name}`, () => start(d.need.id), { primary: true })));
+        else c.append(dim(`Install ${d.need.name} with your distribution's package manager or from ${src(d.need.repo)}.`));
+      }
+      if (d.ffb) c.append(btns(button("Test force feedback", async () => toast((await api("ffb_test", d.event, strength / 100)).message), { busy: "Testing… hold the wheel lightly" })));
+    }
+    if (bases.some((d) => d.ffb)) c.append(slider("Test strength", strength, 5, 40, 5, "%", (v) => { strength = v; }, 0),
+      dim("The test pulls the wheel left, then right, through Linux's force feedback interface, the same one games use. Keep hands near the wheel; 20% is gentle even on strong bases."));
+    if (st.job) showJob(st.job);
+    for (const [id, r] of Object.entries(st.installed)) if (r.present) c.append(btns(button(`Remove ${DRIVER_NAMES[id] || id} (${r.commit})`, () => start(id, true))));
+  };
+  const logBox = h("div");
+  const showJob = (j) => {
+    logBox.textContent = "";
+    logBox.append(small(h("b", {}, `${j.action === "install" ? "Installing" : "Removing"} ${DRIVER_NAMES[j.driver] || j.driver}: `), j.state === "running" ? j.step : j.message || ""), h("pre", { class: "log" }, j.log.slice(-8).join("\n")));
+    c.append(logBox);
+  };
+  const start = async (id, remove = false) => {
+    const r = await api(remove ? "driver_remove" : "driver_install", id);
+    if (!r.ok) { toast(r.message); return; }
+    clearInterval(timer);
+    timer = setInterval(async () => {
+      if (!c.isConnected) { clearInterval(timer); return; }
+      const j = await api("driver_job"); if (!j) return;
+      showJob(j);
+      if (j.state !== "running") { clearInterval(timer); toast(j.message || j.state); draw(); }
+    }, 1500);
+  };
+  await draw();
+  return c;
+}
+
+PAGE_FN.feel = async (el) => {
+  const out = h("div");
+  const draw = async () => {
+    const cat = await api("ffb_catalogue");
+    el.textContent = "";
+    const show = (r, label) => { out.textContent = ""; toast(r.ok ? (r.changes && !r.changes.length ? "Already at the limit for this" : `${label} applied`) : r.message || "Failed");
+      if (r.changes && r.changes.length) out.append(...r.changes.map((c) => small(`• ${c.label}: ${c.from} → ${c.to} (${c.why})`)));
+      if (r.tip) out.append(small(r.tip)); draw(); };
+    el.append(card("What feels wrong?", dim("Change one thing at a time and drive a few corners before changing the next. Every change can be undone."),
+      h("div", { class: "grid2" }, cat.symptoms.map((x) => button(x.label, async () => show(await api("ffb_nudge", x.id), "Adjustment")))),
+      out, cat.can_undo ? btns(button("↩ Undo last change", async () => show(await api("ffb_undo"), "Undo"))) : null));
+    el.append(card("Starting presets", ...cat.presets.map((p) => button(h("div", {}, h("div", {}, p.name), h("div", { class: "dim" }, p.summary), h("div", { class: "dim" }, `Source: ${src(p.source)}`)), async () => show(await api("ffb_apply_preset", p.id), p.name), { list: true }))));
+    if (cat.ingame) el.append(card(`In ${cat.game}`, ...cat.ingame.steps.map((t, i) => small(`${i + 1}. ${t}`)), small(cat.ingame.starting_points)));
+  };
+  await draw();
+};
+
+PAGE_FN.strategy = async (el) => {
+  const box = h("div");
+  const r0 = await api("strategy_report");
+  el.append(card("Race length", slider("Race laps remaining", r0.target_laps || 0, 0, 200, 1, "", (v) => api("strategy_set_target", v, 0), 300),
+    slider("…or minutes remaining", r0.target_minutes || 0, 0, 360, 5, "", (v) => api("strategy_set_target", 0, v), 300),
+    dim("Fuel per lap uses the median of your last 5 clean laps; refuelling laps are ignored. Advice includes one lap of margin.")), box);
+  poll(async () => {
+    const r = await api("strategy_report"), f = r.fuel, t = r.tyres;
+    box.textContent = "";
+    box.append(card("Fuel", !f ? dim("Waiting for fuel data from the sim.") : [
+      small("In tank: ", h("b", {}, `${f.now ?? "–"} ${f.unit}`)),
+      small("Per lap: ", h("b", {}, f.per_lap != null ? `${f.per_lap} ${f.unit}` : `measuring (${f.laps_measured} laps)`)),
+      small("Laps of fuel left: ", h("b", {}, f.laps_left ?? "–")),
+      f.to_add != null ? small(`To finish: ${f.to_finish} ${f.unit} · `, h("b", {}, `add ${f.to_add} ${f.unit}`), f.stops ? ` · ${f.stops} stop(s)` : "") : null,
+      f.advice ? small(f.advice) : null]));
+    const temp = (k) => { const v = t && t.temps && t.temps[k]; if (v == null) return "–"; const w = t.window; return h("span", { class: w ? (v < w[0] ? "blue" : v > w[2] ? "bad" : "ok") : "" }, `${Math.round(v)}°`); };
+    box.append(card("Tyres", !t ? dim("This sim doesn't report tyre data, or no data yet.") : [
+      t.temps ? h("div", { class: "tyres" }, h("div", {}, "FL ", temp("FL")), h("div", {}, "FR ", temp("FR")), h("div", {}, "RL ", temp("RL")), h("div", {}, "RR ", temp("RR"))) : null,
+      t.window ? dim(`Window: ${t.window[0]}°C to ${t.window[2]}°C (ideal ${t.window[1]}°C)`) : null,
+      (t.notes || []).map((n) => small(`• ${n}`)),
+      t.wear_per_lap_pct ? small("Wear per lap: ", Object.entries(t.wear_per_lap_pct).map(([k, v]) => `${k} ${v}%`).join(" · "), t.laps_per_10pct ? ` · worst (${t.worst}): about ${t.laps_per_10pct} laps per 10% wear` : "") : null]));
+  }, 2000);
+};
+
+const SAVED = "pitwall-app-saved-launch-options";
+const savedOpts = () => { try { return JSON.parse(localStorage.getItem(SAVED) || "{}"); } catch (e) { return {}; } };
+const storeOpts = (v) => { try { localStorage.setItem(SAVED, JSON.stringify(v)); } catch (e) { /* ignore */ } };
+PAGE_FN.perf = async (el) => {
+  const s = await api("get_settings");
+  const res = h("div");
+  const draw = () => {
+    el.textContent = "";
+    const game = INFO.game;
+    const saved = savedOpts();
+    el.append(card("Performance check",
+      slider("Target FPS", s.target_fps, 30, 144, 1, "", (v) => api("set_setting", "target_fps", v)), dim("Match your screen: usually 60 or 120."),
+      btns(button(`Arm 90 s benchmark${game ? ` for ${game.name}` : ""}`, async () => {
+        if (!game) { toast("Start the game from Steam first, then arm the benchmark"); return; }
+        const cur = await api("launch_options_get", game.appid);
+        if (cur == null) { toast("Couldn't read this game's launch options; benchmark not set to avoid overwriting them"); return; }
+        saved[game.appid] = cur; storeOpts(saved);
+        const env = (await api("benchmark_options", 90)).replace(/\s*%command%\s*$/, "");
+        const opts = cur.includes("%command%") ? `${env} ${cur}` : `${env} %command%${cur ? " " + cur : ""}`;
+        await setLaunch(game.appid, opts, `Benchmark armed for ${game.name}. Restart the game and drive for 90 s.`); draw();
+      }), button("Analyse latest benchmark", async () => {
+        const r = await api("perf_analyse", game ? game.appid : "", game ? game.name : "");
+        res.textContent = "";
+        res.append(!r.ok ? small(r.message) : [small(h("b", { class: r.verdict === "great" ? "ok" : r.verdict === "stutters" ? "warn" : "bad" }, r.verdict === "great" ? "Smooth" : r.verdict === "stutters" ? "Stuttering" : "Below target")),
+          small(`Average ${r.avg_fps} FPS · 1% low ${r.low1_fps} · ${r.stutters_per_min} stutters/min`), (r.advice || []).map((a) => small(`• ${a}`))]);
+      })),
+      ...Object.keys(saved).map((a) => btns(button(`Restore launch options (app ${a})`, async () => { const v = saved[a]; delete saved[a]; storeOpts(saved); await setLaunch(a, v, "Launch options restored"); draw(); }))),
+      res));
+  };
+  draw();
+};
+
+PAGE_FN.debrief = async (el) => {
+  const c = card("Engineer debrief", dim("Analysing session…")); el.append(c);
+  const s = await api("get_settings");
+  const run = async () => {
+    const d = await api("debrief");
+    c.textContent = ""; c.append(h("h2", {}, "Engineer debrief"), ...d.lines.map((l) => small(l)), d.claude ? small(h("b", {}, "Claude: "), d.claude) : null, d.error ? dim(d.error) : null, btns(button("Refresh", run, { busy: "Analysing…" })));
+  };
+  await run();
+  const key = h("input", { type: "password", placeholder: "Anthropic API key", autocomplete: "off", size: 40 });
+  el.append(card("Claude debriefs (optional)", dim(s.anthropic_api_key ? "Claude debriefs are on." : "Add an Anthropic API key for Claude-written debriefs. The sim, track and car names, lap times and corner numbers are sent to Anthropic when you open this page."),
+    btns(key, button("Save key", async () => { const v = key.value.trim(); const ok = await api("set_setting", "anthropic_api_key", v); toast(ok ? (v ? "API key saved" : "API key removed") : "That doesn't look like a key"); key.value = ""; }))));
+};
+
+PAGE_FN.updates = async (el) => {
+  const c = card("Updates"); el.append(c);
+  const s = await api("get_settings");
+  const draw = async (force = false) => {
+    const u = await api("updates_status", force);
+    c.textContent = ""; c.append(h("h2", {}, "Updates"));
+    if (!u.has_anything) c.append(dim("Pitwall hasn't installed any drivers or the telemetry bridge, so there's nothing to update."));
+    for (const i of u.items) {
+      c.append(row(small(h("b", {}, i.name), ": ", i.error ? h("span", { class: "warn" }, i.error) : i.update ? h("span", { class: "blue" }, "update available") : h("span", { class: "ok" }, "up to date")),
+        dim(`Installed: ${i.current || "unknown version"}${i.latest ? ` · latest: ${i.latest}${i.date ? ` (${i.date})` : ""}` : ""}`)));
+      if (i.update) c.append(btns(button(`Update ${i.name}`, async () => {
+        if (i.kind === "bridge") toast((await api("bridge_install")).message);
+        else {
+          const r = await api("driver_install", i.id); if (!r.ok) { toast(r.message); return; }
+          toast(`Updating ${i.name}. Progress is on the Wheel page.`);
+          for (;;) { await new Promise((ok) => setTimeout(ok, 2000)); const j = await api("driver_job"); if (!j || j.state !== "running") { toast((j && j.message) || "Done"); break; } }
+        }
+        draw();
+      }, { busy: "Updating…" })));
+    }
+    c.append(btns(button("Check now", () => draw(true), { busy: "Checking…" })), toggle("Check daily", s.check_updates !== false, (on) => api("set_setting", "check_updates", on)),
+      dim(`Last checked: ${u.checked ? new Date(u.checked * 1000).toLocaleString() : "never"}. Pitwall compares what it installed with each project's latest version on GitHub. Nothing updates without you pressing Update.`));
+    UPDATES = (u.available || []).length; drawNav("updates");
+  };
+  await draw();
+};
+
+PAGE_FN.diag = async (el) => {
+  const out = h("div");
+  el.append(card("Send diagnostics", small("Creates a zip with your setup, wheel and telemetry status, check results and Pitwall's recent logs (your API key is removed). Nothing is sent automatically."),
+    btns(button("Create diagnostics", async (b) => {
+      const d = await api("diagnostics_create");
+      out.textContent = "";
+      out.append(h("pre", { class: "log" }, d.summary), dim(`Saved to ${d.path}`),
+        row(small(h("b", {}, "Open a pre-filled bug report"), " and attach the zip: ", h("a", { href: d.issue_url, target: "_blank", rel: "noopener" }, "github.com/crspytopgn/pitwall/issues"))),
+        d.download_url ? row(small(h("b", {}, "Or scan to download the zip on your phone"), " (works once, for 10 minutes)"), qr(d.download_url, 160)) : null);
+      b.textContent = "Create again";
+    }, { busy: "Collecting…", primary: true })), out));
+};
+
+// ------------------------------------------------------------------ start
+function events() {
+  const es = new EventSource("/api/events");
+  es.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m.event === "pitwall_toast") toast(m.args[0]); } catch (err) { /* ignore */ } };
+  es.onerror = () => { es.close(); setTimeout(events, 3000); };
+}
+window.addEventListener("hashchange", route);
+(async () => {
+  await refreshStatus();
+  setInterval(refreshStatus, 3000);
+  try { UPDATES = ((await api("updates_status", false)).available || []).length; } catch (e) { /* ignore */ }
+  events();
+  route();
+})();
+</script>
+</body>
+</html>

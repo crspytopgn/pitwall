@@ -4,6 +4,7 @@
 |---|---|
 | **[Day one](day-one.md)** | **New Steam Machine? Start here: unboxing to first lap** |
 | [Install](install.md) | Installing Decky Loader and Pitwall, updating, removing |
+| [Standalone](standalone.md) | Pitwall without Decky: install, the web app, how launch options work |
 | [Getting started](getting-started.md) | Your first session: telemetry, laps, phone dashboard |
 | [Compatibility guide](compatibility.md) | Every sim: does it run on SteamOS, setup steps, known issues, sources |
 | [Telemetry setup](telemetry.md) | Turning on each sim's data output, ports, shared-memory bridges |

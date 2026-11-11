@@ -1,5 +1,7 @@
 # Installing Pitwall
 
+This page covers the Decky plugin. To run Pitwall without Decky, see [Standalone](standalone.md).
+
 Pitwall is a [Decky Loader](https://decky.xyz) plugin. Decky adds a plugin menu to SteamOS's Quick Access Menu (the `...` button) and works in Gaming Mode on the Steam Machine, Steam Deck and other SteamOS or Linux PCs.
 
 > **Status: 0.1.0 preview.** Pitwall hasn't been tested on real hardware yet. Please [report what works and what doesn't](../../../issues/new/choose).

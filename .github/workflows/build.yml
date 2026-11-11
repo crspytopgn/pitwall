@@ -36,12 +36,22 @@ jobs:
           pnpm install --frozen-lockfile
           npx tsc --noEmit --skipLibCheck -p .
           ./scripts/package.sh
+      - name: Standalone package
+        run: |
+          bash -n standalone/install.sh standalone/uninstall.sh
+          ./scripts/package_standalone.sh
       - uses: actions/upload-artifact@v4
         with:
           name: Pitwall
           path: out/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pitwall-standalone
+          path: out/*.tar.gz
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*.zip
+          files: |
+            out/*.zip
+            out/*.tar.gz

@@ -4,6 +4,8 @@
 
 **Does it work on Steam Deck / desktop Linux?** Yes, anywhere Decky Loader runs. It's designed for the Steam Machine on a TV, hence the phone dashboard.
 
+**Do I need Decky?** No. [Standalone Pitwall](standalone.md) has the same features, with a web app instead of the Quick Access Menu. It's aimed at SteamOS Desktop Mode first and should work on other systemd Linux distributions. Use one version or the other, not both.
+
 **Is it a SimHub replacement?** It covers the parts most people use on SteamOS: a phone dashboard with several layouts, rev lights and lap analysis. It doesn't do bass shakers or custom dash designs. If you need SimHub or CrewChief themselves, [linux-simracing-utils](https://github.com/srounce/linux-simracing-utils) installs both on Linux; see the [toolbox](toolbox.md).
 
 **Can it update MOZA firmware?** No. The update process isn't reverse engineered and a bad write can brick a base. Use Pit House on Windows.

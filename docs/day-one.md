@@ -12,6 +12,8 @@ A checklist for setting up a new Steam Machine (or Steam Deck) for sim racing wi
 
 Settings → System → check for updates. MOZA bases need the `hid-universal-pidff` kernel driver for force feedback, which is in Linux 6.15 or newer, or the 6.12.24+, 6.13.12+ and 6.14.3+ updates. Pitwall's Pre-race checks look for the driver itself and tell you if it's missing. If SteamOS doesn't have it yet, Pitwall can install it in step 4.
 
+> **Not using Decky?** Skip steps 2 and 3: in Desktop Mode, install [standalone Pitwall](standalone.md) with `./install.sh`, then open Pitwall from the app menu and carry on at step 4. The rest of this guide is the same, except that Pitwall's pages are in its web app rather than the Quick Access Menu.
+
 ## 2. Install Decky Loader (5 minutes)
 
 1. Steam button → Power → **Switch to Desktop**.

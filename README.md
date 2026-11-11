@@ -6,10 +6,11 @@
   <a href="../../actions/workflows/build.yml"><img src="../../actions/workflows/build.yml/badge.svg" alt="build"></a>
   <img src="https://img.shields.io/badge/version-0.1.0%20preview-orange" alt="version 0.1.0 preview">
   <img src="https://img.shields.io/badge/SteamOS-Decky%20plugin-1a9fff" alt="Decky plugin">
+  <img src="https://img.shields.io/badge/also-standalone-1a9fff" alt="Standalone app">
   <img src="https://img.shields.io/badge/licence-GPL--3.0-blue" alt="GPL-3.0">
 </p>
 
-**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and other SteamOS PCs. It helps you set up your sims and wheel, then helps you drive faster, all from the Quick Access Menu in Gaming Mode.
+**Pitwall makes sim racing on Linux easy.** It's a [Decky Loader](https://decky.xyz) plugin for the Steam Machine, Steam Deck and other SteamOS PCs, and also runs on its own without Decky. It helps you set up your sims and wheel, then helps you drive faster: from the Quick Access Menu in Gaming Mode, or from a web app in Desktop Mode.
 
 > **0.1.0 preview.** Pitwall is feature-complete for its first release but **hasn't been tested on real hardware yet**. Reports are very welcome: [open an issue](../../issues/new/choose).
 
@@ -73,10 +74,28 @@ The other two layouts are **Laps** (a big delta and lap time with coaching) and 
 
 ## Quick start
 
+Pitwall comes two ways. Pick one; both have every feature.
+
+| | **Decky plugin** | **Standalone** |
+|---|---|---|
+| Best for | Gaming Mode, controller-friendly | Desktop Mode, or if you don't use Decky |
+| Interface | Quick Access Menu plus a full-screen page | Web app on the same machine |
+| Needs | [Decky Loader](https://decky.xyz) | A password for your user (to install) |
+
+**Decky plugin**
+
 1. Install [Decky Loader](https://decky.xyz).
 2. Download the latest build: **Actions → build → newest run → Artifacts → Pitwall** (signed in to GitHub), and extract GitHub's outer zip to get `Pitwall-0.1.0.zip`. A Releases page will follow once 0.1 has been tested.
 3. Decky → cog → **Developer mode** on → **Install Plugin from ZIP File**.
 4. Open Pitwall and press **Run auto setup**.
+
+**Standalone**
+
+1. Download **Artifacts → Pitwall-standalone** from the same build and extract `Pitwall-standalone-0.1.0.tar.gz`.
+2. In a terminal in the extracted folder: `./install.sh`
+3. Open **Pitwall** from your app menu (or http://127.0.0.1:8091) and run auto setup.
+
+See **[docs/standalone.md](docs/standalone.md)** for how it differs (mainly: launch option changes are applied when Steam is closed).
 
 New Steam Machine? Follow the **[day-one guide](docs/day-one.md)** from unboxing to first lap.
 
@@ -129,6 +148,7 @@ py_modules/pitwall/
   dashboard.py, web/        phone dashboard (HTTP + Server-Sent Events)
   wheels/                   MOZA serial driver; Logitech, Fanatec, Thrustmaster sysfs drivers
   drivers.py, ffbtest.py    force feedback driver installer for SteamOS, FFB test effect
+standalone/                 runs the same backend without Decky: service, local web app, Steam integration, installer
   leds.py, ffb.py           rev lights, FFB presets and feel tuner
   strategy.py               fuel and tyre strategy
   diagnostics.py            bug-report bundle and pre-filled issue
