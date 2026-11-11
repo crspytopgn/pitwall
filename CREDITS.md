@@ -18,14 +18,14 @@ Pitwall is unofficial. It isn't affiliated with or endorsed by Valve, MOZA Racin
 | [BeamNG protocols](https://documentation.beamng.com/modding/protocols/) | BeamNG GmbH | OutGauge and MotionSim packet formats | Documentation |
 | Forza Data Out | Turn 10 / Playground Games | UDP telemetry format | Documentation |
 | Codemasters and EA F1 UDP specifications | Codemasters / EA | DiRT "extradata 3" format; F1 2021-2023 packet formats | Documentation |
-| [SCS SDK plugin](https://github.com/RenCloud/scs-sdk-plugin) | RenCloud | ETS2/ATS telemetry on native Linux | See project |
-| [rF2SharedMemoryMapPlugin](https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin) | The Iron Wolf | rFactor 2 shared memory | See project |
+| [SCS SDK plugin](https://github.com/RenCloud/scs-sdk-plugin) | RenCloud | ETS2/ATS telemetry on native Linux | MIT |
+| [rF2SharedMemoryMapPlugin](https://github.com/TheIronWolfModding/rF2SharedMemoryMapPlugin) | The Iron Wolf | rFactor 2 shared memory | GPL-3.0 |
 
 ## Tools Pitwall installs or points you to
 
 | Project | Author | Licence |
 |---|---|---|
-| [winecarte](https://github.com/srounce/winecarte) | srounce | See project |
+| [winecarte](https://github.com/srounce/winecarte) | srounce | GPL-2.0 |
 | [linux-simracing-utils](https://github.com/srounce/linux-simracing-utils) | srounce | GPL-2.0 |
 | [Datalink](https://github.com/LukasLichten/Datalink) | Lukas Lichten and contributors | MIT |
 | [Monocoque](https://github.com/Spacefreak18/monocoque) | Spacefreak18 | GPL-3.0 |
@@ -50,7 +50,7 @@ When you press **Install**, Pitwall downloads the source from the project's own 
 |---|---|---|
 | [ProtonDB](https://www.protondb.com) | Live community ratings | ProtonDB terms; read through its public summaries API, cached for a day |
 | Valve's Steam Deck compatibility ratings | Live Deck/SteamOS ratings | Steam store data |
-| [Are We Anti-Cheat Yet](https://areweanticheatyet.com) | Anti-cheat status | Project data |
+| [Are We Anti-Cheat Yet](https://areweanticheatyet.com) | Anti-cheat status | MIT |
 | [linux-steering-wheels](https://github.com/JacKeTUs/linux-steering-wheels) | Wheel support table (`data/wheels.json`, rebuilt by `scripts/sync_wheels.py`), and the background for Pitwall's wheel detection fixes | Community project by JacKeTUs and contributors; Pitwall's notes and fixes are its own wording and code |
 | [awesome-linux-simracing](https://github.com/LukasLichten/awesome-linux-simracing) | Toolbox list (`data/tools.json`, `docs/toolbox.md`), adapted | CC BY-SA 4.0; the adapted list is shared under the same licence |
 | [GamingOnLinux](https://www.gamingonlinux.com), [Box This Lap](https://boxthislap.org), [Sim Racing on Linux](https://simracingonlinux.com) and the game developers' own posts | Notes and known issues in the game guide; every note links to its source | Linked articles |
@@ -71,7 +71,7 @@ The phone dashboard and website use no third-party code.
 ## Branding and images
 
 - Typeface: [Inter](https://rsms.me/inter/) by Rasmus Andersson, SIL Open Font License 1.1. The wordmark is drawn from Inter's letterforms.
-- The Monza outline in the dashboard screenshot comes from [f1-circuits](https://github.com/bacinger/f1-circuits) by Tomislav Bacinger. In the plugin itself, track maps are drawn from your own driving, not from any track data.
+- The Monza outline in the dashboard screenshot comes from [f1-circuits](https://github.com/bacinger/f1-circuits) by Tomislav Bacinger (MIT). In the plugin itself, track maps are drawn from your own driving, not from any track data.
 
 ## Notices
 
