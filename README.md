@@ -166,7 +166,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) to build, test or add a sim or wheel.
 
 ## Support the project
 
-Pitwall is free and open source. If it saved you an evening of setup, you can [sponsor its development](https://github.com/sponsors/crspytopgn). The most valuable help right now is testing on real hardware and [reporting what works](../../issues/new/choose).
+Pitwall is free and open source. If it saved you an evening of setup, you can [sponsor its development](https://github.com/sponsors/crspytopgn) or [buy me a coffee](https://buymeacoffee.com/crspytopgn). The most valuable help right now is testing on real hardware and [reporting what works](../../issues/new/choose).
+
+More from me: [OpenMCM2](https://github.com/crspytopgn/openmcm2) · [OpenSGolf](https://github.com/crspytopgn/opensgolf) · [OpenLinks2003](https://github.com/crspytopgn/openlinks2003).
 
 ## Credits
 
