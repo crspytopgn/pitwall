@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased
-
-- Graphics tuning: each recognised racing game gets a graphics level for the device (Steam Machine, Steam Deck, PC), a frame cap at the target FPS and quiet measuring; the level moves after each session. Assetto Corsa's settings are changed directly (with a backup); other games get the matching in-game preset
-- Wheel buttons: a page that shows what each button does in Steam and in the game, live, and on the phone dashboard after each press. Wheel buttons can move around Steam's menus when no game runs (virtual controller, off in games). One automatic in-game layout, changed by pressing the button you want; written into BeamNG.drive's controls, keeping your own bindings
-- MOZA: when a base can't be used, Pitwall says why: not on USB, connected in Xbox mode (the R3's default; with how to switch to PC mode), or settings port missing. Shown on the Wheel page, in Pre-race checks and in diagnostics
-
 ## 0.1.0 (12 November 2026, preview)
 
 First public preview. Not yet tested on real hardware.
@@ -23,6 +17,9 @@ First public preview. Not yet tested on real hardware.
 - Fuel and tyre strategy (fuel per lap, fuel to add, tyre temperatures with window, balance and wear)
 - Wheel profiles per car, applied when the car appears in telemetry
 - QR codes for the phone dashboard and diagnostics
+- Graphics tuning: each recognised racing game gets a graphics level for the device (Steam Machine, Steam Deck, PC), a frame cap at the target FPS and quiet measuring; the level moves after each session. Assetto Corsa's settings are changed directly (with a backup); other games get the matching in-game preset
+- Wheel buttons: a page that shows what each button does in Steam and in the game, live, and on the phone dashboard after each press. Wheel buttons can move around Steam's menus when no game runs (virtual controller, off in games). One automatic in-game layout, changed by pressing the button you want; written into BeamNG.drive's controls, keeping your own bindings
+- MOZA: when a base can't be used, Pitwall says why: not on USB, connected in Xbox mode (the R3's default; with how to switch to PC mode), or settings port missing. Shown on the Wheel page, in Pre-race checks and in diagnostics
 - Send diagnostics: redacted zip, one-time phone download link and a pre-filled GitHub issue
 - New wordmark logo
 - F1 2021/22/23 telemetry (UDP formats 2021–2023), Euro Truck Simulator 2 / American Truck Simulator (scs-sdk-plugin), DiRT Rally and DiRT 4 entries, AC Rally entry
