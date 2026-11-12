@@ -22,7 +22,7 @@ Settings → System → check for updates. MOZA bases need the `hid-universal-pi
 
 ## 3. Install Pitwall (2 minutes)
 
-1. Download the latest Pitwall zip from the repository's **Actions → build → newest run → Artifacts** (in Desktop Mode, or put it on a USB stick). A Releases page will follow after testing.
+1. Download `Pitwall-0.1.0.zip` from the [latest release](https://github.com/crspytopgn/pitwall/releases/latest) (in Desktop Mode, or put it on a USB stick).
 2. Gaming Mode → `...` → plug icon → cog → **Developer mode** on → **Install Plugin from ZIP File**.
 
 ## 4. Plug in the wheel and run auto setup (1 minute)

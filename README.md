@@ -85,13 +85,13 @@ Pitwall comes two ways. Pick one; both have every feature.
 **Decky plugin**
 
 1. Install [Decky Loader](https://decky.xyz).
-2. Download the latest build: **Actions → build → newest run → Artifacts → Pitwall** (signed in to GitHub), and extract GitHub's outer zip to get `Pitwall-0.1.0.zip`. A Releases page will follow once 0.1 has been tested.
+2. Download `Pitwall-0.1.0.zip` from the **[latest release](https://github.com/crspytopgn/pitwall/releases/latest)**.
 3. Decky → cog → **Developer mode** on → **Install Plugin from ZIP File**.
 4. Open Pitwall and press **Run auto setup**.
 
 **Standalone**
 
-1. Download **Artifacts → Pitwall-standalone** from the same build and extract `Pitwall-standalone-0.1.0.tar.gz`.
+1. Download `Pitwall-standalone-0.1.0.tar.gz` from the **[latest release](https://github.com/crspytopgn/pitwall/releases/latest)** and extract it.
 2. In a terminal in the extracted folder: `./install.sh`
 3. Open **Pitwall** from your app menu (or http://127.0.0.1:8091) and run auto setup.
 

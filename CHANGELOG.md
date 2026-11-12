@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased preview)
+## 0.1.0 (12 November 2026, preview)
 
 First public preview. Not yet tested on real hardware.
 

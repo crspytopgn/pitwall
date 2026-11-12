@@ -18,7 +18,7 @@ Use one or the other, not both: they would control the same wheel. The installer
 
 ## Install
 
-1. Download the standalone package: open the [latest successful build](https://github.com/crspytopgn/pitwall/actions/workflows/build.yml), sign in to GitHub, and download the **Pitwall-standalone** artifact. GitHub wraps it in a zip; inside is `Pitwall-standalone-0.1.0.tar.gz`.
+1. Download `Pitwall-standalone-0.1.0.tar.gz` from the [latest release](https://github.com/crspytopgn/pitwall/releases/latest).
 2. Extract it, open a terminal in the extracted `pitwall-0.1.0` folder, and run:
 
    ```
