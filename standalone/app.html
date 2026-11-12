@@ -36,6 +36,8 @@
   button:hover { border-color:#3a4450; } button:disabled { opacity:.5; cursor:default; }
   button.primary { background:var(--blue); border-color:var(--blue); color:#00131f; font-weight:600; }
   button.list { display:block; width:100%; text-align:left; margin:6px 0; }
+  .btnmap .row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:2px 0; }
+  .btnmap .row button.list { width:auto; min-width:12em; margin:2px 0; }
   .btns { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
   label.slider { display:grid; grid-template-columns:180px minmax(0,1fr) 70px; align-items:center; gap:12px; margin:8px 0; font-size:14px; }
   label.slider output { text-align:right; color:var(--dim); font-variant-numeric:tabular-nums; }
@@ -157,7 +159,7 @@ let UPDATES = 0;
 const PAGES = [
   ["Session", [["session", "Session"], ["laps", "Laps"]]],
   ["Set up", [["auto", "Auto setup"], ["guide", "Game guide"], ["checks", "Pre-race checks"]]],
-  ["Drive", [["wheel", "Wheel"], ["feel", "Force feedback feel"], ["strategy", "Fuel and tyres"]]],
+  ["Drive", [["wheel", "Wheel"], ["buttons", "Wheel buttons"], ["feel", "Force feedback feel"], ["strategy", "Fuel and tyres"]]],
   ["More", [["perf", "Performance check"], ["debrief", "Engineer debrief"], ["updates", "Updates"], ["diag", "Send diagnostics"]]],
 ];
 const TITLES = Object.fromEntries(PAGES.flatMap(([, ps]) => ps));
@@ -552,6 +554,60 @@ PAGE_FN.updates = async (el) => {
     UPDATES = (u.available || []).length; drawNav("updates");
   };
   await draw();
+};
+
+// Wheel buttons: what each one does in Steam and in games; change one by pressing it.
+PAGE_FN.buttons = async (el) => {
+  let learning = null, last = "";
+  const box = h("div"); el.append(box);
+  const learn = async (kind, r) => {
+    if (learning) return;
+    learning = `${kind}:${r.action}`; last = ""; await draw();
+    await api("buttons_learn", kind, r.action);
+    try {
+      for (;;) {
+        await new Promise((ok) => setTimeout(ok, 250));
+        const x = await api("buttons_learned");
+        if (x.state === "waiting") continue;
+        if (x.state === "done") toast(`${r.label}: ${x.label}${x.beamng && !x.beamng.ok && x.beamng.error ? `. ${x.beamng.error}` : ""}`);
+        else if (x.state === "timeout") toast("No button pressed, nothing changed");
+        break;
+      }
+    } finally { learning = null; last = ""; draw(); }
+  };
+  const rowsFor = (kind, rows) => h("div", { class: "btnmap" }, rows.map((r) =>
+    h("div", { class: "row" }, h("span", {}, r.label), " ",
+      button(learning === `${kind}:${r.action}` ? "Press a button…" : r.button || "Not set", () => learn(kind, r), { list: true }))));
+  async function draw() {
+    const st = await api("buttons_status");
+    const key = JSON.stringify([st, learning]);
+    if (key === last) return;
+    last = key;
+    box.textContent = "";
+    const rec = st.recent[0];
+    box.append(card("Wheel buttons",
+      st.devices.length === 0 ? dim("No wheel found. Plug it in and switch it on; buttons show up here when Pitwall can see them.")
+        : [small(st.devices.map((d) => h("div", {}, `${d.name}: ${d.buttons} buttons${d.hats ? ", D-pad" : ""}`))),
+           row(rec ? small("Last pressed: ", h("b", {}, rec.label), dim(`In Steam: ${rec.steam || "nothing"} · In game: ${rec.game || "not set by Pitwall"}`))
+             : dim("Press any button on your wheel to see what it does."))],
+      learning ? btns(button("Cancel", () => api("buttons_cancel_learn"))) : null));
+    box.append(card("In Steam",
+      toggle("Use wheel buttons in Steam menus", st.nav.enabled, async (on) => { await api("set_setting", "nav_enabled", on); last = ""; draw(); }),
+      dim("Move around Steam (Big Picture and Gaming Mode) with your wheel's D-pad and buttons. Turns itself off while a game runs, so games get the wheel to themselves."),
+      st.nav.error ? small(h("span", { class: "warn" }, st.nav.error)) : null,
+      st.nav.enabled ? rowsFor("nav", st.nav.rows) : null,
+      st.nav.enabled && st.nav.custom ? btns(button("Back to the automatic layout", async () => { await api("buttons_reset", "nav"); last = ""; draw(); })) : null));
+    box.append(card("In games",
+      !st.layout.paddles && st.devices.length ? small(h("span", { class: "blue" }, "Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.")) : null,
+      rowsFor("game", st.layout.rows),
+      btns(button("Back to the automatic layout", async () => { await api("buttons_reset", "game"); last = ""; draw(); })),
+      toggle("Set these up in BeamNG.drive", st.beamng.auto, async (on) => { const r = await api("beamng_bind", on); if (!r.ok && r.error) toast(r.error); last = ""; draw(); }),
+      dim(!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."
+        : st.beamng.applied ? "Done. Buttons you bound yourself in BeamNG are kept. Takes effect next time BeamNG starts."
+        : "Adds these to BeamNG's controls for your wheel. Your own bindings are kept."),
+      dim("Other games: set the same buttons in the game's controls menu. When you press a button, your phone dashboard shows what it's set to.")));
+  }
+  poll(draw, 500);
 };
 
 PAGE_FN.diag = async (el) => {

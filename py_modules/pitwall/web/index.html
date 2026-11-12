@@ -199,6 +199,12 @@
     body.focus .gear { font-size:min(50vw, 30vh); } body.focus .delta .v { font-size:min(22vw, 18vh); }
   }
 
+  /* Wheel button just pressed: what it does */
+  .btnhint { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 76px); transform:translate(-50%, 12px); opacity:0;
+    transition:opacity .2s, transform .2s; padding:10px 18px; border-radius:999px; font-size:15px; font-weight:600; white-space:nowrap;
+    max-width:92vw; overflow:hidden; text-overflow:ellipsis; pointer-events:none; z-index:20; }
+  .btnhint.show { opacity:1; transform:translate(-50%, 0); }
+  .btnhint span { opacity:.6; font-weight:500; }
   @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
 </style>
 </head>
@@ -211,6 +217,7 @@
     </div>
   </header>
   <div class="revs" id="revs"></div>
+  <div class="btnhint glass" id="btnhint" aria-live="polite"></div>
 
   <div class="left">
     <section class="hero glass">
@@ -334,7 +341,19 @@ async function loadTrack() {
 loadTrack(); setInterval(loadTrack, 15000);
 
 let maxSeen = 0, lastLapId = null, wasLive = null;
+let hintT = null, hintTimer = null;
+function showButton(b) {
+  if (!b || b.t === hintT) return;
+  hintT = b.t;
+  const el = $("btnhint"); el.textContent = "";
+  const who = document.createElement("span"); who.textContent = b.button + (b.does ? "  " : "");
+  el.append(who, b.does || "");
+  if (!b.does) { who.style.opacity = "1"; el.append(document.createTextNode(": not set")); }
+  el.classList.add("show");
+  clearTimeout(hintTimer); hintTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
 function render(d) {
+  showButton(d.button);
   const live = !!d.receiving;
   if (live !== wasLive) { wasLive = live; document.body.classList.toggle("waiting", !live); $("statusPill").classList.toggle("live", live); }
   if (!live) { text("status", "Waiting for telemetry"); return; }

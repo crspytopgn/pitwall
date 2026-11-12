@@ -35,6 +35,7 @@ class Hub:
         self.tracker = LapTracker(self._on_lap)
         self.lock = threading.Lock()
         self.frame: Frame | None = None
+        self.button_hint: dict | None = None     # last wheel button pressed, for the phone dashboard
         self.last_lap: dict | None = None
         self.last_coaching: dict | None = None
         self.session_laps: list[dict] = []
@@ -157,8 +158,9 @@ class Hub:
         """Compact live payload for the dashboard (sent ~15x a second)."""
         with self.lock:
             f = self.frame
+            hint = self.button_hint if self.button_hint and time.time() - self.button_hint["t"] < 3 else None
             if not f:
-                return {"receiving": False}
+                return {"receiving": False, "button": hint}
             live = self.tracker.live()
             ref = self.tracker.reference
             return {
@@ -178,6 +180,7 @@ class Hub:
                 "lap_id": self.last_lap["id"] if self.last_lap else None,
                 "lap_best": bool(self.last_lap and self.last_lap["best"]),
                 "strategy": self._strategy_brief(),
+                "button": hint,
             }
 
     def _strategy_brief(self):

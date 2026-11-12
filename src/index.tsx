@@ -110,6 +110,22 @@ const driverInstall = callable<[id: string], { ok: boolean; message: string }>("
 const driverRemove = callable<[id: string], { ok: boolean; message: string }>("driver_remove");
 const driverJob = callable<[], DriverJob>("driver_job");
 const hidrawLaunchOptions = callable<[current: string, enable: boolean], string>("hidraw_launch_options");
+type BtnRow = { action: string; label: string; control: string | null; button: string | null; auto?: boolean };
+type BtnStatus = {
+  devices: { id: string; name: string; buttons: number; hats: number }[]; pressed: string[];
+  recent: { control: string; label: string; steam: string | null; game: string | null }[];
+  in_game: boolean; game: string | null; uinput: boolean;
+  nav: { enabled: boolean; active: boolean; error: string | null; custom: boolean; rows: BtnRow[] };
+  layout: { rows: BtnRow[]; paddles: boolean };
+  beamng: { found: boolean; applied: boolean; auto: boolean };
+  learning: { kind: string; action: string } | null;
+};
+const buttonsStatus = callable<[], BtnStatus>("buttons_status");
+const buttonsLearn = callable<[kind: string, action: string], { ok: boolean }>("buttons_learn");
+const buttonsLearned = callable<[], { state: string; label?: string; beamng?: { ok: boolean; error: string | null } | null }>("buttons_learned");
+const buttonsCancelLearn = callable<[], void>("buttons_cancel_learn");
+const buttonsReset = callable<[kind: string], { ok: boolean }>("buttons_reset");
+const beamngBind = callable<[enable: boolean], { ok: boolean; error?: string | null }>("beamng_bind");
 const DRIVER_NAMES: Record<string, string> = { "universal-pidff": "hid-universal-pidff", "new-lg4ff": "new-lg4ff", "hid-fanatecff": "hid-fanatecff", "hid-tmff2": "hid-tmff2", "simagic-ff": "simagic-ff" };
 
 declare const SteamClient: any;
@@ -351,6 +367,7 @@ function Home({ go }: { go?: Go }) {
           </PanelSection>
           <PanelSection title="Drive">
             <Row><ButtonItem layout="below" onClick={() => go("wheel")}>Wheel</ButtonItem></Row>
+            <Row><ButtonItem layout="below" onClick={() => go("buttons")}>Wheel buttons</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("feel")}>Force feedback feel</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("strategy")}>Fuel and tyres</ButtonItem></Row>
           </PanelSection>
@@ -862,6 +879,75 @@ function Laps() {
   );
 }
 
+// Wheel buttons: what each one does in Steam and in games, and changing it by pressing it.
+function ButtonsPage({ go }: { go?: Go }) {
+  const st = usePoll(buttonsStatus, 400);
+  const [learning, setLearning] = useState<string | null>(null);
+  const learn = async (kind: string, r: BtnRow) => {
+    if (learning) return;
+    setLearning(`${kind}:${r.action}`);
+    await buttonsLearn(kind, r.action);
+    try {
+      for (;;) {
+        await new Promise((res) => setTimeout(res, 250));
+        const x = await buttonsLearned();
+        if (x.state === "waiting") continue;
+        if (x.state === "done") toast(`${r.label}: ${x.label}${x.beamng && !x.beamng.ok && x.beamng.error ? `. ${x.beamng.error}` : ""}`);
+        else if (x.state === "timeout") toast("No button pressed, nothing changed");
+        break;
+      }
+    } finally { setLearning(null); }
+  };
+  if (!st) return <PanelSection title="Wheel buttons"><Back go={go} /><Row>Loading…</Row></PanelSection>;
+  const last = st.recent[0];
+  const rowItem = (kind: string, r: BtnRow) => (
+    <Row key={kind + r.action}>
+      <ButtonItem layout="inline" label={r.label} disabled={learning !== null && learning !== `${kind}:${r.action}`}
+        onClick={() => learn(kind, r)}>
+        {learning === `${kind}:${r.action}` ? "Press a button…" : r.button || "Not set"}
+      </ButtonItem>
+    </Row>
+  );
+  return (
+    <>
+      <PanelSection title="Wheel buttons">
+        <Back go={go} />
+        {st.devices.length === 0
+          ? <Row><div style={dim}>No wheel found. Plug it in and switch it on; buttons show up here when Pitwall can see them.</div></Row>
+          : <Row><div style={small}>
+              {st.devices.map((d) => <div key={d.id}>{d.name}: {d.buttons} buttons{d.hats ? ", D-pad" : ""}</div>)}
+              <div style={{ marginTop: "6px" }}>
+                {last ? <>Last pressed: <b>{last.label}</b>
+                  <div style={dim}>In Steam: {last.steam || "nothing"} · In game: {last.game || "not set by Pitwall"}</div></>
+                  : <span style={dim}>Press any button on your wheel to see what it does.</span>}
+              </div>
+            </div></Row>}
+        {learning && <Row><ButtonItem layout="below" onClick={async () => { await buttonsCancelLearn(); }}>Cancel</ButtonItem></Row>}
+      </PanelSection>
+      <PanelSection title="In Steam">
+        <Row><ToggleField label="Use wheel buttons in Steam menus" checked={st.nav.enabled}
+          description="Move around Steam with your wheel's D-pad and buttons. Turns itself off while a game runs, so games get the wheel to themselves."
+          onChange={async (v) => { await setSetting("nav_enabled", v); }} /></Row>
+        {st.nav.error && <Row><div style={{ ...small, color: "#ffb020" }}>{st.nav.error}</div></Row>}
+        {st.nav.enabled && st.nav.rows.map((r) => rowItem("nav", r))}
+        {st.nav.enabled && st.nav.custom && <Row><ButtonItem layout="below" onClick={() => buttonsReset("nav")}>Back to the automatic layout</ButtonItem></Row>}
+      </PanelSection>
+      <PanelSection title="In games">
+        {!st.layout.paddles && st.devices.length > 0 && <Row><div style={{ ...small, color: "#4da3ff" }}>
+          Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.</div></Row>}
+        {st.layout.rows.map((r) => rowItem("game", r))}
+        <Row><ButtonItem layout="below" onClick={() => buttonsReset("game")}>Back to the automatic layout</ButtonItem></Row>
+        <Row><ToggleField label="Set these up in BeamNG.drive" checked={st.beamng.auto}
+          description={!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."
+            : st.beamng.applied ? "Done. Buttons you bound yourself in BeamNG are kept. Takes effect next time BeamNG starts."
+            : "Adds these to BeamNG's controls for your wheel. Your own bindings are kept."}
+          onChange={async (v) => { const r = await beamngBind(v); if (!r.ok && r.error) toast(r.error); }} /></Row>
+        <Row><div style={dim}>Other games: set the same buttons in the game's controls menu. When you press a button, your phone dashboard shows what it's set to.</div></Row>
+      </PanelSection>
+    </>
+  );
+}
+
 function GuideBrowser({ go }: { go?: Go }) {
   const [id, setId] = useState<string | null>(null);
   return id ? <GamePage id={id} go={go} back={() => setId(null)} /> : <Games go={go} open={setId} />;
@@ -882,6 +968,7 @@ function FullScreen() {
           { title: "Pre-race checks", icon: <GiCheckMark />, content: <Checks />, route: `${ROUTE}/checks` },
           "separator",
           { title: "Wheel", icon: <GiSteeringWheel />, content: <Wheel />, route: `${ROUTE}/wheel` },
+          { title: "Wheel buttons", icon: <GiSteeringWheel />, content: <ButtonsPage />, route: `${ROUTE}/buttons` },
           { title: "Force feedback feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
           { title: "Fuel and tyres", icon: <GiFuelTank />, content: <Strategy />, route: `${ROUTE}/strategy` },
           "separator",
@@ -955,6 +1042,7 @@ function Content() {
     case "wheel": return <Wheel go={go} />;
     case "games": return <Games go={go} open={(id) => { setGameId(id); setPage("game"); }} />;
     case "game": return gameId ? <GamePage id={gameId} go={go} back={() => setPage("games")} /> : <Home go={go} />;
+    case "buttons": return <ButtonsPage go={go} />;
     case "feel": return <Feel go={go} />;
     case "strategy": return <Strategy go={go} />;
     case "auto": return <AutoSetup go={go} />;

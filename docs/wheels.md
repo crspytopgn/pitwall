@@ -57,7 +57,18 @@ This changes system files, so it's always your choice: Pitwall never installs a 
 
 If **Test force feedback** works but a game shows no wheel or no force feedback, it's a detection problem rather than a driver one. Pre-race checks tell you whether Linux recognises your wheel as a game controller, which Steam and Proton need (Linux calls every wheel, pedal set and shifter a "joystick"; it's just the name of the category). If it doesn't, **Wheel → Fix wheel and pedal detection** adds a udev rule for your wheel and reloads udev (unplug and replug the wheel afterwards). For a single stubborn game, its page in the **Game guide** has **Add wheel ID to launch options**, which tells Steam's input layer to treat your wheel as a wheel in that game. More fixes are in the [wheel support table](wheel-support.md#if-a-game-doesnt-see-your-wheel).
 
-## MOZA
+## Wheel buttons
+
+Pitwall's Wheel buttons page shows what every button on your wheel does, live: press one and it tells you its number, what it does in Steam and what it does in the game. Your phone dashboard shows the same thing for a couple of seconds after each press, so you can check without leaving the game.
+
+**In Steam.** With no game running, your wheel's D-pad and buttons move around Steam (Gaming Mode and Big Picture): Select, Back, the Steam menu and the Quick Access menu are on the first buttons, the D-pad moves. Pitwall does this with a virtual controller that only exists while no game is running, so games never see a second controller. Change any of them by choosing it and pressing the button you want.
+
+**In games.** Pitwall keeps one in-game layout for your wheel: shift paddles, handbrake, look back, camera, recover, ignition, lights, horn, ESC/TC, indicators, hazards and more. It fills it in automatically; the shift paddles you set once by pressing them, because wheel brands number them differently.
+
+- **BeamNG.drive:** Pitwall writes the layout into BeamNG's own controls for your wheel (the input map file in BeamNG's user folder, native Linux or Proton). Buttons you bound yourself in BeamNG are kept, and turning the option off takes Pitwall's bindings out again and leaves yours. Close BeamNG first; it picks the change up next time it starts.
+- **Other games:** set the same buttons in the game's controls menu once. Most sims save controls in their own formats, and Pitwall doesn't change them without being sure it's right.
+
+
 
 **R3: use PC mode.** The R3 comes in Xbox mode, which hides the settings port Pitwall uses. Hold S1 and S2 on the wheel together for about 5 seconds until the base restarts; in PC mode the rev lights breathe red, yellow and green. Pitwall tells you when it sees a MOZA base in Xbox mode.
 

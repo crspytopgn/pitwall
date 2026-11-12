@@ -12,7 +12,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, device, diagnostics, drivers, engineer, ffb, ffbtest, health, perf, updates  # noqa: E402
+from pitwall import bridge, buttons, device, diagnostics, drivers, engineer, ffb, ffbtest, gamebinds, health, perf, updates, vpad  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -37,6 +37,10 @@ DEFAULTS = {
     "rev_lights": False,            # drive MOZA wheel rev lights from telemetry
     "setup_done": False,            # first-run auto setup has been run or dismissed
     "check_updates": True,          # daily check for driver and bridge updates (GitHub, read-only)
+    "nav_enabled": True,            # wheel buttons drive Steam's menus when no game is running
+    "nav_map": {},                  # Steam action -> wheel control; empty means the automatic layout
+    "game_layout": {},              # in-game action -> wheel control (your choices; the rest is automatic)
+    "beamng_auto": True,            # write the layout into BeamNG.drive's controls
 }
 
 PROFILE_EXCLUDE = {"ffb_enabled"}
@@ -61,6 +65,14 @@ def _chown_to_user(*paths):
             os.chown(p, pw.pw_uid, pw.pw_gid)
     except (KeyError, OSError, AttributeError):
         pass
+
+
+def _chown_tree_to_user(paths):
+    """Files Pitwall writes into a game's folders belong to you, not root."""
+    for p in paths:
+        for q in (p, p + ".pitwall", p + ".pitwall-backup", os.path.dirname(p)):
+            if os.path.exists(q):
+                _chown_to_user(q)
 
 
 def _save(data: dict):
@@ -180,6 +192,9 @@ class Plugin:
         else:
             return result
         self.hub.reset_car()          # so a car profile re-applies after the game/default profile
+        self.nav.set_in_game(self.current_app is not None)
+        if not running and appid == gamebinds.BEAMNG_APPID:
+            await self._run(self._beamng_sync)     # ready for next time, if the layout changed
         g = self.compat.find(appid, name)
         result["game"] = {"id": g["id"], "name": g["name"], "status": g["status"]} if g else None
         if self.settings["auto_apply"]:
@@ -542,11 +557,154 @@ class Plugin:
                 out["error"] = f"Claude debrief unavailable: {e}"
         return out
 
+    # ============================================================ buttons
+    def _devices(self) -> dict:
+        return self.buttons.snapshot_devices()
+
+    def _nav_map(self, devices: dict) -> dict:
+        m = dict(self.settings.get("nav_map") or {})
+        if not m and devices:
+            m = vpad.default_map(next(iter(devices.values())))
+        return m
+
+    def _game_layout(self, devices: dict) -> dict:
+        keep = self.settings.get("game_layout") or {}
+        # The Steam controls stay free in the automatic part where possible, so
+        # one button doesn't mean two different things.
+        return gamebinds.auto_layout(devices, keep)
+
+    def _apply_nav(self):
+        devices = self._devices()
+        self.nav.configure(self.settings.get("nav_enabled", True), self._nav_map(devices))
+
+    def _on_button(self, control: str, pressed: bool, dev):
+        if not (self._learn_target and pressed):     # a press being learned doesn't also click in Steam
+            self.nav.on_button(control, pressed)
+        if not pressed:
+            return
+        devices = self._devices()
+        if self.current_app:
+            does = gamebinds.action_for(self._game_layout(devices), control)
+        else:
+            a = next((a for a, c in self._nav_map(devices).items() if c == control), None)
+            does = vpad.ACTION_LABELS.get(a) if a and self.nav.active else None
+        self.hub.button_hint = {"button": buttons.control_label(control, devices), "does": does,
+                                "t": __import__("time").time()}
+
+    def _on_devices(self):
+        # A wheel appeared or went away: refresh the Steam layout and BeamNG.
+        self._apply_nav()
+        try:
+            self._beamng_sync()
+        except Exception:
+            decky.logger.exception("BeamNG binding failed")
+
+    def _beamng_sync(self) -> dict | None:
+        if not self.settings.get("beamng_auto", True):
+            return None
+        devices = self._devices()
+        if not devices:
+            return None
+        if self.current_app and self.current_app["appid"] == gamebinds.BEAMNG_APPID:
+            return {"ok": False, "error": "Close BeamNG.drive first; it saves its controls on exit."}
+        r = gamebinds.beamng_apply(HOME, self._game_layout(devices), devices)
+        if r.get("written"):
+            _chown_tree_to_user(r["written"])
+        return r
+
+    async def buttons_status(self) -> dict:
+        snap = self.buttons.snapshot()
+        devices = {d["id"]: d for d in snap["devices"]}
+        label = lambda c: buttons.control_label(c, devices) if c else None
+        nav_map = self._nav_map(devices)
+        layout = self._game_layout(devices)
+        in_game = self.current_app is not None
+        recent = []
+        for r in snap["recent"][:6]:
+            c = r["control"]
+            steam = next((vpad.ACTION_LABELS[a] for a, v in nav_map.items() if v == c), None)
+            recent.append({**r, "steam": steam, "game": gamebinds.action_for(layout, c)})
+        user_set = self.settings.get("game_layout") or {}
+        return {
+            "devices": [{"id": d["id"], "name": d["name"], "buttons": len(d["buttons"]), "hats": len(d["hats"])}
+                        for d in snap["devices"]],
+            "pressed": [label(c) for c in snap["pressed"]],
+            "recent": recent,
+            "in_game": in_game,
+            "game": (self.current_app or {}).get("name"),
+            "uinput": os.path.exists("/dev/uinput"),
+            "nav": {"enabled": bool(self.settings.get("nav_enabled", True)), "active": self.nav.active,
+                    "error": self.nav.error, "custom": bool(self.settings.get("nav_map")),
+                    "rows": [{"action": a, "label": l, "control": nav_map.get(a), "button": label(nav_map.get(a))}
+                             for a, l in vpad.ACTIONS]},
+            "layout": {"rows": [{**r, "auto": bool(r["control"]) and r["action"] not in user_set}
+                                for r in gamebinds.describe(layout, devices, buttons.control_label)],
+                       "paddles": bool(layout.get("shift_up") and layout.get("shift_down"))},
+            "beamng": {**(await self._run(gamebinds.beamng_status, HOME)), "auto": bool(self.settings.get("beamng_auto", True))},
+            "learning": self._learn_target,
+        }
+
+    async def buttons_learn(self, kind: str, action: str) -> dict:
+        """Arm: the next wheel button pressed becomes this action."""
+        if kind == "nav" and action not in vpad.ACTION_LABELS or kind == "game" and action not in gamebinds.LABELS \
+                or kind not in ("nav", "game"):
+            return {"ok": False}
+        self._learn_target = {"kind": kind, "action": action}
+        self.buttons.learn(15)
+        return {"ok": True}
+
+    async def buttons_learned(self) -> dict:
+        r = self.buttons.learned()
+        t = self._learn_target
+        if r["state"] in ("timeout", "idle"):
+            self._learn_target = None
+        if r["state"] != "done" or not t:
+            return r
+        self._learn_target = None
+        devices = self._devices()
+        key = "nav_map" if t["kind"] == "nav" else "game_layout"
+        m = dict(self._nav_map(devices) if key == "nav_map" else (self.settings.get(key) or {}))
+        for a, c in list(m.items()):        # one button, one job
+            if c == r["control"]:
+                del m[a]
+        m[t["action"]] = r["control"]
+        self.settings[key] = m
+        _save(self.settings)
+        if key == "nav_map":
+            self._apply_nav()
+        else:
+            r["beamng"] = await self._run(self._beamng_sync)
+        return r
+
+    async def buttons_cancel_learn(self):
+        self._learn_target = None
+        self.buttons.learned()
+
+    async def buttons_reset(self, kind: str) -> dict:
+        key = {"nav": "nav_map", "game": "game_layout"}.get(kind)
+        if not key:
+            return {"ok": False}
+        self.settings[key] = {}
+        _save(self.settings)
+        if key == "nav_map":
+            self._apply_nav()
+        else:
+            await self._run(self._beamng_sync)
+        return {"ok": True}
+
+    async def beamng_bind(self, enable: bool) -> dict:
+        self.settings["beamng_auto"] = bool(enable)
+        _save(self.settings)
+        if enable:
+            return await self._run(self._beamng_sync) or {"ok": False, "error": "No wheel buttons found yet."}
+        removed = await self._run(gamebinds.beamng_remove, HOME)
+        return {"ok": True, "removed": removed}
+
     # ============================================================ settings
     async def get_settings(self) -> dict:
         s = dict(self.settings)
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
-        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates")}
+        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates", "nav_enabled")}
 
     # Settings the UI may change, each with a check on the value.
     SETTING_CHECKS = {
@@ -555,6 +713,7 @@ class Plugin:
         "anthropic_api_key": lambda v: isinstance(v, str) and len(v) < 400,
         "rev_lights": lambda v: isinstance(v, bool),
         "check_updates": lambda v: isinstance(v, bool),
+        "nav_enabled": lambda v: isinstance(v, bool),
     }
 
     async def set_setting(self, key: str, value):
@@ -571,6 +730,8 @@ class Plugin:
         _save(self.settings)
         if key == "rev_lights":
             self._apply_rev_lights()
+        if key == "nav_enabled":
+            self._apply_nav()
         return True
 
     def _apply_rev_lights(self):
@@ -608,11 +769,21 @@ class Plugin:
                                  f"A SteamOS update removed {', '.join(stale)}. Reinstall it in Pitwall, Wheel, Force feedback.")
         self._updates_stop = threading.Event()
         threading.Thread(target=self._updates_loop, daemon=True).start()
+        self._learn_target = None
+        self.nav = vpad.NavBridge(log=decky.logger)
+        self.buttons = buttons.ButtonWatcher(lambda: [w["event"] for w in health.input_wheels()])
+        self.buttons.listeners.append(self._on_button)
+        self.buttons.device_listeners.append(self._on_devices)
+        self.buttons.start()
         decky.logger.info("Pitwall started; dashboard at %s", self.dashboard.url)
 
     async def _unload(self):
         if getattr(self, "_updates_stop", None):
             self._updates_stop.set()
+        if getattr(self, "buttons", None):
+            self.buttons.stop()
+        if getattr(self, "nav", None):
+            self.nav.close()
         if getattr(self, "rev_lights", None):
             self.rev_lights.stop()
         if getattr(self, "hub", None):
