@@ -48,6 +48,12 @@ class TestPluginBackend(unittest.TestCase):
             self.assertTrue(len(await p.compat_list()) > 10)
             r = await p.game_changed("1849250", "EA SPORTS WRC", True)
             self.assertEqual(r["game"]["status"], "broken")
+            self.assertTrue(r["graphics"]["enrolled"])         # recognised game: tuned automatically
+            gs = await p.graphics_status()
+            self.assertEqual([g["appid"] for g in gs["games"]], ["1849250"])
+            self.assertIn("fps_limit=60", await p.graphics_launch_options("1849250", "", True))
+            self.assertTrue((await p.graphics_set_tier("1849250", "performance"))["ok"])
+            self.assertFalse((await p.graphics_set_tier("1849250", "ultra-mega"))["ok"])
             checks = await p.health_check()
             self.assertTrue(any(c["id"] == "compat" for c in checks))
             self.assertIn("%command%", await p.benchmark_options(60))

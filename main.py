@@ -12,7 +12,7 @@ import decky  # provided by Decky Loader
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "py_modules"))
 
 from pitwall import compat as compat_mod  # noqa: E402
-from pitwall import bridge, buttons, device, diagnostics, drivers, engineer, ffb, ffbtest, gamebinds, health, perf, updates, vpad  # noqa: E402
+from pitwall import bridge, buttons, device, diagnostics, drivers, engineer, ffb, ffbtest, gamebinds, graphics, health, perf, updates, vpad  # noqa: E402
 from pitwall.dashboard import Dashboard  # noqa: E402
 from pitwall.hub import Hub  # noqa: E402
 from pitwall.leds import RevLights  # noqa: E402
@@ -41,6 +41,7 @@ DEFAULTS = {
     "nav_map": {},                  # Steam action -> wheel control; empty means the automatic layout
     "game_layout": {},              # in-game action -> wheel control (your choices; the rest is automatic)
     "beamng_auto": True,            # write the layout into BeamNG.drive's controls
+    "auto_graphics": True,          # tune graphics for every recognised game, measured on this machine
 }
 
 PROFILE_EXCLUDE = {"ffb_enabled"}
@@ -197,6 +198,7 @@ class Plugin:
             await self._run(self._beamng_sync)     # ready for next time, if the layout changed
         g = self.compat.find(appid, name)
         result["game"] = {"id": g["id"], "name": g["name"], "status": g["status"]} if g else None
+        result["graphics"] = await self._graphics_game(appid, name, running, g)
         if self.settings["auto_apply"]:
             if running and appid in self.settings["wheel_games"]:
                 if await self.apply_profile(appid):
@@ -700,11 +702,53 @@ class Plugin:
         removed = await self._run(gamebinds.beamng_remove, HOME)
         return {"ok": True, "removed": removed}
 
+    # ============================================================ graphics
+    async def _graphics_game(self, appid: str, name: str, running: bool, game) -> dict:
+        t = self.tuner
+        if running:
+            if appid not in t.games and self.settings.get("auto_graphics", True) and game:
+                e = await self._run(t.enroll, appid, name)
+                self._emit("pitwall_toast", f"Pitwall will tune {e['name']}'s graphics for this machine from its next start. "
+                           "It measures while you drive and adjusts after you quit.")
+            if appid in t.games:
+                await self._run(t.started, appid)
+                return {"enrolled": True}
+            return {"enrolled": False}
+        r = await self._run(t.finished, appid, float(self.settings["target_fps"]))
+        if r and r.get("message"):
+            self._emit("pitwall_toast", r["message"])
+        return {"enrolled": appid in t.games, **(r or {})}
+
+    async def graphics_status(self) -> dict:
+        return {"device": self.device_kind, "target_fps": self.settings["target_fps"],
+                "auto": bool(self.settings.get("auto_graphics", True)), "games": self.tuner.status(),
+                "tiers": [{"id": k, "label": graphics.TIER_LABELS[k]} for k in graphics.TIERS]}
+
+    async def graphics_launch_options(self, appid: str, current: str, enable: bool) -> str:
+        """The game's launch options with Pitwall's frame cap and quiet measuring
+        added (or taken out), everything else kept."""
+        folder = graphics.log_dir(MANGOHUD_DIR, str(appid))
+        if enable:
+            os.makedirs(folder, exist_ok=True)
+            _chown_to_user(os.path.dirname(MANGOHUD_DIR), MANGOHUD_DIR, os.path.dirname(folder), folder)
+        return graphics.launch_options(current or "", bool(enable), int(self.settings["target_fps"]), folder)
+
+    async def graphics_enroll(self, appid: str, name: str) -> dict:
+        e = await self._run(self.tuner.enroll, str(appid), name)
+        return {"ok": True, "tier": e["tier"]}
+
+    async def graphics_forget(self, appid: str) -> bool:
+        return await self._run(self.tuner.forget, str(appid))
+
+    async def graphics_set_tier(self, appid: str, tier: str) -> dict:
+        e = await self._run(self.tuner.set_tier, str(appid), tier)
+        return {"ok": e is not None, "write": (e or {}).get("write")}
+
     # ============================================================ settings
     async def get_settings(self) -> dict:
         s = dict(self.settings)
         s["anthropic_api_key"] = bool(s.get("anthropic_api_key"))   # never send the key to the UI
-        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates", "nav_enabled")}
+        return {k: s[k] for k in ("auto_apply", "target_fps", "units", "dashboard_port", "anthropic_api_key", "rev_lights", "setup_done", "check_updates", "nav_enabled", "auto_graphics")}
 
     # Settings the UI may change, each with a check on the value.
     SETTING_CHECKS = {
@@ -714,6 +758,7 @@ class Plugin:
         "rev_lights": lambda v: isinstance(v, bool),
         "check_updates": lambda v: isinstance(v, bool),
         "nav_enabled": lambda v: isinstance(v, bool),
+        "auto_graphics": lambda v: isinstance(v, bool),
     }
 
     async def set_setting(self, key: str, value):
@@ -769,6 +814,12 @@ class Plugin:
                                  f"A SteamOS update removed {', '.join(stale)}. Reinstall it in Pitwall, Wheel, Force feedback.")
         self._updates_stop = threading.Event()
         threading.Thread(target=self._updates_loop, daemon=True).start()
+        try:
+            self.device_kind = device.detect()["kind"]
+        except Exception:
+            self.device_kind = "pc"
+        self.tuner = graphics.Tuner(os.path.join(SETTINGS_DIR, "graphics.json"), HOME, MANGOHUD_DIR, self.device_kind,
+                                    self.compat.find, lambda a: compat_mod.prefix_path(HOME, int(a)))
         self._learn_target = None
         self.nav = vpad.NavBridge(log=decky.logger)
         self.buttons = buttons.ButtonWatcher(lambda: [w["event"] for w in health.input_wheels()])

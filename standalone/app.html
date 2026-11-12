@@ -160,7 +160,7 @@ const PAGES = [
   ["Session", [["session", "Session"], ["laps", "Laps"]]],
   ["Set up", [["auto", "Auto setup"], ["guide", "Game guide"], ["checks", "Pre-race checks"]]],
   ["Drive", [["wheel", "Wheel"], ["buttons", "Wheel buttons"], ["feel", "Force feedback feel"], ["strategy", "Fuel and tyres"]]],
-  ["More", [["perf", "Performance check"], ["debrief", "Engineer debrief"], ["updates", "Updates"], ["diag", "Send diagnostics"]]],
+  ["More", [["graphics", "Graphics"], ["perf", "Performance check"], ["debrief", "Engineer debrief"], ["updates", "Updates"], ["diag", "Send diagnostics"]]],
 ];
 const TITLES = Object.fromEntries(PAGES.flatMap(([, ps]) => ps));
 function drawNav(cur) {
@@ -487,6 +487,39 @@ PAGE_FN.strategy = async (el) => {
 const SAVED = "pitwall-app-saved-launch-options";
 const savedOpts = () => { try { return JSON.parse(localStorage.getItem(SAVED) || "{}"); } catch (e) { return {}; } };
 const storeOpts = (v) => { try { localStorage.setItem(SAVED, JSON.stringify(v)); } catch (e) { /* ignore */ } };
+const DEVICE_NAMES = { steam_machine: "Steam Machine", steam_deck: "Steam Deck", pc: "PC" };
+PAGE_FN.graphics = async (el) => {
+  const draw = async () => {
+    const st = await api("graphics_status");
+    el.textContent = "";
+    const game = INFO.game;
+    const tierName = (id) => (st.tiers.find((t) => t.id === id) || {}).label || id;
+    el.append(card("Graphics",
+      toggle("Tune every game automatically", st.auto, async (on) => { await api("set_setting", "auto_graphics", on); draw(); }),
+      dim(`Pitwall picks a graphics level for each racing game on this ${DEVICE_NAMES[st.device] || "machine"}, caps it at your target FPS so it stays steady, measures while you drive and adjusts after you quit.`),
+      slider("Target FPS", st.target_fps, 30, 144, 1, "", (v) => api("set_setting", "target_fps", v)),
+      dim("Match your TV: usually 60 or 120. Changing it takes effect the next time each game starts."),
+      game && !st.games.some((g) => g.appid === game.appid) ? btns(button(`Tune ${game.name}`, async () => {
+        await api("graphics_enroll", game.appid, game.name);
+        await api("graphics_options_set", game.appid, true);
+        toast(`Tuning ${game.name} from its next start`); refreshStatus(); draw();
+      }, { primary: true })) : null));
+    for (const g of st.games) {
+      const sel = h("select", {}, st.tiers.map((t) => { const o = h("option", { value: t.id }, t.label); if (t.id === g.tier) o.selected = true; return o; }));
+      sel.addEventListener("change", async () => { const r = await api("graphics_set_tier", g.appid, sel.value); if (r.write && !r.write.ok && r.write.message) toast(r.write.message); draw(); });
+      el.append(card(g.name, row(h("label", { class: "slider" }, h("span", {}, "Level"), sel)), small(g.advice),
+        g.write_error ? small(h("span", { class: "warn" }, g.write_error)) : null,
+        dim(g.last ? `Last run on ${tierName(g.last.tier)}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 5 minutes, then quit the game."),
+        btns(button("Stop tuning", async () => {
+          await api("graphics_forget", g.appid);
+          await api("graphics_options_set", g.appid, false);
+          toast(`Stopped tuning ${g.name}${g.auto_settings ? "; its original settings are back" : ""}`); refreshStatus(); draw();
+        }))));
+    }
+  };
+  await draw();
+};
+
 PAGE_FN.perf = async (el) => {
   const s = await api("get_settings");
   const res = h("div");

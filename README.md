@@ -31,6 +31,7 @@
 | **Wheel control** | Rotation, force feedback strength and effects for MOZA, Logitech, Fanatec and Thrustmaster, saved per game and per car and applied automatically |
 | **Force feedback tuning** | Sourced starting presets, then describe what feels wrong and get a small, explained change you can undo |
 | **Rev lights** | Lights the RPM LEDs on supported MOZA and Logitech wheels from the game's live data |
+| **Wheel buttons** | Shows what every button does in Steam and in the game, live and on your phone; moves around Steam's menus with your wheel when no game runs; sets up BeamNG.drive's buttons for you |
 
 ### Go faster
 | Feature | What it does |
@@ -43,6 +44,7 @@
 ### Keep it smooth
 | Feature | What it does |
 |---|---|
+| **Graphics tuning** | Picks a graphics level for each racing game on your Steam Machine, caps it at your target FPS, measures while you drive and adjusts after you quit. Sets Assetto Corsa's settings itself; for other games it tells you which preset to pick |
 | **Performance check** | Measures frame-rate consistency during real driving and tells you what to change for your screen's refresh rate |
 | **Lightweight** | Sleeps when no game is sending data, and reads game data in place rather than copying it |
 

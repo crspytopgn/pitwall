@@ -1,5 +1,6 @@
 import {
   ButtonItem,
+  DropdownItem,
   Navigation,
   SidebarNavigation,
   PanelSection,
@@ -55,7 +56,7 @@ const getProfiles = callable<[], Profiles>("get_profiles");
 const setAutoApply = callable<[enabled: boolean], void>("set_auto_apply");
 const saveProfile = callable<[appid: string, name: string], boolean>("save_profile");
 const deleteProfile = callable<[appid: string], void>("delete_profile");
-const gameChanged = callable<[appid: string, name: string, running: boolean], { applied: string | null; game: { id: string; name: string; status: string } | null }>("game_changed");
+const gameChanged = callable<[appid: string, name: string, running: boolean], { applied: string | null; game: { id: string; name: string; status: string } | null; graphics?: { enrolled: boolean } }>("game_changed");
 const sessionStatus = callable<[], Session>("session_status");
 const setStartLine = callable<[], boolean>("set_start_line");
 const compatList = callable<[], GameRow[]>("compat_list");
@@ -126,6 +127,14 @@ const buttonsLearned = callable<[], { state: string; label?: string; beamng?: { 
 const buttonsCancelLearn = callable<[], void>("buttons_cancel_learn");
 const buttonsReset = callable<[kind: string], { ok: boolean }>("buttons_reset");
 const beamngBind = callable<[enable: boolean], { ok: boolean; error?: string | null }>("beamng_bind");
+type GfxGame = { appid: string; name: string; tier: string; label: string; auto_settings: boolean; advice: string;
+  last: { avg: number; low1: number; gpu: number | null; verdict: string; tier: string } | null; write_error: string | null };
+type GfxStatus = { device: string; target_fps: number; auto: boolean; games: GfxGame[]; tiers: { id: string; label: string }[] };
+const graphicsStatus = callable<[], GfxStatus>("graphics_status");
+const graphicsLaunchOptions = callable<[appid: string, current: string, enable: boolean], string>("graphics_launch_options");
+const graphicsEnroll = callable<[appid: string, name: string], { ok: boolean; tier: string }>("graphics_enroll");
+const graphicsForget = callable<[appid: string], boolean>("graphics_forget");
+const graphicsSetTier = callable<[appid: string, tier: string], { ok: boolean; write: { ok: boolean; message?: string } | null }>("graphics_set_tier");
 const DRIVER_NAMES: Record<string, string> = { "universal-pidff": "hid-universal-pidff", "new-lg4ff": "new-lg4ff", "hid-fanatecff": "hid-fanatecff", "hid-tmff2": "hid-tmff2", "simagic-ff": "simagic-ff" };
 
 declare const SteamClient: any;
@@ -373,6 +382,7 @@ function Home({ go }: { go?: Go }) {
           </PanelSection>
           <PanelSection title="More">
             <Row><ButtonItem layout="below" onClick={() => { Navigation.Navigate(`${ROUTE}/session`); Navigation.CloseSideMenus(); }}>Open full screen</ButtonItem></Row>
+            <Row><ButtonItem layout="below" onClick={() => go("graphics")}>Graphics</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("perf")}>Performance check</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("debrief")}>Engineer debrief</ButtonItem></Row>
             <Row><ButtonItem layout="below" onClick={() => go("updates")}>Updates</ButtonItem></Row>
@@ -741,6 +751,59 @@ async function getLaunchOptions(appid: string): Promise<string | null> {
   });
 }
 
+// Graphics tuning needs the frame cap and quiet measuring in the game's launch options.
+async function setGraphicsOptions(appid: string, enable: boolean): Promise<boolean> {
+  const cur = await getLaunchOptions(appid);
+  if (cur === null) return false;
+  const next = await graphicsLaunchOptions(appid, cur, enable);
+  if (next !== cur) SteamClient.Apps.SetAppLaunchOptions(Number(appid), next);
+  return true;
+}
+
+function GraphicsPage({ go }: { go?: Go }) {
+  const [st, setSt] = useState<GfxStatus | null>(null);
+  const load = async () => setSt(await graphicsStatus());
+  useEffect(() => { load(); }, []);
+  const game = runningApp();
+  if (!st) return <PanelSection title="Graphics"><Back go={go} /><Row>Loading…</Row></PanelSection>;
+  const enrolled = game && st.games.some((g) => g.appid === game.appid);
+  return (
+    <>
+      <PanelSection title="Graphics">
+        <Back go={go} />
+        <Row><ToggleField label="Tune every game automatically" checked={st.auto}
+          description={`Pitwall picks a graphics level for each racing game on this ${DEVICE[st.device] || "machine"}, caps it at your target FPS so it stays steady, measures while you drive and adjusts after you quit.`}
+          onChange={async (v) => { await setSetting("auto_graphics", v); load(); }} /></Row>
+        <Row><SliderField label="Target FPS" value={st.target_fps} min={30} max={144} step={1} showValue notchTicksVisible={false}
+          onChange={async (v: number) => { await setSetting("target_fps", v); setSt({ ...st, target_fps: v }); }} /></Row>
+        <Row><div style={dim}>Match your TV: usually 60 or 120. Changing it takes effect the next time each game starts.</div></Row>
+        {game && !enrolled && <Row><ButtonItem layout="below" onClick={async () => {
+          await graphicsEnroll(game.appid, game.name);
+          toast((await setGraphicsOptions(game.appid, true)) ? `Tuning ${game.name} from its next start` : "Couldn't read this game's launch options, so nothing was changed");
+          load();
+        }}>Tune {game.name}</ButtonItem></Row>}
+      </PanelSection>
+      {st.games.map((g) => (
+        <PanelSection key={g.appid} title={g.name}>
+          <Row><DropdownItem label="Level" rgOptions={st.tiers.map((t) => ({ data: t.id, label: t.label }))} selectedOption={g.tier}
+            onChange={async (o: any) => { const r = await graphicsSetTier(g.appid, o.data); if (r.write && !r.write.ok && r.write.message) toast(r.write.message); load(); }} /></Row>
+          <Row><div style={small}>
+            {g.advice}
+            {g.write_error && <div style={{ color: "#ffb020" }}>{g.write_error}</div>}
+            <div style={dim}>{g.last ? `Last run on ${st.tiers.find((t) => t.id === g.last!.tier)?.label}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 5 minutes, then quit the game."}</div>
+          </div></Row>
+          <Row><ButtonItem layout="below" onClick={async () => {
+            await graphicsForget(g.appid);
+            const ok = await setGraphicsOptions(g.appid, false);
+            toast(ok ? `Stopped tuning ${g.name}${g.auto_settings ? "; its original settings are back" : ""}` : "Stopped tuning. Couldn't read the launch options; remove MANGOHUD from them by hand.");
+            load();
+          }}>Stop tuning</ButtonItem></Row>
+        </PanelSection>
+      ))}
+    </>
+  );
+}
+
 function PerfPage({ go }: { go?: Go }) {
   const [target, setTarget] = useState(60);
   const [res, setRes] = useState<Perf | null>(null);
@@ -972,6 +1035,7 @@ function FullScreen() {
           { title: "Force feedback feel", icon: <GiSteeringWheel />, content: <Feel />, route: `${ROUTE}/feel` },
           { title: "Fuel and tyres", icon: <GiFuelTank />, content: <Strategy />, route: `${ROUTE}/strategy` },
           "separator",
+          { title: "Graphics", icon: <GiLightningArc />, content: <GraphicsPage />, route: `${ROUTE}/graphics` },
           { title: "Performance check", icon: <GiLightningArc />, content: <PerfPage />, route: `${ROUTE}/perf` },
           { title: "Engineer debrief", icon: <GiHeadphones />, content: <DebriefPage />, route: `${ROUTE}/engineer` },
           { title: "Updates", icon: <GiCheckMark />, content: <UpdatesPage />, route: `${ROUTE}/updates` },
@@ -1048,6 +1112,7 @@ function Content() {
     case "auto": return <AutoSetup go={go} />;
     case "diag": return <Diagnostics go={go} />;
     case "checks": return <Checks go={go} />;
+    case "graphics": return <GraphicsPage go={go} />;
     case "perf": return <PerfPage go={go} />;
     case "debrief": return <DebriefPage go={go} />;
     case "updates": return <UpdatesPage go={go} />;
@@ -1065,6 +1130,7 @@ export default definePlugin(() => {
         try {
           const r = await gameChanged(String(e.unAppID), name, e.bRunning);
           if (r.applied) toast(`Applied wheel profile: ${r.applied}`);
+          if (e.bRunning && r.graphics?.enrolled) await setGraphicsOptions(String(e.unAppID), true);
           if (e.bRunning && r.game?.status === "broken") toast(`${r.game.name} is known not to run on SteamOS. See Pitwall's game guide.`);
         } catch (err) {
           console.error("Pitwall: game change handling failed", err);

@@ -146,7 +146,8 @@ def decky_pitwall_running(home: str) -> bool:
 # -------------------------------------------------------------------- app
 class App:
     # Methods the web app may call, besides the plugin's own public methods.
-    EXTRA = ("app_info", "running_game", "launch_options_get", "launch_options_set", "launch_options_pending")
+    EXTRA = ("app_info", "running_game", "launch_options_get", "launch_options_set", "launch_options_pending",
+             "graphics_options_set")
 
     def __init__(self, user: str, port: int = CONTROL_PORT):
         self.user, self.port = user, port
@@ -205,6 +206,8 @@ class App:
                         name = self.steam.app_name(self.paths["home"], appid) or f"App {appid}"
                         self.game = {"appid": appid, "name": name}
                         r = self.call("game_changed", [appid, name, True]) or {}
+                        if (r.get("graphics") or {}).get("enrolled"):
+                            self._graphics_options(appid)
                         if r.get("applied"):
                             self.events.publish("pitwall_toast", f"Applied wheel profile: {r['applied']}")
                         g = r.get("game") or {}
@@ -217,6 +220,20 @@ class App:
                         self.events.publish("pitwall_toast", r["message"])
             except Exception:
                 log.exception("Watcher error")
+
+    def _graphics_options(self, appid: str, enable: bool = True):
+        """Frame cap and quiet measuring for a tuned game. Written now if Steam
+        allows, otherwise queued for when Steam closes; used from the next start."""
+        cur = self.launch.get(str(appid))
+        if cur is None:
+            return
+        nxt = self.call("graphics_launch_options", [str(appid), cur, enable])
+        if isinstance(nxt, str) and nxt != cur:
+            self.launch.set(str(appid), nxt)
+
+    async def graphics_options_set(self, appid: str, enable: bool) -> dict:
+        await asyncio.get_running_loop().run_in_executor(None, self._graphics_options, str(appid), bool(enable))
+        return {"ok": True}
 
     def call(self, name: str, args: list, timeout: float = 600):
         if name in self.EXTRA:

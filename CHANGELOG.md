@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Graphics tuning: each recognised racing game gets a graphics level for the device (Steam Machine, Steam Deck, PC), a frame cap at the target FPS and quiet measuring; the level moves after each session. Assetto Corsa's settings are changed directly (with a backup); other games get the matching in-game preset
 - Wheel buttons: a page that shows what each button does in Steam and in the game, live, and on the phone dashboard after each press. Wheel buttons can move around Steam's menus when no game runs (virtual controller, off in games). One automatic in-game layout, changed by pressing the button you want; written into BeamNG.drive's controls, keeping your own bindings
 - MOZA: when a base can't be used, Pitwall says why: not on USB, connected in Xbox mode (the R3's default; with how to switch to PC mode), or settings port missing. Shown on the Wheel page, in Pre-race checks and in diagnostics
 
