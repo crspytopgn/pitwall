@@ -90,7 +90,12 @@ class Plugin:
     async def wheel_status(self) -> dict:
         w = await self._run(self._wheel)
         if not w:
-            return {"connected": False, "error": "No controllable wheel found. Pitwall supports MOZA, Logitech, Fanatec (hid-fanatecff) and Thrustmaster (hid-tmff2)."}
+            from pitwall.wheels import moza as moza_mod
+            p = await self._run(moza_mod.probe)
+            if p["state"] != "none":
+                return {"connected": False, "error": p["detail"], "moza": p["state"]}
+            return {"connected": False, "error": "No controllable wheel found. Pitwall supports MOZA, Logitech, Fanatec "
+                    "(hid-fanatecff) and Thrustmaster (hid-tmff2). Check the base is switched on and plugged in by USB."}
         return {"connected": True, "name": w.name, "brand": w.brand, "settings": w.settings(),
                 "can_center": w.brand == "MOZA", "leds": bool(getattr(w, "leds_supported", False)),
                 "rev_lights": bool(self.settings.get("rev_lights"))}

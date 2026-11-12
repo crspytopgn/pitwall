@@ -193,8 +193,16 @@ def check(hub=None, wheel=None, game: dict | None = None, mangohud_dir: str | No
     if wheel:
         add("wheel", True, f"{wheel.name} connected")
     else:
-        add("wheel", False, "No wheel found for settings",
-            "Pitwall controls MOZA, Logitech, Fanatec and Thrustmaster settings. Check the USB cable and power.")
+        from .wheels import moza as _moza
+        p = _moza.probe()
+        if p["state"] == "xbox":
+            add("wheel", False, "MOZA base is in Xbox mode", p["detail"])
+        elif p["state"] == "no_serial":
+            add("wheel", False, "MOZA base found, but not its settings port", p["detail"])
+        else:
+            add("wheel", False, "No wheel found for settings",
+                "Pitwall controls MOZA, Logitech, Fanatec and Thrustmaster settings. Check the base is switched on "
+                "and the USB cable is plugged in.")
 
     # Force feedback available to games
     devs = input_wheels()

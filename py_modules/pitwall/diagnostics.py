@@ -69,6 +69,14 @@ def log_tail(log_dir: str | None) -> dict:
     return out
 
 
+def _moza_probe():
+    try:
+        from .wheels.moza import probe
+        return probe()
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def collect(version: str, settings: dict, hub=None, wheel=None, checks=None, log_dir=None, extra=None) -> dict:
     from .health import input_wheels
     rel = os_release()
@@ -85,6 +93,8 @@ def collect(version: str, settings: dict, hub=None, wheel=None, checks=None, log
         "input_wheels": input_wheels(),
         "pidff_loaded": os.path.isdir("/sys/module/hid_universal_pidff"),
         "serial_by_id": sorted(os.listdir("/dev/serial/by-id")) if os.path.isdir("/dev/serial/by-id") else [],
+        "tty_acm": sorted(os.path.basename(p) for p in glob.glob("/dev/ttyACM*")),
+        "moza_probe": _moza_probe(),
         "shm_maps": sorted(n for n in os.listdir("/dev/shm") if any(k in n for k in ("acpmf", "pcars", "rFactor", "LMU", "R3E")))
         if os.path.isdir("/dev/shm") else [],
         "settings": redact(settings),
@@ -108,6 +118,12 @@ def summary_text(info: dict) -> str:
         f"Wheel: {w.get('name') or 'none detected'}; FFB driver loaded: {info.get('pidff_loaded')}",
         f"Telemetry: {t.get('sim') or 'none'}; receiving: {t.get('receiving')}",
     ]
+    mp = info.get("moza_probe") or {}
+    if mp.get("devices"):
+        lines.append("MOZA USB: " + "; ".join(f"{d.get('name') or d.get('pid')} (serial port: {'yes' if d.get('serial') else 'no'}"
+                                              f"{', Xbox mode' if d.get('xbox') else ''})" for d in mp["devices"]))
+    elif "state" in mp:
+        lines.append("MOZA USB: none found")
     failed = [c["title"] for c in (info.get("checks") or []) if c.get("ok") is False]
     if failed:
         lines.append("Failed checks: " + "; ".join(failed))

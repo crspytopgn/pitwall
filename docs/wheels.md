@@ -59,6 +59,8 @@ If **Test force feedback** works but a game shows no wheel or no force feedback,
 
 ## MOZA
 
+**R3: use PC mode.** The R3 comes in Xbox mode, which hides the settings port Pitwall uses. Hold S1 and S2 on the wheel together for about 5 seconds until the base restarts; in PC mode the rev lights breathe red, yellow and green. Pitwall tells you when it sees a MOZA base in Xbox mode.
+
 Pitwall talks to MOZA bases with the serial protocol reverse engineered by [Boxflat](https://github.com/Lawstorant/boxflat). Every command Pitwall sends is checked byte for byte against Boxflat's encoder in the test suite.
 
 - **Natural inertia** runs from 100% to 500%, as in Pit House.

@@ -82,3 +82,41 @@ buf = bytearray(); f = moza.build_frame(40|0x80, 0x31, (2,), b"\x02\xee")
 buf.extend(f[:3]); assert moza.parse_frames(buf) == []
 buf.extend(f[3:]); assert moza.parse_frames(buf) == [(40, 0x13, b"\x02\x02\xee")]
 print("split-frame parsing OK")
+
+
+class TestMozaProbe(unittest.TestCase):
+    """Telling the user why a MOZA base can't be used (e.g. an R3 in Xbox mode)."""
+
+    def make(self, root, product="MOZA R3 Base", iface=("02", "02", "00"), tty=True, vid="346e"):
+        import os
+        usb = os.path.join(root, "usb")
+        dev = os.path.join(usb, "1-2")
+        os.makedirs(dev)
+        for k, v in (("idVendor", vid), ("idProduct", "0005"), ("product", product)):
+            with open(os.path.join(dev, k), "w") as f:
+                f.write(v + "\n")
+        i = dev + ":1.0"
+        os.makedirs(i)
+        for k, v in zip(("bInterfaceClass", "bInterfaceSubClass", "bInterfaceProtocol"), iface):
+            with open(os.path.join(i, k), "w") as f:
+                f.write(v + "\n")
+        ttyd = os.path.join(root, "tty")
+        os.makedirs(ttyd)
+        if tty:
+            os.makedirs(os.path.join(ttyd, "ttyACM0"))
+            os.symlink(i, os.path.join(ttyd, "ttyACM0", "device"))
+        return usb, ttyd
+
+    def test_states(self):
+        import tempfile
+        from pitwall.wheels import moza as m
+        with tempfile.TemporaryDirectory() as r:
+            self.assertEqual(m.probe(*self.make(r))["state"], "ok")
+        with tempfile.TemporaryDirectory() as r:
+            p = m.probe(*self.make(r, iface=("ff", "47", "d0"), tty=False))
+            self.assertEqual(p["state"], "xbox")
+            self.assertIn("S1 and S2", p["detail"])
+        with tempfile.TemporaryDirectory() as r:
+            self.assertEqual(m.probe(*self.make(r, iface=("03", "00", "00"), tty=False))["state"], "no_serial")
+        with tempfile.TemporaryDirectory() as r:
+            self.assertEqual(m.probe(*self.make(r, vid="046d"))["state"], "none")

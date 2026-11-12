@@ -156,6 +156,64 @@ def find_base() -> str | None:
     return None
 
 
+MOZA_VID = "346e"
+# Xbox controllers (GIP) use vendor class 0xff, subclass 0x47, protocol 0xd0.
+GIP_IFACE = ("ff", "47", "d0")
+SWITCH_TO_PC = ("Switch it to PC mode: hold S1 and S2 on the wheel together for about 5 seconds until the base "
+                "restarts. In PC mode the wheel's rev lights breathe red, yellow and green; in Xbox mode they run "
+                "from the sides to the centre. The R3 comes in Xbox mode.")
+
+
+def probe(sys_usb: str = "/sys/bus/usb/devices", sys_tty: str = "/sys/class/tty") -> dict:
+    """Why a MOZA base can or can't be used, for a helpful message.
+
+    Returns {"state": ..., "detail": ..., "devices": [...]}, state being one of
+    ok, none (no MOZA USB device), xbox (connected in Xbox mode), no_serial
+    (connected but no settings port).
+    """
+    devs = []
+    for d in sorted(glob.glob(os.path.join(sys_usb, "*"))):
+        try:
+            with open(os.path.join(d, "idVendor")) as f:
+                if f.read().strip().lower() != MOZA_VID:
+                    continue
+            with open(os.path.join(d, "idProduct")) as f:
+                pid = f.read().strip().lower()
+        except OSError:
+            continue
+        name = ""
+        try:
+            with open(os.path.join(d, "product")) as f:
+                name = f.read().strip()
+        except OSError:
+            pass
+        ifaces = []
+        for i in glob.glob(d + ":*"):
+            try:
+                ifaces.append(tuple(open(os.path.join(i, k)).read().strip().lower()
+                                    for k in ("bInterfaceClass", "bInterfaceSubClass", "bInterfaceProtocol")))
+            except OSError:
+                pass
+        tty = any(os.path.realpath(os.path.join(t, "device")).startswith(os.path.realpath(d) + ":")
+                  for t in glob.glob(os.path.join(sys_tty, "ttyACM*")))
+        devs.append({"usb": os.path.basename(d), "pid": pid, "name": name, "serial": tty,
+                     "xbox": GIP_IFACE in ifaces, "is_base": bool(re.search(r"\br[0-9]{1,2}\b|base|racing wheel", name, re.I))})
+    bases = [x for x in devs if x["is_base"]] or devs
+    if any(x["serial"] for x in bases):
+        return {"state": "ok", "detail": "", "devices": devs}
+    if not devs:
+        return {"state": "none", "devices": devs,
+                "detail": "No MOZA device on USB. Check the base is switched on (power adapter plugged in, power "
+                          "button on the back pressed) and the USB cable goes to the Steam Machine; try another port."}
+    if any(x["xbox"] for x in bases):
+        return {"state": "xbox", "devices": devs,
+                "detail": "Your MOZA base is connected in Xbox mode, which hides the settings port Pitwall uses "
+                          "(and some buttons). " + SWITCH_TO_PC}
+    return {"state": "no_serial", "devices": devs,
+            "detail": "Your MOZA base is on USB but its settings port isn't showing up. If it's an R3, it may be in "
+                      "Xbox mode: " + SWITCH_TO_PC + " Otherwise unplug it, wait a few seconds and plug it back in."}
+
+
 def base_model(path: str | None) -> str | None:
     """'R3' etc. from the serial node name (e.g. usb-Gudsen_MOZA_R3_Base_...)."""
     if not path:

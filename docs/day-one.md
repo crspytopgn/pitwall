@@ -27,6 +27,8 @@ Settings → System → check for updates. MOZA bases need the `hid-universal-pi
 
 ## 4. Plug in the wheel and run auto setup (1 minute)
 
+> **MOZA R3 owners:** the R3 comes in **Xbox mode**, and needs **PC mode** to work properly with SteamOS and Pitwall. Hold **S1** and **S2** on the wheel together for about 5 seconds until the base restarts. In PC mode the wheel's rev lights breathe red, yellow and green; in Xbox mode they run from the sides to the centre. You only need to do this once.
+
 Connect the wheel base and pedals, then open Pitwall. The first time, it offers **Run auto setup**. It:
 
 - recognises your device and wheel (for MOZA, the exact base: R3, R5, R9…)

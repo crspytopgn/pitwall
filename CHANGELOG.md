@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- MOZA: when a base can't be used, Pitwall says why: not on USB, connected in Xbox mode (the R3's default; with how to switch to PC mode), or settings port missing. Shown on the Wheel page, in Pre-race checks and in diagnostics
+
 ## 0.1.0 (12 November 2026, preview)
 
 First public preview. Not yet tested on real hardware.

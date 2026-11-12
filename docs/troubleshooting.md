@@ -1,5 +1,12 @@
 # Troubleshooting
 
+
+## Pitwall doesn't find my MOZA wheel
+
+- **R3: switch it to PC mode.** The R3 comes in Xbox mode, which hides the settings port Pitwall uses. Hold S1 and S2 on the wheel together for about 5 seconds until the base restarts. In PC mode the rev lights breathe red, yellow and green; in Xbox mode they run from the sides to the centre. Pitwall says "MOZA base is in Xbox mode" when it can tell.
+- Check the base is switched on: power adapter plugged in, power button on the back pressed.
+- Plug the USB cable straight into the Steam Machine rather than a hub, and try another port.
+- Still nothing: Pitwall → **Send diagnostics** lists every MOZA device it can see on USB and whether its settings port is there.
 ## "No MOZA wheelbase found"
 
 - Check the base has power and USB. In Desktop Mode run `ls /dev/serial/by-id/`: you should see a `Gudsen_MOZA_...` entry.
