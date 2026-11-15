@@ -6,6 +6,7 @@ import math
 import os
 import sys
 import threading
+import time
 
 import decky  # provided by Decky Loader
 
@@ -66,6 +67,18 @@ def _chown_to_user(*paths):
             os.chown(p, pw.pw_uid, pw.pw_gid)
     except (KeyError, OSError, AttributeError):
         pass
+
+
+def _text(v) -> str:
+    """Calls can come from the standalone web app too: treat anything that
+    isn't a string as text, so a bad request can't crash a handler."""
+    return v if isinstance(v, str) else ("" if v is None else str(v))
+
+
+def _appid(v) -> str | None:
+    """A Steam app ID: digits only (it also names folders, so nothing else)."""
+    v = _text(v).strip()
+    return v if v.isdigit() and len(v) <= 20 else None
 
 
 def _chown_tree_to_user(paths):
@@ -184,10 +197,14 @@ class Plugin:
     async def game_changed(self, appid: str, name: str, running: bool) -> dict:
         """Frontend hook for game start/stop. Applies wheel profiles and
         returns what happened plus the compatibility entry for the game."""
-        appid = str(appid)
         result = {"applied": None, "game": None}
+        appid, name, running = _appid(appid), _text(name), bool(running)
+        if appid is None:
+            return result
         if running:
             self.current_app = {"appid": appid, "name": name}
+            g0 = self.compat.find(appid, name)
+            self._game_id = g0["id"] if g0 else None
         elif self.current_app and self.current_app["appid"] == appid:
             self.current_app = None
         else:
@@ -378,14 +395,14 @@ class Plugin:
         return await self._run(self.compat.run_auto_setup, game_id)
 
     async def compat_for_app(self, appid: str, name: str):
-        g = self.compat.find(appid, name)
+        g = self.compat.find(_text(appid), _text(name))
         return g["id"] if g else None
 
     # ============================================================== bridge
     async def bridge_status(self, appid: str) -> dict:
         try:
             ok_app = int(appid) in bridge.SUPPORTED_APPIDS
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             ok_app = False
         return {"supported": ok_app, "installed": bridge.installed(HOME), "prefix": bridge.launch_prefix(HOME)}
 
@@ -400,6 +417,7 @@ class Plugin:
         return await self._run(lambda: bridge.install(HOME, uid, gid))
 
     async def bridge_launch_options(self, current: str, enable: bool) -> str:
+        current = _text(current)
         prefix = bridge.launch_prefix(HOME)
         return bridge.merge_launch_options(current, prefix) if enable else bridge.remove_from_launch_options(current, prefix)
 
@@ -420,7 +438,7 @@ class Plugin:
 
     async def wheel_launch_options(self, current: str, enable: bool) -> str:
         value = health.sdl_wheel_env(health.input_wheels())
-        return health.sdl_launch_options(current, value, enable)
+        return health.sdl_launch_options(_text(current), value, bool(enable))
 
     # ===================================================== force feedback setup
     async def ffb_status(self) -> dict:
@@ -470,7 +488,7 @@ class Plugin:
 
     async def hidraw_launch_options(self, current: str, enable: bool) -> str:
         value = health.sdl_wheel_env(health.input_wheels())
-        return health.env_launch_options(current, "PROTON_ENABLE_HIDRAW", value, enable)
+        return health.env_launch_options(_text(current), "PROTON_ENABLE_HIDRAW", value, bool(enable))
 
     # ============================================================ updates
     UPDATES_FILE = os.path.join(DATA_DIR, "updates.json")
@@ -569,11 +587,11 @@ class Plugin:
             m = vpad.default_map(next(iter(devices.values())))
         return m
 
-    def _game_layout(self, devices: dict) -> dict:
+    def _game_layout(self, devices: dict, game_id: str | None = None) -> dict:
+        """This game's layout: your own choices (they apply in every game), the
+        paddles, then the game's other actions on the free buttons."""
         keep = self.settings.get("game_layout") or {}
-        # The Steam controls stay free in the automatic part where possible, so
-        # one button doesn't mean two different things.
-        return gamebinds.auto_layout(devices, keep)
+        return gamebinds.auto_layout(devices, keep, game_id)
 
     def _apply_nav(self):
         devices = self._devices()
@@ -586,7 +604,7 @@ class Plugin:
             return
         devices = self._devices()
         if self.current_app:
-            does = gamebinds.action_for(self._game_layout(devices), control)
+            does = gamebinds.action_for(self._game_layout(devices, self._game_id), control)
         else:
             a = next((a for a, c in self._nav_map(devices).items() if c == control), None)
             does = vpad.ACTION_LABELS.get(a) if a and self.nav.active else None
@@ -609,17 +627,30 @@ class Plugin:
             return None
         if self.current_app and self.current_app["appid"] == gamebinds.BEAMNG_APPID:
             return {"ok": False, "error": "Close BeamNG.drive first; it saves its controls on exit."}
-        r = gamebinds.beamng_apply(HOME, self._game_layout(devices), devices)
+        r = gamebinds.beamng_apply(HOME, self._game_layout(devices, "beamng"), devices)
         if r.get("written"):
             _chown_tree_to_user(r["written"])
         return r
 
-    async def buttons_status(self) -> dict:
+    async def buttons_status(self, game_id: str = "") -> dict:
+        game_id = _text(game_id)
+        """game_id: which game's layout to show; without one, the running game,
+        then the last one you looked at, then your first installed racing game."""
         snap = self.buttons.snapshot()
         devices = {d["id"]: d for d in snap["devices"]}
         label = lambda c: buttons.control_label(c, devices) if c else None
         nav_map = self._nav_map(devices)
-        layout = self._game_layout(devices)
+        if self._games_cache is None:
+            self._games_cache = [{"id": g["id"], "name": g["name"]} for g in await self._run(self._games_installed)
+                                 if g.get("installed")]
+        ids = {g["id"] for g in self._games_cache} | set(gamebinds.GAME_ACTIONS) | set(gamebinds._FAMILY)
+        if game_id and game_id in ids:
+            self._buttons_game = game_id
+            gid = game_id
+        else:
+            gid = (self._game_id if self.current_app and self._game_id else None) or self._buttons_game \
+                or (self._games_cache[0]["id"] if self._games_cache else "beamng")
+        layout = self._game_layout(devices, gid)
         in_game = self.current_app is not None
         recent = []
         for r in snap["recent"][:6]:
@@ -640,14 +671,19 @@ class Plugin:
                     "rows": [{"action": a, "label": l, "control": nav_map.get(a), "button": label(nav_map.get(a))}
                              for a, l in vpad.ACTIONS]},
             "layout": {"rows": [{**r, "auto": bool(r["control"]) and r["action"] not in user_set}
-                                for r in gamebinds.describe(layout, devices, buttons.control_label)],
-                       "paddles": bool(layout.get("shift_up") and layout.get("shift_down"))},
+                                for r in gamebinds.describe(layout, devices, buttons.control_label, gid)],
+                       "paddles": bool(layout.get("shift_up") and layout.get("shift_down")),
+                       "game_id": gid, "dpad": gamebinds.dpad_use(gid),
+                       "pitwall_sets": gid == "beamng",
+                       "known_wheel": any(gamebinds.known(d) for d in devices)},
+            "games": self._games_cache or [{"id": "beamng", "name": "BeamNG.drive"}],
             "beamng": {**(await self._run(gamebinds.beamng_status, HOME)), "auto": bool(self.settings.get("beamng_auto", True))},
             "learning": self._learn_target,
         }
 
     async def buttons_learn(self, kind: str, action: str) -> dict:
         """Arm: the next wheel button pressed becomes this action."""
+        kind, action = _text(kind), _text(action)
         if kind == "nav" and action not in vpad.ACTION_LABELS or kind == "game" and action not in gamebinds.LABELS \
                 or kind not in ("nav", "game"):
             return {"ok": False}
@@ -683,7 +719,7 @@ class Plugin:
         self.buttons.learned()
 
     async def buttons_reset(self, kind: str) -> dict:
-        key = {"nav": "nav_map", "game": "game_layout"}.get(kind)
+        key = {"nav": "nav_map", "game": "game_layout"}.get(_text(kind))
         if not key:
             return {"ok": False}
         self.settings[key] = {}
@@ -703,18 +739,36 @@ class Plugin:
         return {"ok": True, "removed": removed}
 
     # ============================================================ graphics
+    def _race_track(self, f):
+        """Remember when you're actually driving (on track, not paused, moving),
+        so graphics tuning ignores menus, loading and the garage."""
+        if not self.current_app or not f.active or f.speed < 4.0:      # about 15 km/h
+            return
+        now = time.time()
+        w = self._race_windows
+        if w and now - w[-1][1] < 5.0:
+            w[-1][1] = now
+        elif len(w) < 500:
+            w.append([now, now])
+
+    def _running(self, appid: str) -> bool:
+        return bool(self.current_app and str(self.current_app.get("appid")) == str(appid))
+
     async def _graphics_game(self, appid: str, name: str, running: bool, game) -> dict:
         t = self.tuner
         if running:
+            self._race_windows = []
             if appid not in t.games and self.settings.get("auto_graphics", True) and game:
-                e = await self._run(t.enroll, appid, name)
+                e = await self._run(t.enroll, appid, name, True)
                 self._emit("pitwall_toast", f"Pitwall will tune {e['name']}'s graphics for this machine from its next start. "
                            "It measures while you drive and adjusts after you quit.")
             if appid in t.games:
                 await self._run(t.started, appid)
                 return {"enrolled": True}
             return {"enrolled": False}
-        r = await self._run(t.finished, appid, float(self.settings["target_fps"]))
+        windows = [tuple(x) for x in self._race_windows]
+        self._race_windows = []
+        r = await self._run(t.finished, appid, float(self.settings["target_fps"]), windows)
         if r and r.get("message"):
             self._emit("pitwall_toast", r["message"])
         return {"enrolled": appid in t.games, **(r or {})}
@@ -727,22 +781,31 @@ class Plugin:
     async def graphics_launch_options(self, appid: str, current: str, enable: bool) -> str:
         """The game's launch options with Pitwall's frame cap and quiet measuring
         added (or taken out), everything else kept."""
-        folder = graphics.log_dir(MANGOHUD_DIR, str(appid))
+        current = _text(current)
+        appid = _appid(appid)
+        if appid is None:
+            return current
+        folder = graphics.log_dir(MANGOHUD_DIR, appid)
         if enable:
             os.makedirs(folder, exist_ok=True)
             _chown_to_user(os.path.dirname(MANGOHUD_DIR), MANGOHUD_DIR, os.path.dirname(folder), folder)
         return graphics.launch_options(current or "", bool(enable), int(self.settings["target_fps"]), folder)
 
     async def graphics_enroll(self, appid: str, name: str) -> dict:
-        e = await self._run(self.tuner.enroll, str(appid), name)
+        appid = _appid(appid)
+        if appid is None:
+            return {"ok": False}
+        e = await self._run(self.tuner.enroll, appid, _text(name), self._running(appid))
         return {"ok": True, "tier": e["tier"]}
 
     async def graphics_forget(self, appid: str) -> bool:
-        return await self._run(self.tuner.forget, str(appid))
+        appid = _appid(appid)
+        return bool(appid) and await self._run(self.tuner.forget, appid)
 
     async def graphics_set_tier(self, appid: str, tier: str) -> dict:
-        e = await self._run(self.tuner.set_tier, str(appid), tier)
-        return {"ok": e is not None, "write": (e or {}).get("write")}
+        appid = _appid(appid)
+        e = await self._run(self.tuner.set_tier, appid, _text(tier), self._running(appid)) if appid else None
+        return {"ok": e is not None, "write": (e or {}).get("write"), "pending": bool((e or {}).get("pending"))}
 
     # ============================================================ settings
     async def get_settings(self) -> dict:
@@ -762,6 +825,8 @@ class Plugin:
     }
 
     async def set_setting(self, key: str, value):
+        if not isinstance(key, str):
+            return False
         check = self.SETTING_CHECKS.get(key)
         if check is None:
             return False
@@ -797,7 +862,9 @@ class Plugin:
         self.wheel_lock = threading.Lock()
         self.ffb_undo_stack = []
         self.rev_lights = None
+        self._race_windows: list = []
         self.hub = Hub(os.path.join(DATA_DIR, "laps.sqlite"), ports=self.settings.get("ports"), logger=decky.logger)
+        self.hub.listeners.append(self._race_track)
         self.hub.start()
         self.loop = asyncio.get_running_loop()
         self.downloads = diagnostics.DownloadTokens()
@@ -819,8 +886,12 @@ class Plugin:
         except Exception:
             self.device_kind = "pc"
         self.tuner = graphics.Tuner(os.path.join(SETTINGS_DIR, "graphics.json"), HOME, MANGOHUD_DIR, self.device_kind,
-                                    self.compat.find, lambda a: compat_mod.prefix_path(HOME, int(a)))
+                                    self.compat.find, lambda a: compat_mod.prefix_path(HOME, int(a)),
+                                    on_written=lambda paths: _chown_to_user(*[p for p in paths if os.path.exists(p)]))
         self._learn_target = None
+        self._game_id = None
+        self._buttons_game = None
+        self._games_cache = None
         self.nav = vpad.NavBridge(log=decky.logger)
         self.buttons = buttons.ButtonWatcher(lambda: [w["event"] for w in health.input_wheels()])
         self.buttons.listeners.append(self._on_button)

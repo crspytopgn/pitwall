@@ -61,7 +61,9 @@ class TestPluginBackend(unittest.TestCase):
             self.assertEqual((await p.debrief())["lines"], ["No laps recorded this session yet."])
             bs = await p.buttons_status()
             self.assertEqual(bs["devices"], [])
-            self.assertEqual(len(bs["layout"]["rows"]), 16)
+            self.assertEqual(bs["layout"]["game_id"], "eawrc")                 # the running game's layout
+            self.assertEqual([r["action"] for r in bs["layout"]["rows"]][:3], ["shift_up", "shift_down", "handbrake"])
+            self.assertEqual(len((await p.buttons_status("beamng"))["layout"]["rows"]), 16)
             self.assertFalse((await p.buttons_learn("game", "not-an-action"))["ok"])
             self.assertTrue((await p.buttons_learn("game", "shift_up"))["ok"])
             self.assertEqual((await p.buttons_learned())["state"], "waiting")

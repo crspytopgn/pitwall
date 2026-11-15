@@ -117,17 +117,18 @@ type BtnStatus = {
   recent: { control: string; label: string; steam: string | null; game: string | null }[];
   in_game: boolean; game: string | null; uinput: boolean;
   nav: { enabled: boolean; active: boolean; error: string | null; custom: boolean; rows: BtnRow[] };
-  layout: { rows: BtnRow[]; paddles: boolean };
+  layout: { rows: BtnRow[]; paddles: boolean; game_id: string; dpad: string | null; pitwall_sets: boolean; known_wheel: boolean };
+  games: { id: string; name: string }[];
   beamng: { found: boolean; applied: boolean; auto: boolean };
   learning: { kind: string; action: string } | null;
 };
-const buttonsStatus = callable<[], BtnStatus>("buttons_status");
+const buttonsStatus = callable<[game_id: string], BtnStatus>("buttons_status");
 const buttonsLearn = callable<[kind: string, action: string], { ok: boolean }>("buttons_learn");
 const buttonsLearned = callable<[], { state: string; label?: string; beamng?: { ok: boolean; error: string | null } | null }>("buttons_learned");
 const buttonsCancelLearn = callable<[], void>("buttons_cancel_learn");
 const buttonsReset = callable<[kind: string], { ok: boolean }>("buttons_reset");
 const beamngBind = callable<[enable: boolean], { ok: boolean; error?: string | null }>("beamng_bind");
-type GfxGame = { appid: string; name: string; tier: string; label: string; auto_settings: boolean; advice: string;
+type GfxGame = { appid: string; name: string; tier: string; label: string; auto_settings: boolean; advice: string; pending: boolean;
   last: { avg: number; low1: number; gpu: number | null; verdict: string; tier: string } | null; write_error: string | null };
 type GfxStatus = { device: string; target_fps: number; auto: boolean; games: GfxGame[]; tiers: { id: string; label: string }[] };
 const graphicsStatus = callable<[], GfxStatus>("graphics_status");
@@ -790,7 +791,8 @@ function GraphicsPage({ go }: { go?: Go }) {
           <Row><div style={small}>
             {g.advice}
             {g.write_error && <div style={{ color: "#ffb020" }}>{g.write_error}</div>}
-            <div style={dim}>{g.last ? `Last run on ${st.tiers.find((t) => t.id === g.last!.tier)?.label}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 5 minutes, then quit the game."}</div>
+            {g.pending && <div style={{ color: "#4da3ff" }}>Pitwall changes the settings when you quit the game; games save their own settings on exit.</div>}
+            <div style={dim}>{g.last ? `Last run on ${st.tiers.find((t) => t.id === g.last!.tier)?.label}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 2 minutes on track, then quit the game. Menus, loading and the garage don't count."}</div>
           </div></Row>
           <Row><ButtonItem layout="below" onClick={async () => {
             await graphicsForget(g.appid);
@@ -944,7 +946,8 @@ function Laps() {
 
 // Wheel buttons: what each one does in Steam and in games, and changing it by pressing it.
 function ButtonsPage({ go }: { go?: Go }) {
-  const st = usePoll(buttonsStatus, 400);
+  const sel = useRef("");
+  const st = usePoll(() => buttonsStatus(sel.current), 400);
   const [learning, setLearning] = useState<string | null>(null);
   const learn = async (kind: string, r: BtnRow) => {
     if (learning) return;
@@ -996,16 +999,19 @@ function ButtonsPage({ go }: { go?: Go }) {
         {st.nav.enabled && st.nav.custom && <Row><ButtonItem layout="below" onClick={() => buttonsReset("nav")}>Back to the automatic layout</ButtonItem></Row>}
       </PanelSection>
       <PanelSection title="In games">
+        <Row><DropdownItem label="Game" rgOptions={st.games.map((g) => ({ data: g.id, label: g.name }))}
+          selectedOption={st.layout.game_id} onChange={(o: any) => { sel.current = o.data; }} /></Row>
         {!st.layout.paddles && st.devices.length > 0 && <Row><div style={{ ...small, color: "#4da3ff" }}>
           Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.</div></Row>}
         {st.layout.rows.map((r) => rowItem("game", r))}
+        {st.layout.dpad && <Row><div style={small}>D-pad: {st.layout.dpad}</div></Row>}
         <Row><ButtonItem layout="below" onClick={() => buttonsReset("game")}>Back to the automatic layout</ButtonItem></Row>
-        <Row><ToggleField label="Set these up in BeamNG.drive" checked={st.beamng.auto}
+        {st.layout.pitwall_sets ? <Row><ToggleField label="Set these up in BeamNG.drive" checked={st.beamng.auto}
           description={!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."
             : st.beamng.applied ? "Done. Buttons you bound yourself in BeamNG are kept. Takes effect next time BeamNG starts."
             : "Adds these to BeamNG's controls for your wheel. Your own bindings are kept."}
           onChange={async (v) => { const r = await beamngBind(v); if (!r.ok && r.error) toast(r.error); }} /></Row>
-        <Row><div style={dim}>Other games: set the same buttons in the game's controls menu. When you press a button, your phone dashboard shows what it's set to.</div></Row>
+          : <Row><div style={dim}>Set these in the game's controls menu once; this is the layout Pitwall suggests for this game, and what your phone dashboard shows when you press a button. Buttons you choose here apply in every game.</div></Row>}
       </PanelSection>
     </>
   );

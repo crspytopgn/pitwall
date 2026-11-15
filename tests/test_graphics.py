@@ -93,7 +93,7 @@ class TestAssettoCorsa(unittest.TestCase):
         self.assertNotIn("DOF", new)                   # never added
         self.assertEqual(open(path + ".pitwall-backup").read(), AC_INI)
         graphics.ac_apply(prefix, "max")
-        self.assertIn("WIDTH=2560", open(path).read())  # resolution is only ever lowered
+        self.assertIn("WIDTH=3840", open(path).read())  # Max: back to your own resolution, never above it
         self.assertTrue(graphics.ac_restore(prefix))
         self.assertEqual(open(path).read(), AC_INI)
 

@@ -119,12 +119,35 @@ class TestNavigation(unittest.TestCase):
 
 class TestGameLayout(unittest.TestCase):
     def test_auto_layout_keeps_your_choices(self):
-        lay = gamebinds.auto_layout(DEVS, {"shift_up": "346e:0005/b293"})
+        lay = gamebinds.auto_layout(DEVS, {"shift_up": "346e:0005/b293"}, "beamng")
         self.assertEqual(lay["shift_up"], "346e:0005/b293")
         self.assertNotIn("shift_down", lay)            # paddles are never guessed
         self.assertEqual(lay["handbrake"], "346e:0005/b288")
         self.assertEqual(len(set(lay.values())), len(lay))
         self.assertEqual(gamebinds.action_for(lay, "346e:0005/b288"), "Handbrake")
+
+    def test_layouts_per_game(self):
+        acc = gamebinds.auto_layout(DEVS, {}, "acc")
+        self.assertIn("pit_limiter", acc)
+        self.assertNotIn("horn", acc)                    # ACC has no horn
+        self.assertNotIn("handbrake", acc)
+        f1 = gamebinds.auto_layout(DEVS, {"horn": "346e:0005/b288"}, "f1_24")
+        self.assertEqual(f1["drs"], "346e:0005/b288")    # your BeamNG horn button is free in F1
+        trucks = gamebinds.describe(gamebinds.auto_layout(DEVS, {}, "ets2"), DEVS, buttons.control_label, "ets2")
+        self.assertIn("Cruise control", [r["label"] for r in trucks])
+        self.assertEqual(gamebinds.dpad_use("lmu"), "Change the on-screen display pages (MFD)")
+        self.assertEqual(gamebinds.actions_for("unknown")[:3], ["shift_up", "shift_down", "handbrake"])
+
+    def test_known_wheel_paddles(self):
+        g29 = {"id": "046d:c24f", "name": "G29", "buttons": [0x120 + i for i in range(25)], "hats": [0]}
+        devs = {g29["id"]: g29}
+        lay = gamebinds.auto_layout(devs, {}, "beamng")
+        self.assertEqual(lay["shift_up"], "046d:c24f/b292")      # right paddle, button 5
+        self.assertEqual(lay["shift_down"], "046d:c24f/b293")
+        self.assertNotIn("046d:c24f/b292", [c for a, c in lay.items() if a != "shift_up"])
+        self.assertEqual(buttons.control_label("046d:c24f/b292", devs), "Right paddle (button 5)")
+        self.assertEqual(buttons.control_label("046d:c24f/b288", devs), "Cross (button 1)")
+        self.assertEqual(buttons.control_label("046d:c24f/b300", devs), "Button 13")
 
     def test_filename(self):
         self.assertEqual(gamebinds.beamng_filename("046d:c262"), "c262046d.diff")
@@ -141,7 +164,7 @@ class TestGameLayout(unittest.TestCase):
                 "removed": [{"control": "button2", "action": "look_back"}]}
         json.dump(mine, open(path, "w"))
         self.assertEqual(gamebinds.beamng_user_folders(home, steam_roots=[]), [native])
-        lay = gamebinds.auto_layout(DEVS, {"shift_up": "346e:0005/b293", "shift_down": "346e:0005/b292"})
+        lay = gamebinds.auto_layout(DEVS, {"shift_up": "346e:0005/b293", "shift_down": "346e:0005/b292"}, "beamng")
         r = gamebinds.beamng_apply(home, lay, DEVS, steam_roots=[])
         self.assertTrue(r["ok"])
         data = json.load(open(path))

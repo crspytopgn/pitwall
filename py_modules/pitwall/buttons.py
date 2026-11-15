@@ -73,7 +73,13 @@ def control_label(control: str, devices: dict[str, dict]) -> str:
     if part.startswith("b") and part[1:].isdigit():
         code = int(part[1:])
         if dev and code in dev["buttons"]:
-            return f"Button {dev['buttons'].index(code) + 1}{where}"
+            i = dev["buttons"].index(code)
+            try:
+                from .gamebinds import button_name
+                name = button_name(dev, i)
+            except Exception:
+                name = None
+            return (f"{name} (button {i + 1}){where}" if name else f"Button {i + 1}{where}")
         return f"Button code {code}{where}"
     if part.startswith("hat"):
         n, _, d = part[3:].partition("-")

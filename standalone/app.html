@@ -509,7 +509,8 @@ PAGE_FN.graphics = async (el) => {
       sel.addEventListener("change", async () => { const r = await api("graphics_set_tier", g.appid, sel.value); if (r.write && !r.write.ok && r.write.message) toast(r.write.message); draw(); });
       el.append(card(g.name, row(h("label", { class: "slider" }, h("span", {}, "Level"), sel)), small(g.advice),
         g.write_error ? small(h("span", { class: "warn" }, g.write_error)) : null,
-        dim(g.last ? `Last run on ${tierName(g.last.tier)}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 5 minutes, then quit the game."),
+        g.pending ? small(h("span", { class: "blue" }, "Pitwall changes the settings when you quit the game; games save their own settings on exit.")) : null,
+        dim(g.last ? `Last run on ${tierName(g.last.tier)}: ${Math.round(g.last.avg)} FPS, 1% low ${Math.round(g.last.low1)}${g.last.gpu != null ? `, GPU ${Math.round(g.last.gpu)}%` : ""}` : "Not measured yet: drive for at least 2 minutes on track, then quit the game. Menus, loading and the garage don't count."),
         btns(button("Stop tuning", async () => {
           await api("graphics_forget", g.appid);
           await api("graphics_options_set", g.appid, false);
@@ -591,7 +592,7 @@ PAGE_FN.updates = async (el) => {
 
 // Wheel buttons: what each one does in Steam and in games; change one by pressing it.
 PAGE_FN.buttons = async (el) => {
-  let learning = null, last = "";
+  let learning = null, last = "", game = "";
   const box = h("div"); el.append(box);
   const learn = async (kind, r) => {
     if (learning) return;
@@ -612,7 +613,7 @@ PAGE_FN.buttons = async (el) => {
     h("div", { class: "row" }, h("span", {}, r.label), " ",
       button(learning === `${kind}:${r.action}` ? "Press a button…" : r.button || "Not set", () => learn(kind, r), { list: true }))));
   async function draw() {
-    const st = await api("buttons_status");
+    const st = await api("buttons_status", game);
     const key = JSON.stringify([st, learning]);
     if (key === last) return;
     last = key;
@@ -630,15 +631,19 @@ PAGE_FN.buttons = async (el) => {
       st.nav.error ? small(h("span", { class: "warn" }, st.nav.error)) : null,
       st.nav.enabled ? rowsFor("nav", st.nav.rows) : null,
       st.nav.enabled && st.nav.custom ? btns(button("Back to the automatic layout", async () => { await api("buttons_reset", "nav"); last = ""; draw(); })) : null));
+    const pick = h("select", {}, st.games.map((g) => { const o = h("option", { value: g.id }, g.name); if (g.id === st.layout.game_id) o.selected = true; return o; }));
+    pick.addEventListener("change", () => { game = pick.value; last = ""; draw(); });
     box.append(card("In games",
+      row(h("label", { class: "slider" }, h("span", {}, "Game"), pick)),
       !st.layout.paddles && st.devices.length ? small(h("span", { class: "blue" }, "Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.")) : null,
       rowsFor("game", st.layout.rows),
+      st.layout.dpad ? small(`D-pad: ${st.layout.dpad}`) : null,
       btns(button("Back to the automatic layout", async () => { await api("buttons_reset", "game"); last = ""; draw(); })),
-      toggle("Set these up in BeamNG.drive", st.beamng.auto, async (on) => { const r = await api("beamng_bind", on); if (!r.ok && r.error) toast(r.error); last = ""; draw(); }),
-      dim(!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."
-        : st.beamng.applied ? "Done. Buttons you bound yourself in BeamNG are kept. Takes effect next time BeamNG starts."
-        : "Adds these to BeamNG's controls for your wheel. Your own bindings are kept."),
-      dim("Other games: set the same buttons in the game's controls menu. When you press a button, your phone dashboard shows what it's set to.")));
+      st.layout.pitwall_sets ? [toggle("Set these up in BeamNG.drive", st.beamng.auto, async (on) => { const r = await api("beamng_bind", on); if (!r.ok && r.error) toast(r.error); last = ""; draw(); }),
+        dim(!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."
+          : st.beamng.applied ? "Done. Buttons you bound yourself in BeamNG are kept. Takes effect next time BeamNG starts."
+          : "Adds these to BeamNG's controls for your wheel. Your own bindings are kept.")]
+        : dim("Set these in the game's controls menu once; this is the layout Pitwall suggests for this game, and what your phone dashboard shows when you press a button. Buttons you choose here apply in every game.")));
   }
   poll(draw, 500);
 };

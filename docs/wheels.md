@@ -63,12 +63,12 @@ Pitwall's Wheel buttons page shows what every button on your wheel does, live: p
 
 **In Steam.** With no game running, your wheel's D-pad and buttons move around Steam (Gaming Mode and Big Picture): Select, Back, the Steam menu and the Quick Access menu are on the first buttons, the D-pad moves. Pitwall does this with a virtual controller that only exists while no game is running, so games never see a second controller. Change any of them by choosing it and pressing the button you want.
 
-**In games.** Pitwall keeps one in-game layout for your wheel: shift paddles, handbrake, look back, camera, recover, ignition, lights, horn, ESC/TC, indicators, hazards and more. It fills it in automatically; the shift paddles you set once by pressing them, because wheel brands number them differently.
+**In games.** Each game gets its own layout, from the actions that game actually has: ACC gets pit limiter, ignition, starter, lights, flash, wipers, TC, ABS and brake bias; F1 gets DRS, pit limiter, overtake and radio; the truck sims get indicators, cruise control, trailer and high beam; BeamNG.drive gets handbrake, recover, horn, ESC and indicators; and so on. Pick the game at the top of the section to see its layout. The most useful actions get the first buttons, and the page says what the D-pad does in that game (in most sims it changes the on-screen display pages).
 
+- **Shift paddles** are set automatically on wheels whose button numbering is confirmed: Logitech G29, G920 and both G923 editions, which also show their real button names (Cross, Square, Right paddle and so on). On other wheels Pitwall asks you to press each paddle once, because brands number them differently.
+- **Your choices win.** Change any action by choosing it and pressing the button you want; that button then does that action in every game that has it.
 - **BeamNG.drive:** Pitwall writes the layout into BeamNG's own controls for your wheel (the input map file in BeamNG's user folder, native Linux or Proton). Buttons you bound yourself in BeamNG are kept, and turning the option off takes Pitwall's bindings out again and leaves yours. Close BeamNG first; it picks the change up next time it starts.
-- **Other games:** set the same buttons in the game's controls menu once. Most sims save controls in their own formats, and Pitwall doesn't change them without being sure it's right.
-
-
+- **Other games:** set the layout in the game's controls menu once. Most sims save controls in their own undocumented formats, and Pitwall doesn't change them without being sure it's right.
 
 **R3: use PC mode.** The R3 comes in Xbox mode, which hides the settings port Pitwall uses. Hold S1 and S2 on the wheel together for about 5 seconds until the base restarts; in PC mode the rev lights breathe red, yellow and green. Pitwall tells you when it sees a MOZA base in Xbox mode.
 

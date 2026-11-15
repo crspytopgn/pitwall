@@ -12,7 +12,9 @@ from __future__ import annotations
 import csv
 import glob
 import os
+import re
 import statistics
+import time
 
 
 def benchmark_launch_options(log_dir: str, seconds: int = 90) -> str:
@@ -41,6 +43,45 @@ def read_frametimes(path: str) -> list[float]:
                 except (ValueError, IndexError, ZeroDivisionError):
                     continue
             return [t for t in out if 0 < t < 1000]
+    return []
+
+
+LOG_NAME_TIME = re.compile(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})\.csv$")
+
+
+def log_start(path: str) -> float | None:
+    """Wall-clock time a MangoHud log started, from its file name
+    (<program>_YYYY-MM-DD_HH-MM-SS.csv, local time)."""
+    m = LOG_NAME_TIME.search(os.path.basename(path))
+    if not m:
+        return None
+    try:
+        return time.mktime(time.strptime(m.group(1), "%Y-%m-%d_%H-%M-%S"))
+    except (ValueError, OverflowError):
+        return None
+
+
+def read_samples(path: str, interval_s: float = 0.1) -> list[tuple[float, float]]:
+    """(seconds since the log started, frametime ms) per row. Uses MangoHud's
+    'elapsed' column (nanoseconds) when there is one, otherwise the row number
+    times the log interval."""
+    with open(path, newline="", errors="ignore") as f:
+        rows = list(csv.reader(f))
+    for i, row in enumerate(rows):
+        if row and row[0].strip().lower() == "fps":
+            header = [h.strip().lower() for h in row]
+            ft = header.index("frametime") if "frametime" in header else None
+            el = header.index("elapsed") if "elapsed" in header else None
+            out = []
+            for n, r in enumerate(rows[i + 1:]):
+                try:
+                    t = float(r[ft]) if ft is not None else 1000.0 / float(r[0])
+                    off = float(r[el]) / 1e9 if el is not None else n * interval_s
+                except (ValueError, IndexError, ZeroDivisionError):
+                    continue
+                if 0 < t < 1000:
+                    out.append((off, t))
+            return out
     return []
 
 
