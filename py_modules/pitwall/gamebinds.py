@@ -504,7 +504,8 @@ def diagram_svg(layout: dict, devices: dict, game_id: str | None, factory: dict 
         out.append(f'<text x="{bx}" y="{by + 3.5}" text-anchor="middle" font-size="8.5" font-weight="700">{idx + 1}</text>')
     dpad = dpad_use(game_id)
     y0 = cy + r + 22
-    out.append(f'<text x="8" y="{y0}" font-weight="600">D-pad: {escape(dpad or "menus and the game\'s own use")}</text>')
+    dpad_text = escape(dpad or "menus and the game's own use")
+    out.append(f'<text x="8" y="{y0}" font-weight="600">D-pad: {dpad_text}</text>')
     for i, (idx, _dev, label, name) in enumerate(items):
         col, row = i % 2, i // 2
         tx, ty = 8 + col * 156, y0 + 18 + row * 18
