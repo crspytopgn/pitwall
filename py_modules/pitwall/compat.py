@@ -103,7 +103,10 @@ class LiveRatings:
 # ------------------------------------------------------------ Steam library
 def steam_roots(home: str) -> list[str]:
     roots = []
-    for base in (os.path.join(home, ".local/share/Steam"), os.path.join(home, ".steam/steam")):
+    for base in (os.path.join(home, ".local/share/Steam"), os.path.join(home, ".steam/steam"),
+                 # Flatpak Steam (desktop Linux)
+                 os.path.join(home, ".var/app/com.valvesoftware.Steam/.local/share/Steam"),
+                 os.path.join(home, ".var/app/com.valvesoftware.Steam/data/Steam")):
         vdf = os.path.join(base, "steamapps", "libraryfolders.vdf")
         if os.path.exists(vdf):
             roots.append(base)

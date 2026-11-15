@@ -152,28 +152,58 @@ def _control_index(control: str, devices: dict) -> tuple[dict, int] | None:
     return dev, dev["buttons"].index(code)
 
 
+def factory_paddles(dev: dict, factory: list | None) -> dict:
+    """Paddle positions from BeamNG's own profile for this wheel, if it has one
+    (BeamNG ships profiles for many wheels, the MOZA R3 included)."""
+    out = {}
+    for b in factory or []:
+        c, a = b.get("control", ""), b.get("action")
+        if c.startswith("button") and c[6:].isdigit() and a in ("shiftUp", "shiftDown"):
+            idx = int(c[6:])
+            if idx < len(dev["buttons"]):
+                out.setdefault("shift_up" if a == "shiftUp" else "shift_down", idx)
+    return out
+
+
+def paddles_for(dev: dict, factory: list | None = None) -> dict:
+    return dict((known(dev["id"]) or {}).get("paddles") or {}) or factory_paddles(dev, factory)
+
+
+BEAMNG_REVERSE = {b: a for a, b in BEAMNG.items()}
+
+
 def auto_layout(devices: dict, keep: dict | None = None, game_id: str | None = None,
-                reserved: set | None = None) -> dict:
+                reserved: set | None = None, factory: dict | None = None) -> dict:
     """Assign this game's actions to wheel buttons.
 
-    keep: actions you've set yourself (they win, in every game). Paddles are
-    set automatically on wheels whose numbering is known; on others Pitwall
-    asks you to press them once, because brands number them differently.
-    The remaining actions go to free buttons in the game's order of usefulness."""
+    keep: actions you've set yourself (they win, in every game).
+    factory: per device, the bindings of BeamNG's own profile for that wheel.
+    Paddles come from Pitwall's table of known wheels or from that profile; on
+    other wheels Pitwall asks you to press them once, because brands number
+    them differently. In BeamNG, what its own profile already binds is kept as
+    it is. The remaining actions go to free buttons in the game's order of
+    usefulness."""
+    factory = factory or {}
     wanted = actions_for(game_id)
     layout = {a: c for a, c in (keep or {}).items() if a in LABELS and c}
+    used = set(reserved or ())
     for dev in devices.values():
-        k = known(dev["id"])
-        for action, idx in ((k or {}).get("paddles") or {}).items():
-            if action not in layout and idx < len(dev["buttons"]):
-                layout[action] = f"{dev['id']}/b{dev['buttons'][idx]}"
+        for action, idx in paddles_for(dev, factory.get(dev["id"])).items():
+            c = f"{dev['id']}/b{dev['buttons'][idx]}"
+            used.add(c)                                  # paddles never get another job
+            layout.setdefault(action, c)
+        if game_family(game_id) == "beamng":
+            for b in factory.get(dev["id"]) or []:
+                ctl = b.get("control", "")
+                if not (ctl.startswith("button") and ctl[6:].isdigit()) or int(ctl[6:]) >= len(dev["buttons"]):
+                    continue
+                c = f"{dev['id']}/b{dev['buttons'][int(ctl[6:])]}"
+                used.add(c)                              # BeamNG already uses this button
+                ours = BEAMNG_REVERSE.get(b.get("action"))
+                if ours and ours not in layout:
+                    layout[ours] = c
     layout = {a: c for a, c in layout.items() if a in wanted}
-    used = set(layout.values()) | set(reserved or ())
-    # Known paddle buttons are never handed out to other actions.
-    for dev in devices.values():
-        for idx in ((known(dev["id"]) or {}).get("paddles") or {}).values():
-            if idx < len(dev["buttons"]):
-                used.add(f"{dev['id']}/b{dev['buttons'][idx]}")
+    used |= set(layout.values())
     free = [f"{d['id']}/b{code}" for d in devices.values() for code in d["buttons"]]
     free = [c for c in free if c not in used]
     for action in wanted:
@@ -183,6 +213,16 @@ def auto_layout(devices: dict, keep: dict | None = None, game_id: str | None = N
             break
         layout[action] = free.pop(0)
     return layout
+
+
+def is_factory(action: str, control: str | None, devices: dict, factory: dict | None) -> bool:
+    """True when BeamNG's own profile binds this button to this action."""
+    hit = _control_index(control or "", devices)
+    b = BEAMNG.get(action)
+    if not hit or not b:
+        return False
+    dev, idx = hit
+    return any(f.get("control") == f"button{idx}" and f.get("action") == b for f in (factory or {}).get(dev["id"]) or [])
 
 
 def describe(layout: dict, devices: dict, label_fn, game_id: str | None = None) -> list[dict]:
@@ -201,17 +241,39 @@ def action_for(layout: dict, control: str) -> str | None:
 
 # ----------------------------------------------------------------- BeamNG
 def beamng_user_folders(home: str, steam_roots: list[str] | None = None) -> list[str]:
-    """Existing BeamNG user folders: native Linux and Proton, current and versioned."""
+    """Existing BeamNG user folders, however you run it on Linux: the native
+    Linux build (also inside Flatpak Steam), or the Windows build under Proton,
+    in its current, latest or versioned folder."""
     xdg = os.environ.get("XDG_DATA_HOME") or os.path.join(home, ".local", "share")
-    cands = [os.path.join(xdg, "BeamNG", "BeamNG.drive", "current"), os.path.join(xdg, "BeamNG.drive", "latest")]
-    cands += sorted(glob.glob(os.path.join(xdg, "BeamNG.drive", "[0-9]*")))[-1:]
-    roots = steam_roots or [os.path.join(home, ".local", "share", "Steam"), os.path.join(home, ".steam", "steam")]
+    datas = [xdg, os.path.join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share")]
+    cands = []
+    for d in datas:
+        cands += [os.path.join(d, "BeamNG", "BeamNG.drive", "current"), os.path.join(d, "BeamNG.drive", "latest")]
+        cands += sorted(glob.glob(os.path.join(d, "BeamNG.drive", "[0-9]*")),
+                        key=lambda p: [int(x) if x.isdigit() else 0 for x in os.path.basename(p).split(".")])[-1:]
+    if steam_roots is None:
+        try:
+            from .compat import steam_roots as _roots
+            roots = _roots(home)
+        except Exception:
+            roots = []
+        roots = roots or [os.path.join(home, ".local", "share", "Steam"), os.path.join(home, ".steam", "steam")]
+    else:
+        roots = steam_roots
+    def newest(pattern):
+        def ver(p):
+            return [int(x) if x.isdigit() else 0 for x in os.path.basename(p).split(".")]
+        found = sorted(glob.glob(pattern), key=ver)
+        return found[-1:]
+
     for r in roots:
         local = os.path.join(r, "steamapps", "compatdata", BEAMNG_APPID, "pfx", "drive_c", "users", "steamuser",
                              "AppData", "Local")
         cands.append(os.path.join(local, "BeamNG", "BeamNG.drive", "current"))
-        cands.append(os.path.join(local, "BeamNG.drive", "latest"))
-        cands += sorted(glob.glob(os.path.join(local, "BeamNG.drive", "[0-9]*")))[-1:]
+        for name in ("BeamNG.drive", "BeamNG.Drive"):      # the Windows build has used both spellings
+            cands.append(os.path.join(local, name, "latest"))
+            cands.append(os.path.join(local, name, "current"))
+            cands += newest(os.path.join(local, name, "[0-9]*"))
     out = []
     for c in cands:
         real = os.path.realpath(c)
@@ -220,14 +282,64 @@ def beamng_user_folders(home: str, steam_roots: list[str] | None = None) -> list
     return out
 
 
+def beamng_install_dirs(home: str, steam_roots: list[str] | None = None) -> list[str]:
+    if steam_roots is None:
+        try:
+            from .compat import steam_roots as _roots
+            steam_roots = _roots(home)
+        except Exception:
+            steam_roots = []
+    return [d for r in steam_roots for d in [os.path.join(r, "steamapps", "common", "BeamNG.drive")] if os.path.isdir(d)]
+
+
+_FACTORY_CACHE: dict = {}
+
+
+def beamng_factory(home: str, dev_id: str, steam_roots: list[str] | None = None) -> list[dict]:
+    """The bindings BeamNG ships for this wheel (settings/inputmaps/<pid><vid>.json
+    in the game folder, loose or inside the game's zip archives), or []."""
+    import zipfile
+    stem = beamng_filename(dev_id)[:-len(".diff")]
+    for inst in beamng_install_dirs(home, steam_roots):
+        loose = sorted(glob.glob(os.path.join(inst, "settings", "inputmaps", f"{stem}*.json")))
+        for p in loose:
+            data = _read_json(p, None)
+            if isinstance(data, dict) and isinstance(data.get("bindings"), list):
+                return [b for b in data["bindings"] if isinstance(b, dict)]
+        for z in sorted(glob.glob(os.path.join(inst, "*.zip")) + glob.glob(os.path.join(inst, "content", "*.zip"))):
+            try:
+                key = (z, os.path.getmtime(z), stem)
+                if key in _FACTORY_CACHE:
+                    if _FACTORY_CACHE[key]:
+                        return _FACTORY_CACHE[key]
+                    continue
+                found: list = []
+                with zipfile.ZipFile(z) as zf:
+                    for name in zf.namelist():
+                        base = name.rsplit("/", 1)[-1]
+                        if name.startswith("settings/inputmaps/") and base.startswith(stem) and base.endswith(".json"):
+                            data = json.loads(zf.read(name).decode("utf-8", "replace"))
+                            if isinstance(data, dict) and isinstance(data.get("bindings"), list):
+                                found = [b for b in data["bindings"] if isinstance(b, dict)]
+                                break
+                _FACTORY_CACHE[key] = found
+                if found:
+                    return found
+            except (OSError, ValueError, zipfile.BadZipFile, KeyError):
+                continue
+    return []
+
+
 def beamng_filename(dev_id: str) -> str:
     """'346e:0005' -> '0005346e.diff' (product ID then vendor ID, as BeamNG names them)."""
     vid, _, pid = dev_id.partition(":")
     return f"{pid.lower():0>4}{vid.lower():0>4}.diff"
 
 
-def beamng_diffs(layout: dict, devices: dict) -> dict[str, list[dict]]:
-    """Per device file name: the bindings Pitwall wants."""
+def beamng_diffs(layout: dict, devices: dict, factory: dict | None = None) -> dict[str, list[dict]]:
+    """Per device file name: the bindings Pitwall wants to add. Anything BeamNG's
+    own profile already binds is left out: it's there by default."""
+    factory = factory or {}
     out: dict[str, list[dict]] = {}
     for action, control in layout.items():
         b = BEAMNG.get(action)
@@ -235,6 +347,9 @@ def beamng_diffs(layout: dict, devices: dict) -> dict[str, list[dict]]:
         if not hit:
             continue
         dev, idx = hit
+        fac = factory.get(dev["id"]) or []
+        if any(f.get("control") == f"button{idx}" or f.get("action") == b for f in fac):
+            continue
         out.setdefault(beamng_filename(dev["id"]), []).append(
             {"control": f"button{idx}", "action": b})
     return out
@@ -275,14 +390,14 @@ def _merge(existing: dict, previous: list[dict], ours: list[dict], name: str) ->
     return data, added
 
 
-def beamng_apply(home: str, layout: dict, devices: dict, steam_roots=None) -> dict:
+def beamng_apply(home: str, layout: dict, devices: dict, steam_roots=None, factory: dict | None = None) -> dict:
     folders = beamng_user_folders(home, steam_roots)
     if not folders:
         return {"ok": False, "error": "BeamNG.drive's user folder wasn't found. Start BeamNG once, then try again.",
                 "written": []}
-    wanted = beamng_diffs(layout, devices)
+    wanted = beamng_diffs(layout, devices, factory)
     if not wanted:
-        return {"ok": False, "error": "No wheel buttons to bind yet.", "written": []}
+        return {"ok": True, "error": None, "written": [], "message": "BeamNG's own profile already covers these buttons."}
     written = []
     for folder in folders:
         d = os.path.join(folder, "settings", "inputmaps")
@@ -339,3 +454,66 @@ def beamng_remove(home: str, steam_roots=None) -> list[str]:
             os.remove(side)
             done.append(path)
     return done
+
+
+# ----------------------------------------------------------------- diagram
+def diagram_svg(layout: dict, devices: dict, game_id: str | None, factory: dict | None = None) -> str:
+    """A small picture of the wheel for one game: the paddles, the D-pad and a
+    numbered dot per bound button, with a key underneath. The dots are laid out
+    evenly, not where each button physically sits (that differs per wheel); the
+    numbers match what Pitwall shows when you press a button."""
+    from html import escape
+    up, down = layout.get("shift_up"), layout.get("shift_down")
+    items = []
+    for action in actions_for(game_id):
+        c = layout.get(action)
+        if action in ("shift_up", "shift_down") or not c:
+            continue
+        hit = _control_index(c, devices)
+        if not hit:
+            continue
+        dev, idx = hit
+        name = button_name(dev, idx)
+        items.append((idx, dev["id"], LABELS[action], name))
+    items.sort(key=lambda x: (x[1], x[0]))
+    w, cx, cy, r = 320, 160, 100, 78
+    rows = (len(items) + 1) // 2
+    h = 200 + 18 * max(rows, 1) + 16
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="100%" role="img" '
+           f'aria-label="Wheel buttons for this game" font-family="system-ui,sans-serif" font-size="11" fill="currentColor">']
+    # paddles behind the rim
+    for side, x, label in ((-1, cx - r - 6, "Shift down" if down else "Left paddle: not set"),
+                           (1, cx + r + 6, "Shift up" if up else "Right paddle: not set")):
+        out.append(f'<rect x="{x - 9}" y="{cy - 46}" width="18" height="40" rx="6" fill="currentColor" opacity="0.35"/>')
+        anchor = "end" if side < 0 else "start"
+        tx = x - 14 if side < 0 else x + 14
+        out.append(f'<text x="{tx}" y="{cy - 22}" text-anchor="{anchor}" font-weight="600">{escape(label)}</text>')
+    # rim and hub
+    out.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="currentColor" stroke-width="12" opacity="0.55"/>')
+    out.append(f'<rect x="{cx - 52}" y="{cy - 30}" width="104" height="62" rx="16" fill="currentColor" opacity="0.12"/>')
+    # D-pad on the left of the hub
+    dx, dy = cx - 32, cy + 1
+    for ax, ay, aw, ah in ((dx - 4, dy - 13, 8, 26), (dx - 13, dy - 4, 26, 8)):
+        out.append(f'<rect x="{ax}" y="{ay}" width="{aw}" height="{ah}" rx="2" fill="currentColor" opacity="0.6"/>')
+    # numbered dots on the right of the hub, evenly spaced
+    shown = items[:8]
+    for i, (idx, _dev, _label, _n) in enumerate(shown):
+        col, row = i % 4, i // 4
+        bx, by = cx - 4 + col * 15, cy - 12 + row * 22
+        out.append(f'<circle cx="{bx}" cy="{by}" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>')
+        out.append(f'<text x="{bx}" y="{by + 3.5}" text-anchor="middle" font-size="8.5" font-weight="700">{idx + 1}</text>')
+    dpad = dpad_use(game_id)
+    y0 = cy + r + 22
+    out.append(f'<text x="8" y="{y0}" font-weight="600">D-pad: {escape(dpad or "menus and the game\'s own use")}</text>')
+    for i, (idx, _dev, label, name) in enumerate(items):
+        col, row = i % 2, i // 2
+        tx, ty = 8 + col * 156, y0 + 18 + row * 18
+        key = f"{idx + 1}"
+        out.append(f'<circle cx="{tx + 7}" cy="{ty - 4}" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>')
+        out.append(f'<text x="{tx + 7}" y="{ty - 0.5}" text-anchor="middle" font-size="8.5" font-weight="700">{key}</text>')
+        text = label if not name else f"{label} ({name})"
+        out.append(f'<text x="{tx + 19}" y="{ty}">{escape(text[:24])}</text>')
+    if not items:
+        out.append(f'<text x="8" y="{y0 + 18}" opacity="0.7">No buttons set yet for this game.</text>')
+    out.append("</svg>")
+    return "".join(out)

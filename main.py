@@ -587,11 +587,25 @@ class Plugin:
             m = vpad.default_map(next(iter(devices.values())))
         return m
 
+    def _factory(self, devices: dict) -> dict:
+        """BeamNG's own profile for each wheel, if BeamNG is installed and has
+        one; it tells Pitwall where the paddles are, for every game."""
+        key = tuple(sorted(devices))
+        if self._factory_cache.get("key") != key:
+            fac = {}
+            for dev_id in devices:
+                try:
+                    fac[dev_id] = gamebinds.beamng_factory(HOME, dev_id)
+                except Exception:
+                    fac[dev_id] = []
+            self._factory_cache = {"key": key, "data": fac}
+        return self._factory_cache["data"]
+
     def _game_layout(self, devices: dict, game_id: str | None = None) -> dict:
         """This game's layout: your own choices (they apply in every game), the
         paddles, then the game's other actions on the free buttons."""
         keep = self.settings.get("game_layout") or {}
-        return gamebinds.auto_layout(devices, keep, game_id)
+        return gamebinds.auto_layout(devices, keep, game_id, factory=self._factory(devices))
 
     def _apply_nav(self):
         devices = self._devices()
@@ -613,6 +627,7 @@ class Plugin:
 
     def _on_devices(self):
         # A wheel appeared or went away: refresh the Steam layout and BeamNG.
+        self._factory_cache = {}
         self._apply_nav()
         try:
             self._beamng_sync()
@@ -627,7 +642,8 @@ class Plugin:
             return None
         if self.current_app and self.current_app["appid"] == gamebinds.BEAMNG_APPID:
             return {"ok": False, "error": "Close BeamNG.drive first; it saves its controls on exit."}
-        r = gamebinds.beamng_apply(HOME, self._game_layout(devices, "beamng"), devices)
+        r = gamebinds.beamng_apply(HOME, self._game_layout(devices, "beamng"), devices,
+                                   factory=self._factory(devices))
         if r.get("written"):
             _chown_tree_to_user(r["written"])
         return r
@@ -651,6 +667,7 @@ class Plugin:
             gid = (self._game_id if self.current_app and self._game_id else None) or self._buttons_game \
                 or (self._games_cache[0]["id"] if self._games_cache else "beamng")
         layout = self._game_layout(devices, gid)
+        factory = self._factory(devices)
         in_game = self.current_app is not None
         recent = []
         for r in snap["recent"][:6]:
@@ -670,12 +687,15 @@ class Plugin:
                     "error": self.nav.error, "custom": bool(self.settings.get("nav_map")),
                     "rows": [{"action": a, "label": l, "control": nav_map.get(a), "button": label(nav_map.get(a))}
                              for a, l in vpad.ACTIONS]},
-            "layout": {"rows": [{**r, "auto": bool(r["control"]) and r["action"] not in user_set}
+            "layout": {"rows": [{**r, "auto": bool(r["control"]) and r["action"] not in user_set,
+                                 "game_default": gamebinds.is_factory(r["action"], r["control"], devices, factory)
+                                 if gamebinds.game_family(gid) == "beamng" else False}
                                 for r in gamebinds.describe(layout, devices, buttons.control_label, gid)],
+                       "diagram": gamebinds.diagram_svg(layout, devices, gid, factory),
                        "paddles": bool(layout.get("shift_up") and layout.get("shift_down")),
                        "game_id": gid, "dpad": gamebinds.dpad_use(gid),
                        "pitwall_sets": gid == "beamng",
-                       "known_wheel": any(gamebinds.known(d) for d in devices)},
+                       "known_wheel": any(gamebinds.paddles_for(d, factory.get(i)) for i, d in devices.items())},
             "games": self._games_cache or [{"id": "beamng", "name": "BeamNG.drive"}],
             "beamng": {**(await self._run(gamebinds.beamng_status, HOME)), "auto": bool(self.settings.get("beamng_auto", True))},
             "learning": self._learn_target,
@@ -892,6 +912,7 @@ class Plugin:
         self._game_id = None
         self._buttons_game = None
         self._games_cache = None
+        self._factory_cache: dict = {}
         self.nav = vpad.NavBridge(log=decky.logger)
         self.buttons = buttons.ButtonWatcher(lambda: [w["event"] for w in health.input_wheels()])
         self.buttons.listeners.append(self._on_button)

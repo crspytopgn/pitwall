@@ -111,13 +111,13 @@ const driverInstall = callable<[id: string], { ok: boolean; message: string }>("
 const driverRemove = callable<[id: string], { ok: boolean; message: string }>("driver_remove");
 const driverJob = callable<[], DriverJob>("driver_job");
 const hidrawLaunchOptions = callable<[current: string, enable: boolean], string>("hidraw_launch_options");
-type BtnRow = { action: string; label: string; control: string | null; button: string | null; auto?: boolean };
+type BtnRow = { action: string; label: string; control: string | null; button: string | null; auto?: boolean; game_default?: boolean };
 type BtnStatus = {
   devices: { id: string; name: string; buttons: number; hats: number }[]; pressed: string[];
   recent: { control: string; label: string; steam: string | null; game: string | null }[];
   in_game: boolean; game: string | null; uinput: boolean;
   nav: { enabled: boolean; active: boolean; error: string | null; custom: boolean; rows: BtnRow[] };
-  layout: { rows: BtnRow[]; paddles: boolean; game_id: string; dpad: string | null; pitwall_sets: boolean; known_wheel: boolean };
+  layout: { rows: BtnRow[]; paddles: boolean; game_id: string; diagram: string; dpad: string | null; pitwall_sets: boolean; known_wheel: boolean };
   games: { id: string; name: string }[];
   beamng: { found: boolean; applied: boolean; auto: boolean };
   learning: { kind: string; action: string } | null;
@@ -970,7 +970,7 @@ function ButtonsPage({ go }: { go?: Go }) {
     <Row key={kind + r.action}>
       <ButtonItem layout="inline" label={r.label} disabled={learning !== null && learning !== `${kind}:${r.action}`}
         onClick={() => learn(kind, r)}>
-        {learning === `${kind}:${r.action}` ? "Press a button…" : r.button || "Not set"}
+        {learning === `${kind}:${r.action}` ? "Press a button…" : (r.button || "Not set") + (r.game_default ? " (BeamNG's own)" : "")}
       </ButtonItem>
     </Row>
   );
@@ -1004,7 +1004,8 @@ function ButtonsPage({ go }: { go?: Go }) {
         {!st.layout.paddles && st.devices.length > 0 && <Row><div style={{ ...small, color: "#4da3ff" }}>
           Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.</div></Row>}
         {st.layout.rows.map((r) => rowItem("game", r))}
-        {st.layout.dpad && <Row><div style={small}>D-pad: {st.layout.dpad}</div></Row>}
+        {st.devices.length > 0 && <Row><div style={{ maxWidth: "320px", margin: "4px auto" }} dangerouslySetInnerHTML={{ __html: st.layout.diagram }} /></Row>}
+        {st.devices.length > 0 && <Row><div style={dim}>The numbers match the list above and what Pitwall shows when you press a button; the dots aren't drawn where each button sits on your wheel.</div></Row>}
         <Row><ButtonItem layout="below" onClick={() => buttonsReset("game")}>Back to the automatic layout</ButtonItem></Row>
         {st.layout.pitwall_sets ? <Row><ToggleField label="Set these up in BeamNG.drive" checked={st.beamng.auto}
           description={!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."

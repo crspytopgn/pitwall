@@ -36,6 +36,7 @@
   button:hover { border-color:#3a4450; } button:disabled { opacity:.5; cursor:default; }
   button.primary { background:var(--blue); border-color:var(--blue); color:#00131f; font-weight:600; }
   button.list { display:block; width:100%; text-align:left; margin:6px 0; }
+  .diagram { max-width: 360px; margin: 10px auto; }
   .btnmap .row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:2px 0; }
   .btnmap .row button.list { width:auto; min-width:12em; margin:2px 0; }
   .btns { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
@@ -611,7 +612,7 @@ PAGE_FN.buttons = async (el) => {
   };
   const rowsFor = (kind, rows) => h("div", { class: "btnmap" }, rows.map((r) =>
     h("div", { class: "row" }, h("span", {}, r.label), " ",
-      button(learning === `${kind}:${r.action}` ? "Press a button…" : r.button || "Not set", () => learn(kind, r), { list: true }))));
+      button(learning === `${kind}:${r.action}` ? "Press a button…" : (r.button || "Not set") + (r.game_default ? " (BeamNG's own)" : ""), () => learn(kind, r), { list: true }))));
   async function draw() {
     const st = await api("buttons_status", game);
     const key = JSON.stringify([st, learning]);
@@ -637,7 +638,8 @@ PAGE_FN.buttons = async (el) => {
       row(h("label", { class: "slider" }, h("span", {}, "Game"), pick)),
       !st.layout.paddles && st.devices.length ? small(h("span", { class: "blue" }, "Set your shift paddles first: choose Shift up and press the right paddle, then Shift down and the left one. Brands number them differently, so Pitwall asks once.")) : null,
       rowsFor("game", st.layout.rows),
-      st.layout.dpad ? small(`D-pad: ${st.layout.dpad}`) : null,
+      st.devices.length ? h("div", { class: "diagram", html: st.layout.diagram }) : null,
+      st.devices.length ? dim("The numbers match the list above and what Pitwall shows when you press a button; the dots aren't drawn where each button sits on your wheel.") : null,
       btns(button("Back to the automatic layout", async () => { await api("buttons_reset", "game"); last = ""; draw(); })),
       st.layout.pitwall_sets ? [toggle("Set these up in BeamNG.drive", st.beamng.auto, async (on) => { const r = await api("beamng_bind", on); if (!r.ok && r.error) toast(r.error); last = ""; draw(); }),
         dim(!st.beamng.found ? "BeamNG.drive's user folder wasn't found yet. Start the game once."

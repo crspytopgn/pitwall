@@ -14,21 +14,22 @@ Pitwall → **Graphics**. With **Tune every game automatically** on (the default
 
 ### Which games Pitwall changes itself
 
-Pitwall recognises the settings files whole engines use, and looks for them where each game keeps its files (its Proton folder, or its Linux folder for native games):
+Pitwall recognises the settings files whole engines use, and looks for them where each game keeps its files, however you run it on Linux: the Windows version under Proton, the native Linux version, and Steam installed as a Flatpak on desktop Linux:
 
 | Format | Games | What changes |
 |---|---|---|
+| BeamNG.drive `settings.json` | BeamNG.drive | Mesh, shadow, terrain, lighting and texture quality, dynamic reflections (the heaviest setting), grass density, anisotropic filtering, motion blur, depth of field, render resolution; switches BeamNG to its Custom preset so the settings stick |
 | Assetto Corsa `video.ini` | Assetto Corsa | Anti-aliasing, anisotropic filtering, shadows, mirrors, reflections, motion blur, depth of field, render resolution |
 | Unreal Engine `GameUserSettings.ini` | Unreal Engine games such as EA SPORTS WRC and Assetto Corsa Rally | The engine's quality levels (view distance, anti-aliasing, shadows, lighting, reflections, post-processing, effects, foliage, shading, textures) and render scale |
 | Codemasters `hardware_settings_config.xml` | F1 2021 to F1 25, DiRT Rally 2.0 | Render resolution; ray tracing off below Max |
 | Madness `graphicsconfigdx11.xml` | Automobilista 2, Project CARS 2 | Car, track, shadow, reflection and effects detail, motion blur, supersampling, render resolution |
 | SCS `config.cfg` | Euro Truck Simulator 2, American Truck Simulator | Render scale, sun shadows, mirror distance, ambient occlusion, depth of field |
 
-For every format: only settings already in the file are changed, nothing is added; the file is backed up once and **Stop tuning** puts the original back; render resolution is only ever lowered, never raised past yours. Where the change is relative (Madness and SCS files), **Max is the settings you chose in the game** and each level below turns detail down from there. If you change a setting yourself in the game, Pitwall notices and takes your new settings as the starting point.
+For every format: only settings already in the file are changed, nothing is added; the file is backed up once and **Stop tuning** puts the original back; render resolution is only ever lowered, never raised past yours. Where the change is relative (BeamNG, Madness and SCS files), **Max is the settings you chose in the game** and each level below turns detail down from there. If you change a setting yourself in the game, Pitwall notices and takes your new settings as the starting point.
 
 A game only gets its settings file the first time it runs, so Pitwall can change it from the second session on.
 
-**Other games** (BeamNG.drive, ACC, AC EVO, Le Mans Ultimate, rFactor 2, RaceRoom, Forza, iRacing and others): their settings formats aren't documented, so Pitwall tells you which of the game's presets matches the level, for example ACC's Epic, High, Mid or Low. The frame cap and measuring still work, so it tells you when to change it. Some Unreal Engine games, ACC possibly among them, apply their own menu settings over the engine file; there the preset advice is what counts.
+**Other games** (ACC, AC EVO, Le Mans Ultimate, rFactor 2, RaceRoom, Forza, iRacing and others): their settings formats aren't documented, so Pitwall tells you which of the game's presets matches the level, for example ACC's Epic, High, Mid or Low. The frame cap and measuring still work, so it tells you when to change it. Some Unreal Engine games, ACC possibly among them, apply their own menu settings over the engine file; there the preset advice is what counts.
 
 You can pick a level yourself at any time; Pitwall then starts learning again from there. Change **Target FPS** on the same page.
 

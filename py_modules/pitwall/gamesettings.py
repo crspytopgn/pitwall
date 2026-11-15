@@ -38,6 +38,7 @@ STEPS = {"max": 0, "high": 1, "balanced": 2, "performance": 3}
 RENDER_H = {"max": None, "high": None, "balanced": 1440, "performance": 1080}
 
 KIND_LABELS = {
+    "beamng": "BeamNG.drive's settings.json",
     "ac": "Assetto Corsa's video.ini",
     "unreal": "the game's Unreal Engine settings (GameUserSettings.ini)",
     "ego": "the game's hardware_settings_config.xml",
@@ -73,6 +74,16 @@ def find(prefix: str | None, home: str, game_id: str | None = None) -> list[tupl
             p = os.path.join(u, "Documents", folder, "config.cfg")
             if os.path.isfile(p):
                 out.append(("scs", p))
+    # BeamNG.drive: settings/settings.json in its user folder(s), native or Proton.
+    if game_id == "beamng":
+        try:
+            from .gamebinds import beamng_user_folders
+            for folder in beamng_user_folders(home):
+                p = os.path.join(folder, "settings", "settings.json")
+                if os.path.isfile(p):
+                    out.append(("beamng", p))
+        except Exception:
+            pass
     # Native Linux builds of the SCS games keep their settings in your home.
     native = {"ets2": SCS_FOLDERS[0], "ats": SCS_FOLDERS[1]}.get(game_id or "")
     if native:
@@ -276,7 +287,61 @@ def scs(current: str, base: str, tier: str) -> tuple[str, list[str]]:
     return text, changes
 
 
-WRITERS = {"unreal": unreal, "ego": ego, "madness": madness, "scs": scs}
+# ------------------------------------------------------------------ BeamNG.drive
+BNG_LADDER = ["Lowest", "Low", "Normal", "High", "Ultra"]
+BNG_LIGHTING = ["Lowest", "Low", "High", "Ultra"]            # BeamNG 0.40 has no Normal lighting
+BNG_QUALITY = {"GraphicMeshQuality": 1, "GraphicShadowsQuality": 1, "GraphicTerrainQuality": 1,
+               "GraphicTextureQuality": 0.5, "GraphicLightingQuality": 1}     # steps per level
+
+
+def beamng(current: str, base: str, tier: str) -> tuple[str, list[str]]:
+    import json
+    try:
+        cur, b = json.loads(current), json.loads(base)
+    except ValueError:
+        return current, []
+    if not isinstance(cur, dict) or not isinstance(b, dict):
+        return current, []
+    steps = STEPS[tier]
+    new = dict(cur)
+
+    def down(key, ladder, n):
+        v = b.get(key)
+        if key in cur and isinstance(v, str) and v in ladder:
+            new[key] = ladder[max(0, ladder.index(v) - n)]
+
+    for key, rate in BNG_QUALITY.items():
+        down(key, BNG_LIGHTING if key == "GraphicLightingQuality" else BNG_LADDER, int(steps * rate))
+    for key in ("GraphicDynReflectionEnabled", "PostFXMotionBlurEnabled", "PostFXDOFGeneralEnabled"):
+        if key in cur and isinstance(b.get(key), bool):
+            new[key] = b[key] if tier == "max" else False      # dynamic reflections are the heaviest setting
+    g = b.get("GraphicGrassDensity")
+    if "GraphicGrassDensity" in cur and isinstance(g, (int, float)) and not isinstance(g, bool):
+        new["GraphicGrassDensity"] = round(g * {"max": 1, "high": 0.75, "balanced": 0.5, "performance": 0.25}[tier], 2)
+    a = b.get("GraphicAnisotropic")
+    if "GraphicAnisotropic" in cur and isinstance(a, int) and not isinstance(a, bool):
+        new["GraphicAnisotropic"] = max(0, min(a, {"max": a, "high": 16, "balanced": 8, "performance": 4}[tier]))
+    res = b.get("GraphicDisplayResolutions")
+    if "GraphicDisplayResolutions" in cur and isinstance(res, str):
+        parts = res.split()
+        if len(parts) == 2 and all(p.isdigit() for p in parts):
+            lw = _lower_res(int(parts[0]), int(parts[1]), tier)
+            new["GraphicDisplayResolutions"] = f"{lw[0]} {lw[1]}" if lw else res
+    controlled = list(BNG_QUALITY) + ["GraphicDynReflectionEnabled", "PostFXMotionBlurEnabled",
+                                      "PostFXDOFGeneralEnabled", "GraphicGrassDensity", "GraphicAnisotropic",
+                                      "GraphicDisplayResolutions"]
+    if "GraphicOverallQuality" in cur:
+        lowered = any(new.get(k) != b.get(k) for k in controlled if k in cur and k in b)
+        # A lowered level needs BeamNG's Custom preset, or it would apply its own
+        # preset over these; Max is your own settings, preset included.
+        new["GraphicOverallQuality"] = "Custom" if lowered else b.get("GraphicOverallQuality", cur["GraphicOverallQuality"])
+    changes = [f"{k}={new[k]}" for k in new if new[k] != cur.get(k)]
+    if not changes:
+        return current, []
+    return json.dumps(new, indent=2), changes
+
+
+WRITERS = {"unreal": unreal, "ego": ego, "madness": madness, "scs": scs, "beamng": beamng}
 
 
 def apply(kind: str, path: str, tier: str) -> dict:
